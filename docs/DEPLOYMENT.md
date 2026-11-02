@@ -74,6 +74,22 @@ Railway 서비스 설정에서 다음 값을 관리한다. `railway.json`은 만
 
 검증 결과는 `artifacts/railway-cjk-verification.json`에 저장했다. 빈 위치 `(15,1)`에 짧은 `한글 AB` 검증 문장을 남겼다. 다른 참가자의 후속 덮어쓰기를 지울 수 있는 무조건 정리는 하지 않았다. 실제 모바일 OS 키보드 검증은 별도다.
 
+### native 편집 범위·Sarasa 글꼴 배포 — 2026-11-02
+
+구현 커밋 `8cee91e0d8e503e728f2004066e6f3228803e8de`를 기존 서비스에 배포했다. 배포 `17f5c355-165e-4518-aacc-2d08a9bcda35`는 **11:14:21 UTC에 SUCCESS**에 도달했다. GitHub push 직후 자동 시작은 관찰되지 않아 기존 `main` 소스를 다시 연결해 배포를 시작했다. DB 스키마·볼륨·replica 설정은 변경하지 않았다.
+
+11:14:52 UTC에 공개 HTTPS에서 실제 확인했다.
+
+- `/health` HTTP 200·`ok:true`, HTML·CSS·앱·입력·공통 모듈·폰트 CSS 등 11개 자산이 로컬과 일치했다.
+- 배포 전에 기록한 125개 셀의 좌표·내용·폭·버전이 그대로였다.
+- Sarasa WOFF2의 5,315,944 bytes와 SHA-256 `d6fe195614ff2e94c6d8bc9e05c39782b8fe0caf06f090116fc900ef39861f77`이 로컬 파일과 일치했다. `font/woff2`와 1년 immutable 캐시 헤더, 실제 9px/18px 문자 폭도 확인했다.
+- 독립 Chromium 두 context에서 `ㅎ`를 기존 범위의 `하 → 한`으로 조합했다. 미확정 조합은 공유하지 않고 `한` 확정은 단일 원자적 패치로 전달했다.
+- 빈 위치 `(32,1)`에 `한글日本中文A`를 입력해 13칸의 내용·폭이 일치하는 것을 확인했다. Enter는 작성 시작 열의 다음 행으로 돌아갔고 원격 커서도 이동했다. 브라우저 pageerror는 없었다.
+
+공개 검증 결과는 `artifacts/railway-standard-verification.json`, 화면은 `artifacts/standard-live-desktop.png`에 저장하고 직접 열어 확인했다. 이 검증은 실제 OS 키보드·후보창 또는 Safari/Firefox 실행을 포함하지 않는다. 다른 참여자의 후속 수정을 덮어쓰지 않도록 짧은 검증 문장은 남겼다.
+
+이번 서버의 native 범위 편집은 `write`의 `clear` 주소들과 새 글을 하나의 버전으로 반영한다. 이전 서버는 이 필드의 의미를 모르므로 롤백이 필요하면 이 계약을 지원하는 서버를 사용해야 한다. 이전 구현으로 단순 롤백하고 최신 입력 클라이언트를 계속 사용하는 조합은 검증되지 않았다.
+
 ### 복구와 제한
 
 - 표시 폭 v2는 `cells`·`history`에 폭/연속 칸 정보를 추가한다. 기존 영구 DB는 변경 전에 `/data/world.sqlite.pre-width-v2-<timestamp>-<uuid>.sqlite`로 `VACUUM INTO` 백업하고 파일·디렉터리를 동기화한다. 백업 실패 시 시작과 스키마 변경을 중단한다. 이미 변경된 DB와 신규 DB에는 이 백업을 반복하지 않는다.

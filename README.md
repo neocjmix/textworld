@@ -49,6 +49,7 @@ npm run test:input           # native 범위·조합 취소·자동 resize 회�
 npm run test:writing         # Enter·작성 기준·Backspace·native 입력 의도
 npm run test:ime             # native contenteditable 범위·조합 수명·미지원 입력
 npm run test:motion          # 관성·중단·원격 위치·터치·reduced-motion
+npm run test:cjk             # 한·일·중 실제 범위 입력·두 사용자·Sarasa 표시
 npm run experiment          # 공간 모델의 결정적 반례 비교
 ```
 
