@@ -155,7 +155,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
         if(req.method!=='GET')return json(res,405,{error:'GET required'});
         const period=Number(url.searchParams.get('period')||3600),since=Number(url.searchParams.get('since')||0),limit=Number(url.searchParams.get('limit')||2000),before=Number(url.searchParams.get('before')||Number.MAX_SAFE_INTEGER);
         if(![60,3600].includes(period)||!Number.isFinite(since)||!Number.isFinite(before)||!Number.isSafeInteger(limit)||limit<1)return json(res,400,{error:'Bad query'});
-        return json(res,200,{schema:1,runtime:measurements.runtime,revision:measurements.revision,enabled:measurements.enabled,failures:measurements.failures,rows:measurements.read({period,since,before,limit})});
+        return json(res,200,{schema:1,builds:measurements.builds(),runtime:measurements.runtime,revision:measurements.revision,enabled:measurements.enabled,failures:measurements.failures,rows:measurements.read({period,since,before,limit})});
       }
       if (await mcp.handle(req, res, url)) return;
       if (await agentHTTP.handle(req, res, url)) return;

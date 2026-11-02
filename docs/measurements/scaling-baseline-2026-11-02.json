@@ -1,0 +1,1453 @@
+{
+  "schema": 1,
+  "at": "2026-11-02T15:26:20.518Z",
+  "revision": "3fce190c2c031c94fbdf11de43a963f2e6e0745d",
+  "node": "v24.19.0",
+  "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+  "logicalCPUs": 5,
+  "workingTreeDirty": false,
+  "cpuQuota": "400000 100000",
+  "kind": "engine+observer microbenchmark, not end-to-end capacity",
+  "results": [
+    {
+      "trial": 0,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 1,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 22.904409,
+      "p50Ms": 0.8895380000000017,
+      "p95Ms": 1.8313370000000049,
+      "maxMs": 4.736435,
+      "cpuMs": 47.958,
+      "applicationBytes": 10070,
+      "returnedCells": 40,
+      "rssBytes": 46735360,
+      "heapBytes": 6671664
+    },
+    {
+      "trial": 0,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 1,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 15.489023999999986,
+      "p50Ms": 0.6557090000000017,
+      "p95Ms": 1.405028999999999,
+      "maxMs": 2.073192000000006,
+      "cpuMs": 43.835,
+      "applicationBytes": 10070,
+      "returnedCells": 40,
+      "rssBytes": 50511872,
+      "heapBytes": 7143656
+    },
+    {
+      "trial": 0,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 8,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 53.05712299999999,
+      "p50Ms": 2.1485309999999913,
+      "p95Ms": 3.805199000000016,
+      "maxMs": 8.587727000000001,
+      "cpuMs": 83.858,
+      "applicationBytes": 142160,
+      "returnedCells": 320,
+      "rssBytes": 50233344,
+      "heapBytes": 7115000
+    },
+    {
+      "trial": 0,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 8,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 43.36867699999999,
+      "p50Ms": 1.7983150000000023,
+      "p95Ms": 3.9571269999999856,
+      "maxMs": 6.330374000000006,
+      "cpuMs": 49.271,
+      "applicationBytes": 142160,
+      "returnedCells": 320,
+      "rssBytes": 50655232,
+      "heapBytes": 7067944
+    },
+    {
+      "trial": 0,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 32,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 180.703212,
+      "p50Ms": 8.708934999999997,
+      "p95Ms": 12.423235999999974,
+      "maxMs": 12.991436000000022,
+      "cpuMs": 193.192,
+      "applicationBytes": 1427520,
+      "returnedCells": 1280,
+      "rssBytes": 55504896,
+      "heapBytes": 8792896
+    },
+    {
+      "trial": 0,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 32,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 163.66229500000003,
+      "p50Ms": 8.02533299999999,
+      "p95Ms": 10.77152000000001,
+      "maxMs": 14.925992999999949,
+      "cpuMs": 177.759,
+      "applicationBytes": 1427520,
+      "returnedCells": 1280,
+      "rssBytes": 56684544,
+      "heapBytes": 7627488
+    },
+    {
+      "trial": 0,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 1,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 24.288024999999948,
+      "p50Ms": 0.9666670000000295,
+      "p95Ms": 1.9007389999999305,
+      "maxMs": 2.3176320000000032,
+      "cpuMs": 24.87,
+      "applicationBytes": 10090,
+      "returnedCells": 40,
+      "rssBytes": 61140992,
+      "heapBytes": 7655744
+    },
+    {
+      "trial": 0,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 1,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 22.188193999999953,
+      "p50Ms": 1.0316589999999906,
+      "p95Ms": 1.520281999999952,
+      "maxMs": 1.8591699999999491,
+      "cpuMs": 22.332,
+      "applicationBytes": 10090,
+      "returnedCells": 40,
+      "rssBytes": 65728512,
+      "heapBytes": 7539968
+    },
+    {
+      "trial": 0,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 8,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 133.23382000000004,
+      "p50Ms": 6.187976000000049,
+      "p95Ms": 8.379933999999935,
+      "maxMs": 9.358970999999997,
+      "cpuMs": 134.209,
+      "applicationBytes": 142320,
+      "returnedCells": 320,
+      "rssBytes": 65859584,
+      "heapBytes": 13747880
+    },
+    {
+      "trial": 0,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 8,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 130.2858359999999,
+      "p50Ms": 6.194507999999928,
+      "p95Ms": 8.522237000000018,
+      "maxMs": 10.27800000000002,
+      "cpuMs": 132.707,
+      "applicationBytes": 142320,
+      "returnedCells": 320,
+      "rssBytes": 66121728,
+      "heapBytes": 11686072
+    },
+    {
+      "trial": 0,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 32,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 546.3726260000001,
+      "p50Ms": 26.73870700000009,
+      "p95Ms": 32.21270900000013,
+      "maxMs": 35.89524600000004,
+      "cpuMs": 551.928,
+      "applicationBytes": 1428160,
+      "returnedCells": 1280,
+      "rssBytes": 67432448,
+      "heapBytes": 12511568
+    },
+    {
+      "trial": 0,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 32,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 531.335012,
+      "p50Ms": 25.79949099999999,
+      "p95Ms": 30.003331000000117,
+      "maxMs": 32.24305499999991,
+      "cpuMs": 536.986,
+      "applicationBytes": 1428160,
+      "returnedCells": 1280,
+      "rssBytes": 69136384,
+      "heapBytes": 13703768
+    },
+    {
+      "trial": 0,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 1,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 47.14825800000017,
+      "p50Ms": 2.018384999999853,
+      "p95Ms": 3.720013999999992,
+      "maxMs": 4.761054999999942,
+      "cpuMs": 94.037,
+      "applicationBytes": 13597,
+      "returnedCells": 40,
+      "rssBytes": 93437952,
+      "heapBytes": 12684816
+    },
+    {
+      "trial": 0,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 1,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 40.75296500000013,
+      "p50Ms": 1.549949999999626,
+      "p95Ms": 3.4214059999999336,
+      "maxMs": 6.0621000000001,
+      "cpuMs": 57.733,
+      "applicationBytes": 13597,
+      "returnedCells": 40,
+      "rssBytes": 92536832,
+      "heapBytes": 23913936
+    },
+    {
+      "trial": 0,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 8,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 612.2196859999999,
+      "p50Ms": 28.684608000000026,
+      "p95Ms": 43.73052600000028,
+      "maxMs": 46.41685600000028,
+      "cpuMs": 644.138,
+      "applicationBytes": 170376,
+      "returnedCells": 320,
+      "rssBytes": 126394368,
+      "heapBytes": 30172280
+    },
+    {
+      "trial": 0,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 8,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 507.2219049999999,
+      "p50Ms": 24.031602999999905,
+      "p95Ms": 31.697061999999733,
+      "maxMs": 42.502602000000024,
+      "cpuMs": 522.085,
+      "applicationBytes": 170376,
+      "returnedCells": 320,
+      "rssBytes": 129933312,
+      "heapBytes": 46306800
+    },
+    {
+      "trial": 0,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 32,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 1789.397587,
+      "p50Ms": 88.64781099999982,
+      "p95Ms": 115.94840099999965,
+      "maxMs": 117.17118100000016,
+      "cpuMs": 1838.294,
+      "applicationBytes": 1540384,
+      "returnedCells": 1280,
+      "rssBytes": 199663616,
+      "heapBytes": 53871720
+    },
+    {
+      "trial": 0,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 32,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 2078.420449,
+      "p50Ms": 105.6842660000002,
+      "p95Ms": 126.50450799999999,
+      "maxMs": 168.91203999999925,
+      "cpuMs": 2139.959,
+      "applicationBytes": 1540384,
+      "returnedCells": 1280,
+      "rssBytes": 209362944,
+      "heapBytes": 64986312
+    },
+    {
+      "trial": 0,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 1,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 90.33237499999996,
+      "p50Ms": 3.6230849999992643,
+      "p95Ms": 10.143217999999251,
+      "maxMs": 13.153159999999843,
+      "cpuMs": 101.747,
+      "applicationBytes": 13617,
+      "returnedCells": 40,
+      "rssBytes": 216481792,
+      "heapBytes": 43484016
+    },
+    {
+      "trial": 0,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 1,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 72.74967800000013,
+      "p50Ms": 3.2819479999998293,
+      "p95Ms": 4.934471000000485,
+      "maxMs": 7.045998999999938,
+      "cpuMs": 74.353,
+      "applicationBytes": 13617,
+      "returnedCells": 40,
+      "rssBytes": 216690688,
+      "heapBytes": 78634096
+    },
+    {
+      "trial": 0,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 8,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 575.7283019999995,
+      "p50Ms": 27.98078499999974,
+      "p95Ms": 33.74412499999926,
+      "maxMs": 36.1358309999996,
+      "cpuMs": 593.505,
+      "applicationBytes": 170536,
+      "returnedCells": 320,
+      "rssBytes": 220098560,
+      "heapBytes": 54313064
+    },
+    {
+      "trial": 0,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 8,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 594.7309609999993,
+      "p50Ms": 28.847655999999915,
+      "p95Ms": 33.201286999999866,
+      "maxMs": 34.61154700000043,
+      "cpuMs": 621.152,
+      "applicationBytes": 170536,
+      "returnedCells": 320,
+      "rssBytes": 224292864,
+      "heapBytes": 101033632
+    },
+    {
+      "trial": 0,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 32,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 3198.1080440000005,
+      "p50Ms": 141.4942800000008,
+      "p95Ms": 287.5177080000012,
+      "maxMs": 289.5944330000002,
+      "cpuMs": 3417.198,
+      "applicationBytes": 1541024,
+      "returnedCells": 1280,
+      "rssBytes": 334802944,
+      "heapBytes": 114779392
+    },
+    {
+      "trial": 0,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 32,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 2941.891658999999,
+      "p50Ms": 137.6470160000008,
+      "p95Ms": 211.6077720000012,
+      "maxMs": 227.27256300000045,
+      "cpuMs": 3180.454,
+      "applicationBytes": 1541024,
+      "returnedCells": 1280,
+      "rssBytes": 336924672,
+      "heapBytes": 94418392
+    },
+    {
+      "trial": 1,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 1,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 11.127262000001792,
+      "p50Ms": 0.4799029999994673,
+      "p95Ms": 0.9182880000007572,
+      "maxMs": 1.2618099999999686,
+      "cpuMs": 23.192,
+      "applicationBytes": 10070,
+      "returnedCells": 40,
+      "rssBytes": 336924672,
+      "heapBytes": 96805600
+    },
+    {
+      "trial": 1,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 1,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 9.295986000000994,
+      "p50Ms": 0.3613000000004831,
+      "p95Ms": 1.112623999997595,
+      "maxMs": 1.5038469999999506,
+      "cpuMs": 9.308,
+      "applicationBytes": 10070,
+      "returnedCells": 40,
+      "rssBytes": 336924672,
+      "heapBytes": 99171472
+    },
+    {
+      "trial": 1,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 8,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 42.8039260000005,
+      "p50Ms": 2.0725659999989148,
+      "p95Ms": 2.9965659999979835,
+      "maxMs": 4.206045999999333,
+      "cpuMs": 42.821,
+      "applicationBytes": 142160,
+      "returnedCells": 320,
+      "rssBytes": 336924672,
+      "heapBytes": 117280112
+    },
+    {
+      "trial": 1,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 8,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 42.71202699999776,
+      "p50Ms": 2.00302400000146,
+      "p95Ms": 2.7405310000031022,
+      "maxMs": 3.1143470000024536,
+      "cpuMs": 42.733,
+      "applicationBytes": 142160,
+      "returnedCells": 320,
+      "rssBytes": 337055744,
+      "heapBytes": 135380864
+    },
+    {
+      "trial": 1,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 32,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 179.20751499999824,
+      "p50Ms": 8.727821000000404,
+      "p95Ms": 12.313546999997925,
+      "maxMs": 14.236840999998094,
+      "cpuMs": 182.522,
+      "applicationBytes": 1427520,
+      "returnedCells": 1280,
+      "rssBytes": 337186816,
+      "heapBytes": 87533064
+    },
+    {
+      "trial": 1,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 32,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 193.62470600000233,
+      "p50Ms": 9.792491999996855,
+      "p95Ms": 12.383625999998912,
+      "maxMs": 12.77504300000146,
+      "cpuMs": 193.535,
+      "applicationBytes": 1427520,
+      "returnedCells": 1280,
+      "rssBytes": 337186816,
+      "heapBytes": 98782280
+    },
+    {
+      "trial": 1,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 1,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 29.150789999999688,
+      "p50Ms": 0.9567979999992531,
+      "p95Ms": 3.479124999998021,
+      "maxMs": 3.937047999999777,
+      "cpuMs": 29.171,
+      "applicationBytes": 10090,
+      "returnedCells": 40,
+      "rssBytes": 337186816,
+      "heapBytes": 106956848
+    },
+    {
+      "trial": 1,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 1,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 24.71620299999995,
+      "p50Ms": 1.0349850000020524,
+      "p95Ms": 2.253469999999652,
+      "maxMs": 2.574470999999903,
+      "cpuMs": 24.736,
+      "applicationBytes": 10090,
+      "returnedCells": 40,
+      "rssBytes": 337317888,
+      "heapBytes": 115128848
+    },
+    {
+      "trial": 1,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 8,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 142.07881199999974,
+      "p50Ms": 6.535683999998582,
+      "p95Ms": 8.70207599999776,
+      "maxMs": 14.417613999998139,
+      "cpuMs": 142.312,
+      "applicationBytes": 142320,
+      "returnedCells": 320,
+      "rssBytes": 337317888,
+      "heapBytes": 112735552
+    },
+    {
+      "trial": 1,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 8,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 129.05288400000063,
+      "p50Ms": 6.254182000000583,
+      "p95Ms": 7.667179000000033,
+      "maxMs": 8.699420000000828,
+      "cpuMs": 129.233,
+      "applicationBytes": 142320,
+      "returnedCells": 320,
+      "rssBytes": 337448960,
+      "heapBytes": 110206688
+    },
+    {
+      "trial": 1,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 32,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 668.0859530000016,
+      "p50Ms": 30.04387200000201,
+      "p95Ms": 49.5369529999989,
+      "maxMs": 59.725648999999976,
+      "cpuMs": 668.786,
+      "applicationBytes": 1428160,
+      "returnedCells": 1280,
+      "rssBytes": 337448960,
+      "heapBytes": 106252904
+    },
+    {
+      "trial": 1,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 32,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 906.4780549999996,
+      "p50Ms": 43.7016369999983,
+      "p95Ms": 60.319690000000264,
+      "maxMs": 63.84774099999777,
+      "cpuMs": 910.739,
+      "applicationBytes": 1428160,
+      "returnedCells": 1280,
+      "rssBytes": 337580032,
+      "heapBytes": 102612616
+    },
+    {
+      "trial": 1,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 1,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 62.8254479999996,
+      "p50Ms": 2.702141000001575,
+      "p95Ms": 5.872931000001699,
+      "maxMs": 6.404064999998809,
+      "cpuMs": 64.042,
+      "applicationBytes": 13597,
+      "returnedCells": 40,
+      "rssBytes": 339488768,
+      "heapBytes": 93772016
+    },
+    {
+      "trial": 1,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 1,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 62.29931599999691,
+      "p50Ms": 2.9675569999999425,
+      "p95Ms": 4.874775000000227,
+      "maxMs": 5.436058999999659,
+      "cpuMs": 62.327,
+      "applicationBytes": 13597,
+      "returnedCells": 40,
+      "rssBytes": 340144128,
+      "heapBytes": 150856200
+    },
+    {
+      "trial": 1,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 8,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 319.8054489999995,
+      "p50Ms": 14.204753999998502,
+      "p95Ms": 23.260135000000446,
+      "maxMs": 27.989982999999484,
+      "cpuMs": 328.73,
+      "applicationBytes": 170376,
+      "returnedCells": 320,
+      "rssBytes": 340922368,
+      "heapBytes": 92097728
+    },
+    {
+      "trial": 1,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 8,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 357.1723290000009,
+      "p50Ms": 17.261046999999962,
+      "p95Ms": 24.62850900000194,
+      "maxMs": 26.572729999999865,
+      "cpuMs": 366.358,
+      "applicationBytes": 170376,
+      "returnedCells": 320,
+      "rssBytes": 341184512,
+      "heapBytes": 98682936
+    },
+    {
+      "trial": 1,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 32,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 1199.9328380000006,
+      "p50Ms": 54.87304199999926,
+      "p95Ms": 82.4490650000007,
+      "maxMs": 89.15131199999814,
+      "cpuMs": 1250.259,
+      "applicationBytes": 1540384,
+      "returnedCells": 1280,
+      "rssBytes": 341577728,
+      "heapBytes": 104348592
+    },
+    {
+      "trial": 1,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 32,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 1387.100158000001,
+      "p50Ms": 63.98693999999887,
+      "p95Ms": 102.30705800000214,
+      "maxMs": 106.87551800000074,
+      "cpuMs": 1437.158,
+      "applicationBytes": 1540384,
+      "returnedCells": 1280,
+      "rssBytes": 341839872,
+      "heapBytes": 110343056
+    },
+    {
+      "trial": 1,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 1,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 178.785398,
+      "p50Ms": 8.395032000000356,
+      "p95Ms": 15.447659999997995,
+      "maxMs": 22.31187399999908,
+      "cpuMs": 184.977,
+      "applicationBytes": 13617,
+      "returnedCells": 40,
+      "rssBytes": 342102016,
+      "heapBytes": 150054112
+    },
+    {
+      "trial": 1,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 1,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 88.23221900000135,
+      "p50Ms": 4.146434000002046,
+      "p95Ms": 5.722811999999976,
+      "maxMs": 8.89601699999912,
+      "cpuMs": 92.357,
+      "applicationBytes": 13617,
+      "returnedCells": 40,
+      "rssBytes": 342364160,
+      "heapBytes": 118792200
+    },
+    {
+      "trial": 1,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 8,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 695.461301000003,
+      "p50Ms": 32.97261299999809,
+      "p95Ms": 43.776370999999926,
+      "maxMs": 43.941799000000174,
+      "cpuMs": 716.916,
+      "applicationBytes": 170536,
+      "returnedCells": 320,
+      "rssBytes": 342626304,
+      "heapBytes": 161638760
+    },
+    {
+      "trial": 1,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 8,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 760.535063000003,
+      "p50Ms": 33.34129400000165,
+      "p95Ms": 56.90998699999909,
+      "maxMs": 62.90148300000146,
+      "cpuMs": 782.69,
+      "applicationBytes": 170536,
+      "returnedCells": 320,
+      "rssBytes": 342888448,
+      "heapBytes": 141774824
+    },
+    {
+      "trial": 1,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 32,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 3008.251511999999,
+      "p50Ms": 134.94362499999988,
+      "p95Ms": 193.7226899999987,
+      "maxMs": 252.80883600000016,
+      "cpuMs": 3231.694,
+      "applicationBytes": 1541024,
+      "returnedCells": 1280,
+      "rssBytes": 340389888,
+      "heapBytes": 127662344
+    },
+    {
+      "trial": 1,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 32,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 2904.178656,
+      "p50Ms": 136.94996799999717,
+      "p95Ms": 167.83246000000145,
+      "maxMs": 247.3287049999999,
+      "cpuMs": 3104.982,
+      "applicationBytes": 1541024,
+      "returnedCells": 1280,
+      "rssBytes": 340389888,
+      "heapBytes": 124051880
+    },
+    {
+      "trial": 2,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 1,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 22.906754999999976,
+      "p50Ms": 0.4434739999996964,
+      "p95Ms": 4.122110000000248,
+      "maxMs": 4.602279999999155,
+      "cpuMs": 37.459,
+      "applicationBytes": 10070,
+      "returnedCells": 40,
+      "rssBytes": 342224896,
+      "heapBytes": 126405728
+    },
+    {
+      "trial": 2,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 1,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 8.725714000000153,
+      "p50Ms": 0.3291319999989355,
+      "p95Ms": 1.0338840000003984,
+      "maxMs": 1.1289379999980156,
+      "cpuMs": 8.74,
+      "applicationBytes": 10070,
+      "returnedCells": 40,
+      "rssBytes": 340885504,
+      "heapBytes": 128837368
+    },
+    {
+      "trial": 2,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 8,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 131.66571500000282,
+      "p50Ms": 3.319734000000608,
+      "p95Ms": 17.78035099999761,
+      "maxMs": 43.20217100000082,
+      "cpuMs": 133.78,
+      "applicationBytes": 142160,
+      "returnedCells": 320,
+      "rssBytes": 340885504,
+      "heapBytes": 89227976
+    },
+    {
+      "trial": 2,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 8,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 101.5364269999991,
+      "p50Ms": 2.8317800000004354,
+      "p95Ms": 14.763097999999445,
+      "maxMs": 23.48021399999925,
+      "cpuMs": 97.756,
+      "applicationBytes": 142160,
+      "returnedCells": 320,
+      "rssBytes": 341016576,
+      "heapBytes": 107313824
+    },
+    {
+      "trial": 2,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 32,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 480.84962099999757,
+      "p50Ms": 15.053631000002497,
+      "p95Ms": 48.08083099999931,
+      "maxMs": 163.70834900000045,
+      "cpuMs": 483.216,
+      "applicationBytes": 1427520,
+      "returnedCells": 1280,
+      "rssBytes": 341016576,
+      "heapBytes": 122368672
+    },
+    {
+      "trial": 2,
+      "occupancy": 0,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 32,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 157.50419200000033,
+      "p50Ms": 6.812279999998282,
+      "p95Ms": 12.065722999999707,
+      "maxMs": 19.294506000002002,
+      "cpuMs": 164.748,
+      "applicationBytes": 1427520,
+      "returnedCells": 1280,
+      "rssBytes": 341147648,
+      "heapBytes": 133463856
+    },
+    {
+      "trial": 2,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 1,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 25.489927999999054,
+      "p50Ms": 0.862887999999657,
+      "p95Ms": 3.139839999999822,
+      "maxMs": 3.8083520000000135,
+      "cpuMs": 25.544,
+      "applicationBytes": 10090,
+      "returnedCells": 40,
+      "rssBytes": 341147648,
+      "heapBytes": 141626224
+    },
+    {
+      "trial": 2,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 1,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 21.653487000003224,
+      "p50Ms": 0.8391159999955562,
+      "p95Ms": 2.040484999997716,
+      "maxMs": 2.766954999999143,
+      "cpuMs": 21.673,
+      "applicationBytes": 10090,
+      "returnedCells": 40,
+      "rssBytes": 341278720,
+      "heapBytes": 149791064
+    },
+    {
+      "trial": 2,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 8,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 265.9526939999996,
+      "p50Ms": 13.454493999997794,
+      "p95Ms": 16.949468999999226,
+      "maxMs": 21.21091599999636,
+      "cpuMs": 265.937,
+      "applicationBytes": 142320,
+      "returnedCells": 320,
+      "rssBytes": 341278720,
+      "heapBytes": 147236960
+    },
+    {
+      "trial": 2,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 8,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 198.95402599999943,
+      "p50Ms": 7.737310000004072,
+      "p95Ms": 19.42543200000364,
+      "maxMs": 23.390979000003426,
+      "cpuMs": 199.027,
+      "applicationBytes": 142320,
+      "returnedCells": 320,
+      "rssBytes": 341409792,
+      "heapBytes": 144688920
+    },
+    {
+      "trial": 2,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 32,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 568.3195839999971,
+      "p50Ms": 27.406066000003193,
+      "p95Ms": 31.02370299999893,
+      "maxMs": 37.41754200000287,
+      "cpuMs": 570.69,
+      "applicationBytes": 1428160,
+      "returnedCells": 1280,
+      "rssBytes": 341409792,
+      "heapBytes": 140608728
+    },
+    {
+      "trial": 2,
+      "occupancy": 0,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 32,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 585.4068590000024,
+      "p50Ms": 29.84802199999831,
+      "p95Ms": 33.14890800000285,
+      "maxMs": 41.02405600000202,
+      "cpuMs": 586.249,
+      "applicationBytes": 1428160,
+      "returnedCells": 1280,
+      "rssBytes": 341540864,
+      "heapBytes": 136906856
+    },
+    {
+      "trial": 2,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 1,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 81.17933800000174,
+      "p50Ms": 1.855451000003086,
+      "p95Ms": 8.721872000001895,
+      "maxMs": 21.676004999993893,
+      "cpuMs": 81.274,
+      "applicationBytes": 13597,
+      "returnedCells": 40,
+      "rssBytes": 341364736,
+      "heapBytes": 127742976
+    },
+    {
+      "trial": 2,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 1,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 73.30989599999884,
+      "p50Ms": 2.121240000000398,
+      "p95Ms": 5.694892999999865,
+      "maxMs": 22.701498000002175,
+      "cpuMs": 76.995,
+      "applicationBytes": 13597,
+      "returnedCells": 40,
+      "rssBytes": 341757952,
+      "heapBytes": 119294696
+    },
+    {
+      "trial": 2,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 8,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 359.7587710000007,
+      "p50Ms": 16.59176099999604,
+      "p95Ms": 31.103385000002163,
+      "maxMs": 37.53385100000014,
+      "cpuMs": 367.538,
+      "applicationBytes": 170376,
+      "returnedCells": 320,
+      "rssBytes": 342151168,
+      "heapBytes": 125464696
+    },
+    {
+      "trial": 2,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 8,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 339.2011080000011,
+      "p50Ms": 16.122761999999057,
+      "p95Ms": 23.926086999999825,
+      "maxMs": 29.919253000000026,
+      "cpuMs": 351.73,
+      "applicationBytes": 170376,
+      "returnedCells": 320,
+      "rssBytes": 342413312,
+      "heapBytes": 133969160
+    },
+    {
+      "trial": 2,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 32,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 4006.2173399999956,
+      "p50Ms": 98.94160900000134,
+      "p95Ms": 639.577919000003,
+      "maxMs": 885.6017619999984,
+      "cpuMs": 4078.864,
+      "applicationBytes": 1540384,
+      "returnedCells": 1280,
+      "rssBytes": 342675456,
+      "heapBytes": 135144344
+    },
+    {
+      "trial": 2,
+      "occupancy": 8192,
+      "viewport": [
+        80,
+        24
+      ],
+      "participants": 32,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 2870.9485950000017,
+      "p50Ms": 82.94181899999967,
+      "p95Ms": 395.1190659999993,
+      "maxMs": 563.3569409999982,
+      "cpuMs": 2927.762,
+      "applicationBytes": 1540384,
+      "returnedCells": 1280,
+      "rssBytes": 343068672,
+      "heapBytes": 143072280
+    },
+    {
+      "trial": 2,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 1,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 87.3838340000002,
+      "p50Ms": 3.687781000000541,
+      "p95Ms": 8.981595000004745,
+      "maxMs": 10.847637999999279,
+      "cpuMs": 99.047,
+      "applicationBytes": 13617,
+      "returnedCells": 40,
+      "rssBytes": 343330816,
+      "heapBytes": 121422840
+    },
+    {
+      "trial": 2,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 1,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 105.27493600000162,
+      "p50Ms": 5.080418999998074,
+      "p95Ms": 7.092961999995168,
+      "maxMs": 9.683091999999306,
+      "cpuMs": 105.72,
+      "applicationBytes": 13617,
+      "returnedCells": 40,
+      "rssBytes": 343592960,
+      "heapBytes": 155472704
+    },
+    {
+      "trial": 2,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 8,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 642.0107019999996,
+      "p50Ms": 29.889947999996366,
+      "p95Ms": 40.89862799999537,
+      "maxMs": 72.5326289999939,
+      "cpuMs": 660.766,
+      "applicationBytes": 170536,
+      "returnedCells": 320,
+      "rssBytes": 343986176,
+      "heapBytes": 131463848
+    },
+    {
+      "trial": 2,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 8,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 573.4105510000009,
+      "p50Ms": 27.260395999997854,
+      "p95Ms": 33.102514999998675,
+      "maxMs": 45.01738999999361,
+      "cpuMs": 594.725,
+      "applicationBytes": 170536,
+      "returnedCells": 320,
+      "rssBytes": 344248320,
+      "heapBytes": 172153160
+    },
+    {
+      "trial": 2,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 32,
+      "instrumented": false,
+      "samples": 20,
+      "elapsedMs": 3512.14789,
+      "p50Ms": 168.61392100000376,
+      "p95Ms": 305.33969900000375,
+      "maxMs": 407.2752790000013,
+      "cpuMs": 3752.204,
+      "applicationBytes": 1541024,
+      "returnedCells": 1280,
+      "rssBytes": 341979136,
+      "heapBytes": 158913960
+    },
+    {
+      "trial": 2,
+      "occupancy": 8192,
+      "viewport": [
+        160,
+        48
+      ],
+      "participants": 32,
+      "instrumented": true,
+      "samples": 20,
+      "elapsedMs": 4121.047700000003,
+      "p50Ms": 198.81610000000364,
+      "p95Ms": 255.8667459999997,
+      "maxMs": 376.6713230000023,
+      "cpuMs": 4376.022,
+      "applicationBytes": 1541024,
+      "returnedCells": 1280,
+      "rssBytes": 342241280,
+      "heapBytes": 96578576
+    }
+  ]
+}

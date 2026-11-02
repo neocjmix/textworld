@@ -22,7 +22,7 @@
 - `process.cpu_ms / process.elapsed_ms`가 해당 구간 평균 CPU 코어 사용량이다. RSS는 주기적 표본이며 컨테이너 전체 과금 메모리와 같지 않다. idle CPU도 비용에 포함된다.
 - event-loop histogram의 측정 해상도는20ms다. 정상 baseline 자체가 약20ms일 수 있으므로 순수한 추가 지연으로 해석하지 않는다.
 - HTTP 시간에는 long polling·의도된 paced turn 대기와 중도 연결 종료가 포함된다. 이를 서버 계산 지연이나 사용자 입력 지연으로 해석하지 않는다. event-loop·commit·observer 분포와 같이 본다.
-- 브라우저 draw는 CPU 그리기 작업 완료 시점이다. 실제 화면 광자 표시나 OS 키보드 전체 지연을 측정한 것이 아니다. draw는10번 중1번, submit/ACK는 전체를 최대2000개씩 로컬 집계하여 분당 한 번 보낸다.
+- 브라우저 draw는 CPU 그리기 작업 완료 시점이다. 실제 화면 광자 표시나 OS 키보드 전체 지연을 측정한 것이 아니다. draw는첫그리기와이후10번 중1번, submit/ACK는 전체를 최대2000개씩 로컬 집계하여 분당 한 번 보낸다.
 - 브라우저 수치는 **client.reported**로 구분한다. 익명 클라이언트가 조작할 수 있으므로 비용·수용 인원의 유일한 증거로 쓰지 않는다. 고정 metric6개·유한값·bin 합계·최대 표본 수를 검사하고 세션당30초보다 빠른 업로드는 버린다.
 - HTTP 입력은 선언된 Content-Length이고, egress는 압축 전 application payload다. 헤더·TLS·프록시·재전송·별도 백업 볼륨을 모두 포함하는 청구 카운터가 아니다. Railway의 컨테이너 CPU/메모리/네트워크/볼륨 지표와 대조해야 한다.
 - revision별 비교도 작업량·점유·시야·참여자 구성·자원 한도가 다르면 인과 비교가 아니다. 개선 전후에는 동일 fixture와 실제 제공량을 함께 기록한다.
@@ -56,3 +56,5 @@ HTTP는 `GET /api/metrics?period=60|3600&since=...&before=...&limit=...`, Bearer
 `bench:scale`은512×256 세계, 점유0/8192, 시야80×24/160×48, 관측자1/8/32를 조합한다. 각20번 쓰기·전체 시야 갱신을3회, 계측 켬/끔 순서를 번갈아 수행한다. 총72개 scenario/1440개 쓰기이며 장비·Node·CPU quota·Git revision·dirty 여부·분포·CPU·heap/RSS·반환 셀·payload bytes를 저장한다. 서버 계산 microbenchmark로서 socket·TLS·실제 사용자 요청 pacing·외부 클라이언트·수평 분산은 검증하지 않는다. public participant 한도를 우회한 서비스 수용 인원 시험으로 주장하지 않는다.
 
 첫 실험은 시야 계산/전체 참여자 전파의 증폭과 전체 peers 목록 반복 전송을 다음 후보로 지목한다. 같은 관측을 공유하는 계산 캐시, 변경 영역에 따른 구독자 선택, peer 변화분 전송을 비교하되 시야·토러스·CJK·freshness의 의미를 유지해야 한다. 이후 별도 부하 생성기에서 접속/활동 비율·이동·IME·관측 대기·MCP를 섞어 목표 제공량과 실제 처리량,429, backlog, p95, resource 사용량을 측정한다. 현재 단일 SQLite writer는 replica를 늘리는 것만으로 수평 확장되지 않는다. 이번 자료는 그 결정을 위한 기준을 쌓는 첫 단계다.
+
+첫 코드 고정 benchmark의 실제 결과와 해석은 [기준 기록](measurements/BASELINE.md)에 있고, 전체72개 집계도 저장소에 보존한다. 비용 보고서는 정적 자산 bytes와 동적 application bytes를 분리한다. 최초 글꼴 로딩이 많은 짧은 구간을 계속 활동하는 세션과 혼동하지 않는다.

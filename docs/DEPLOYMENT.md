@@ -158,3 +158,9 @@ Railway의 [공개 네트워킹 기술 명세](https://docs.railway.com/networki
 구현 `45448f4d6f8942686b9ea21ce6432577b4880ad2`, 배포 `89edd0e8-ec71-4ef0-a12e-343b817cd297`가15:05:25 UTC에SUCCESS에 도달했다. 기동 로그에서 `/data/world.sqlite.pre-change-times-v3-1793631922265-41c11d11-0bdb-4d14-9498-f0f44df014a5.sqlite` 백업 생성과 정상 기동을 확인했다.
 
 배포 전 같은 시야에서 기록한680개 기존 셀의 좌표·본문·폭·연속칸·버전이 모두 보존됐다. 공개 관측은 정확한 시각을 노출하지 않고 old/earlier 공유 신선도 표를 돌려줬다. 실제 공개 Chromium에서도 신선도 범례·공유 표 수신과 연결을 확인했으며 pageerror0, 추가 쓰기0건이었다. 근거 artifacts/freshness-live-verification.json 및 freshness-live.png. 로컬 검사는 서버182개·브라우저50개, 합계232개 통과다.
+
+### 규모·비용 계측 배포 — 2026-11-02
+
+구현 `3fce190c2c031c94fbdf11de43a963f2e6e0745d`, 배포 `60ef63d5-dd27-4af7-9636-cfc9615011a1`가15:26:55 UTC에SUCCESS에 도달했다. 기존 영구 볼륨의 별도 `.metrics.sqlite`에서 실제 분·시간 집계 누적과 export를 확인했고 collector failures0이었다. 관리 토큰은 Railway 환경변수에만 설정하고 비공개 로컬 파일을 통해 검증했으며 저장소에는 넣지 않았다. 토큰 없이 운영 통계를 읽을 수 없다.
+
+공개 브라우저를125초 유지해 DPR 등 집계 업로드를 확인했다. 페이지 오류0·추가 쓰기0건이었다. 세부 draw/ACK/submission 수집은 통제된 로컬 브라우저에서 별도로 검증했다. 코드 고정72scenario benchmark는 docs/measurements/scaling-baseline-2026-11-02.json에 보존했다. 운영 호스트와 로컬의 Node/CPU 한도가 다름도 기록했다.

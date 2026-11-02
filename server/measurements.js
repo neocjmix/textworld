@@ -64,5 +64,6 @@ export class Measurements {
   }catch{try{this.db.exec('ROLLBACK');}catch{}this.failures++;if(this.failures===1)console.error('Measurement flush failed; interval dropped.');this.record('metrics.failures');}
  }
  read({period=3600,since=0,before=Number.MAX_SAFE_INTEGER,limit=2000}={}){return this.enabled?this.db.prepare('SELECT * FROM measurements WHERE period=? AND bucket>=? AND bucket<=? ORDER BY bucket DESC LIMIT ?').all(period,since,before,Math.min(5000,Math.max(1,limit))).map(r=>({...r,value:summary(JSON.parse(r.value))})):[];}
+ builds(){return this.enabled?this.db.prepare('SELECT revision,metadata FROM builds ORDER BY rowid DESC LIMIT 200').all().map(r=>({revision:r.revision,...JSON.parse(r.metadata)})):[];}
  close(){if(!this.enabled)return;this.loop.disable();this.flush();this.db.close();}
 }
