@@ -7,7 +7,7 @@ A shared, spatial, real-time text world. People inhabit a 2D character grid as v
 ## Principles
 - Public world uses toroidal topology and density-responsive expansion/contraction.
 - Writing overwrites cells, never inserts or shifts neighboring content.
-- Each user is represented by a visible, single-cell cursor. The current map interface keeps your cursor at the visible screen center; scrolling the world moves your presence and input position.
+- Each user is represented by a visible, single-cell cursor. The map settles with your cursor at the visible screen center; smooth movement can temporarily place it off-center. Scrolling moves your presence and input position.
 - Zoom is bounded; GPS determines initial placement and supports return to current geographic position.
 - Public text is ephemeral. An independent scavenger can use cell provenance and history to remove old or damaged content.
 - Future private worlds may choose different topology, persistence, deterministic growth, and scavenger policies.
@@ -15,7 +15,7 @@ A shared, spatial, real-time text world. People inhabit a 2D character grid as v
 
 See [AGENTS.md](AGENTS.md) for agent operating instructions. The product principles are binding; implementation details remain open for autonomous exploration.
 
-## 실행 — 실험 004: 네이티브 범위 입력·촘촘한 CJK 지도
+## 실행 — 실험 005: 즉시 보이는 입력·부드러운 지도 이동
 
 Node.js **24 이상**이 필요합니다. Node 내장 SQLite와 `ws`만 서버 런타임에 사용합니다.
 
@@ -26,15 +26,16 @@ npm start
 
 `http://localhost:3000`을 서로 다른 브라우저나 창 두 개에서 여세요. 서버는 기본적으로 `0.0.0.0:3000`에서 수신합니다. 같은 서버에 접속하면 글자와 커서를 공유합니다. `이곳 링크`로 특정 칸을 공유할 수 있습니다. 다른 기기에서 GPS·클립보드를 쓰려면 HTTPS가 필요합니다. localhost에서는 브라우저가 이를 허용합니다.
 
-- 지도가 브라우저 화면 전체를 채우며 내 커서는 항상 보이는 지도 화면의 중심에 있습니다. 별도 입력 패널은 없습니다.
+- 지도가 브라우저 화면 전체를 채우며 내 커서는 이동이 끝나면 보이는 지도 화면의 중심에 놓입니다. 이동 중에는 부드러운 화면 전환을 위해 잠깐 중심에서 벗어날 수 있으며, 커서는 실제 입력할 셀을 계속 가리킵니다. 별도 입력 패널은 없습니다.
 - 드래그·가로/세로 스크롤로 지도를 움직여 중심에 입력할 칸을 가져오세요. 드래그를 빠르게 놓으면 관성으로 이동하다 감속하며, 입력하거나 지도를 다시 잡으면 멈춥니다. 트랙패드는 OS가 보낸 이동량을 부드럽게 전달하며 관성을 중복해서 더하지 않습니다. 지도 이동 자체가 내 커서의 세계 좌표를 바꾸며 다른 사용자에게도 전달됩니다.
-- 지도를 클릭/탭하면 현재 중심 셀에서 네이티브 키보드 입력을 받습니다. 탭한 곳으로 커서를 옮기지는 않습니다. 모바일에서는 OS 키보드가 열립니다. 한글·일본어·중국어의 조합과 후보 선택은 OS와 브라우저가 처리하고, 앱은 브라우저가 제공한 정확한 편집 범위와 실제 결과를 세계에 반영합니다. 자동으로 세계 크기가 바뀌어도 작성 위치와 경로가 그대로인 것으로 확인되면 조합을 이어 갑니다.
+- 지도를 클릭/탭하면 현재 커서의 셀에서 네이티브 키보드 입력을 받습니다. 탭한 곳으로 커서를 옮기지는 않습니다. 모바일에서는 OS 키보드가 열립니다. 한글·일본어·중국어의 조합과 후보 선택은 OS와 브라우저가 처리하고, 앱은 브라우저가 제공한 정확한 편집 범위와 실제 결과를 세계에 반영합니다. 자동으로 세계 크기가 바뀌어도 작성 위치와 경로가 그대로인 것으로 확인되면 조합을 이어 갑니다.
+- 조합 중에는 실제 네이티브 입력 요소의 해당 범위를 지도 위에 보여줍니다. 입력·삭제를 보내면 서버 응답을 기다리지 않고 내 화면에 먼저 반영하며, 최종 공유 상태는 서버가 확정한 순서를 따릅니다. 조합 초안은 다른 사용자에게 보내지 않습니다.
 - 영문·숫자 등 반각 문자는 1칸, 한글·한자·전각 문자와 이모지 표시 묶음은 2칸을 사용합니다. 바이트 수가 아닌 Unicode 표시 폭 규칙입니다. 자체 제공하는 Sarasa Fixed K 글꼴을 18px로 그리며 기본 간격은 반각 9px·전각 18px, 행 높이 26px입니다. 이전보다 가로 간격을 양쪽 모두 25% 줄였습니다.
-- 입력·붙여넣기는 덮어쓰기입니다. 입력하면 글자 폭만큼 진행하며 지도가 따라 움직여 커서는 중심 한 칸에 남습니다. 오른쪽 끝에서 같은 행의 왼쪽으로 이어집니다.
+- 입력·붙여넣기는 덮어쓰기입니다. 입력하면 글자 폭만큼 진행하며 지도가 부드럽게 따라옵니다. 오른쪽 끝에서 같은 행의 왼쪽으로 이어집니다.
 - Enter·Shift+Enter는 이번 글쓰기를 시작한 열의 다음 행으로 갑니다. 모바일 줄바꿈과 여러 줄 붙여넣기도 같은 기준을 씁니다.
 - 지도 드래그·스크롤·GPS·좌표 링크는 새 글쓰기 기준을 잡습니다. 글을 쓰는 중 방향키로 오타를 고쳐도 기준 열은 유지됩니다. Home은 현재 행의 작성 기준 열로 돌아갑니다.
 - Backspace는 방금 쓴 글자를 지우며, 직접 만든 줄바꿈 직후에는 글자를 지우지 않고 이전 줄 끝으로 돌아갑니다. 위치를 따로 옮겨 작성 경로를 벗어난 경우에는 왼쪽 칸의 글자를 지웁니다. 두 칸 문자는 시작 칸으로 돌아가 두 칸을 함께 지웁니다. Delete는 현재 칸이 속한 글자를 지우고 커서 위치를 유지합니다. 주변 글은 밀리거나 합쳐지지 않습니다.
-- `− / +`로 60~200% 확대·축소합니다. 확대·축소나 화면 크기 변경에도 선택한 셀은 중심에 남습니다. 모바일 키보드가 열리면 키보드를 제외한 보이는 지도 영역의 중심을 사용합니다.
+- `− / +`로 60~200% 확대·축소합니다. 모바일 키보드 높이나 화면 크기가 바뀌면 사용 가능한 화면 영역을 즉시 맞추고 선택한 셀이 새 중심으로 부드럽게 이동합니다. 크게 줄어든 화면에서는 먼저 입력 셀이 가려지지 않을 만큼만 보정합니다. OS의 동작 줄이기 설정에서는 화면 전환을 즉시 마칩니다.
 - GPS를 허용하면 현재 크기의 세계에 투영합니다. 거절하면 공동 출발점에서 사용할 수 있습니다. 정확한 위도·경도는 전송하지 않습니다.
 - 연결이 끊기면 입력을 비활성화하고 다시 연결합니다. 미확정 입력을 자동 재전송하지 않습니다. 재접속 후 내용을 확인하세요.
 
@@ -50,6 +51,9 @@ npm run test:writing         # Enter·작성 기준·Backspace·native 입력 �
 npm run test:ime             # native contenteditable 범위·조합 수명·미지원 입력
 npm run test:motion          # 관성·중단·원격 위치·터치·reduced-motion
 npm run test:cjk             # 한·일·중 실제 범위 입력·두 사용자·Sarasa 표시
+npm run test:typing          # 서버 응답 지연·로컬 표시·경쟁 쓰기·렌더 계측
+npm run test:viewport        # 키보드 높이·화면 전환·드래그 중단·중심 재정착
+npm run test:surface         # 실제 native 조합 표시·DOM 보존·자동 스크롤 회귀
 npm run experiment          # 공간 모델의 결정적 반례 비교
 ```
 
@@ -74,6 +78,8 @@ Railway에서 공개 실험 중인 초기 프로토타입입니다. 익명 참�
 입력 모델 비교와 동작 규칙은 [입력 설계](docs/INPUT_DESIGN.md)에 기록했습니다. 최신 브라우저의 `contenteditable=true` 호스트와 `beforeinput`·`input`·composition 이벤트 한 경로를 사용합니다. 브라우저의 UTF-16 편집 범위를 로컬 문맥의 grapheme·셀 주소에 연결하므로 알려진 문맥의 단어 삭제·재변환·중간 치환도 처리하며, 바뀌지 않은 뒷글의 좌표는 밀지 않습니다. 키 코드로 문자를 조립하거나 문자열 차이로 교체 위치를 추측하는 경로는 없습니다.
 
 세계의 임의 범위 선택·복사·잘라내기·실행 취소는 아직 지원하지 않습니다. 편집 범위가 없거나 이전 덮어쓰기로 문맥의 주소가 모호해진 요청도 안내하고 거부합니다. 그 경우 지도를 움직여 새 입력 문맥을 시작할 수 있습니다. 과거의 32자 치환 제한은 제거했으며, 현재 프로토타입은 한 번의 세계 입력을 512 grapheme·4096 UTF-16 단위, 함께 지울 주소를 2048개로 제한합니다. Tab은 UI 포커스를 옮기고, 붙여넣은 탭은 공백 4칸으로 처리합니다.
+
+현재 조합 표시·카메라 전환의 실제 OS 키보드 및 Safari·Firefox 검증은 남아 있습니다. 여러 행 재변환이 공간상의 빈틈·비연속 주소를 가로지르면 native 초안의 화면 배치가 확정 글자의 배치와 다를 수 있습니다. 확정 주소 계산과 이 표시 제한은 구분합니다. 글자가 많은 지도에서의 그리기 비용도 다음 성능 실험 대상입니다.
 
 폭 규칙 도입 전 저장된 글은 기존 좌표와 이웃 내용을 보존하기 위해 1칸 배치를 유지하고, 넓은 글자는 작은 글꼴 크기로 그려 겹침을 막습니다. 다시 입력한 글부터 새 폭을 적용합니다. 두 칸 문자가 토러스의 좌우 경계에 걸쳐 있으면 그 문자가 정리될 때까지 세계 너비 변경을 보류합니다. 이 두 가지는 기존 데이터와 글자 쌍을 보존하기 위한 현재 실험의 제한입니다.
 
