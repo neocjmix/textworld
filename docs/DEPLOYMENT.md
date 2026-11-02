@@ -166,3 +166,9 @@ Railway의 [공개 네트워킹 기술 명세](https://docs.railway.com/networki
 공개 브라우저를125초 유지해 DPR 등 집계 업로드를 확인했다. 페이지 오류0·추가 쓰기0건이었다. 세부 draw/ACK/submission 수집은 통제된 로컬 브라우저에서 별도로 검증했다. 코드 고정72scenario benchmark는 docs/measurements/scaling-baseline-2026-11-02.json에 보존했다. 운영 호스트와 로컬의 Node/CPU 한도가 다름도 기록했다.
 
 계측 보완 구현 `ed67e9b00254f4c2117b1799d7c5521b1642546f`의 배포 `0fba6641-20b4-45f5-abc7-a8e6c62a213a`는15:34:14 UTC에SUCCESS에 도달했다. 배포 전52개 집계 행이 모두 같은 bucket·period·metric·revision으로 남고 count가 감소하지 않았음을 실제 export로 검증했다. 총83행과 이전/현재 두 빌드의 Node·CPU·메모리 한도를 확인했다. client.reported.draw_ms·drawn_glyphs·viewport_cells·dpr가 운영에서 저장됐으며 failures0이었다. 원자료와 검증 근거는 비공개 artifacts/metrics-export.json, measurement-persistence-verification.json, cost-report.json에 있다. 계측은 이 배포 이후에도 분 단위로 계속 누적된다.
+
+### 분산 확장·축소 배포 — 2026-11-02
+
+구현 `30e9b8dbbcf17c811a8d43fecefd09cddc8210d0`의 배포 `66d36272-7fd8-4150-ab95-e4ed2b8ed31b`가17:05:48 UTC에SUCCESS에 도달했다. 기존64×32·epoch8의 운영 월드가 서버의 자동 밀도 판단으로128×64·epoch9로 실제 확장됐다. seed3982370324에서 가로1154·세로2715곳에 변경이 분산됐고1083점유 셀 중1057개가 살아남고26개가 제거됐다. 문장 인접성은 바뀔 수 있다.
+
+실제 공개 Chromium이 재배치 snapshot을 받고 커서(32,16)→(64,33)를 반영했다. 새 시야의 CJK 쌍과 범위 내 커서, pending0, pageerror0을 확인했다. 운영 검증의 추가 쓰기는0건이다. artifacts/topology-live-verification.json 및 topology-live.png에 근거를 남기고 화면을 직접 검토했다. 저장된 topology_events에서 시드와 손실량을 보존한다. 현재 크기 범위32×16~1024×512와 density/cooldown은 유지하며, 글·커서의 보존을 이유로 resize를 막지는 않는다.
