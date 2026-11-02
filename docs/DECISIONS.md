@@ -1,7 +1,67 @@
 # Decision Log
 
-No architectural decisions have been ratified.
+## 2026-11-02 · 실험 001: 두 사용자가 사는 글자 공간
 
-Record each significant choice with date, context, alternatives considered, evidence, chosen approach, reversibility, and follow-up experiment.
+제품 헌법은 그대로 유지한다. 아래 선택은 실험으로 검증할 수 있는 구현 선택이며 헌법에 새로운 조건을 추가하지 않는다. 좌표·확장·GPS 모델은 영구 설계로 확정하지 않았다.
 
-Product constitution decisions are recorded separately and may only change with owner approval.
+### D001 — 공간은 문자열 문서가 아니라 희소 셀 집합
+
+**맥락:** 입력이 이웃을 밀면 헌법의 덮어쓰기 불변식이 깨진다. 한 번에 두 사용자가 동일 셀을 수정할 수 있어야 한다.
+
+**대안:** dense 배열, sparse 정수 좌표, 정규화된 연속 좌표, immutable 행/열 ID, 적응적 지리 atlas. 문서의 문자 삽입·OT·sequence CRDT는 본 문제의 공간 정체성을 해결하지 않으므로 기본 자료구조로 택하지 않았다.
+
+**선택:** 메모리 Map과 SQLite `(x,y)` 키의 희소 셀. Unicode NFC 후 grapheme 한 개를 셀에 저장한다. 긴 grapheme은 셀 폭 안으로 그린다. 행의 끝에서는 같은 행 첫 칸으로 연결한다. 다중 행 붙여넣기의 newline은 입력 시작 열로 돌아간다. 빈 문자열은 삭제, 공백은 기록된 글자다.
+
+**증거:** overwrite/delete 이웃 불변, 토러스 경계, 한글·결합문자·가족 이모지 테스트. 브라우저와 서버가 `shared/world.js`의 동일한 writePlan을 사용한다. 초기 프런트엔드의 독립 좌표 계산은 탭 하나를 한 칸으로 계산해 4칸으로 해석하는 서버와 달랐다. 중복 계산을 제거했다.
+
+**가역성/다음:** 셀 identity를 row/column ID로 바꾸는 후속 비교가 가능하다. Canvas와 전송 프로토콜을 엔진 저장소에서 분리했다. wide 문자·emoji 렌더링의 가독성은 실제 기기에서 추가 비교한다.
+
+### D002 — 동시 쓰기는 서버 수신 순서, 저장 완료 후 방송
+
+**대안:** client-clock LWW, 셀별 multi-value register, 일반 입력 CAS, 지역 lease, 단일 서버 순서. client clock은 시계 편차, multi-value는 표시 중재, lease는 경계 권위 이전을 먼저 해결해야 한다.
+
+**선택:** Node 단일 writer가 증가하는 seq로 직렬화하고 SQLite WAL 트랜잭션을 커밋한 뒤 방송한다. 같은 세션/작업 ID의 재전송은 중복 실행하지 않는다. 일반 입력은 다른 글을 자유롭게 덮어쓰고, scavenger만 CAS를 사용한다. 한 작업 안에서 같은 셀을 여러 번 쓰면 마지막 글자를 남긴다.
+
+**증거:** 독립 WebSocket 클라이언트의 동시 경쟁 입력에서 동일한 seq/최종 셀로 수렴했다. 재시작 복구 및 같은 작업 재전송을 검증했다.
+
+**실험 단축:** 단일 서버·동기 SQLite·전체 방송. 서버 지연 편향, 단일 장애점, 전체 세계 크기에 비례하는 비용이 있다. 멀티리전이나 오프라인 협업을 해결했다고 주장하지 않는다. 재접속은 새 session이므로 미확정 입력을 재생하지 않고 현재 snapshot을 받는다. 이동 위치는 새 연결에 복원한다.
+
+### D003 — 크기 변경은 epoch를 가진 토러스, 안전하지 않은 축소는 보류
+
+**대안/증거:** [EXPERIMENTS.md](EXPERIMENTS.md)의 실행 반례에서 정규화 remap과 단순 modulo 축소는 16문자 중 4문자를 충돌시켰다. 빈 strip 변환은 해당 fixture의 충돌·인접성 손실을 피했다. 이것이 모든 분포에서 성립하는 것은 아니다.
+
+**선택:** 10초마다 `max(점유 셀 수, 접속자 수×96)/면적`을 평가한다. 25% 초과면 가로·세로를 두 배, 4% 미만이면 절반으로 제안하며 30초 cooldown을 둔다. 제거할 band에 문자나 커서가 있으면 축소를 보류한다. 실제 변경은 원자적 meta 갱신과 전체 snapshot으로 전파하고 이전 epoch 입력은 명시적으로 거절한다. 새 epoch snapshot은 동일 연결에 반복 전송하지 않아 오래된 입력 다발이 새 입력 커서를 되돌리지 않는다.
+
+**실험 단축:** 임계값과 32×16~1024×512 범위는 운영 정책이 아니라 실험 파라미터다. 비어 있는 끝부분을 추가하므로 확장 시 옛 경계를 가로지른 문장이 떨어질 수 있다. 중앙 공동 출발점 자체가 절반 축소의 경계에 남아 축소를 보류시킬 수도 있다. 보존을 위해 조용히 문자를 재배치/소실시키지 않는다.
+
+**다음:** immutable row/column ID + 빈 strip 삽입/삭제를 동일한 경계 문장·사용자 배치로 실험한다. 전역 면적 확장만으로 지역 커서 밀집이 줄어드는지도 측정한다.
+
+### D004 — GPS는 클라이언트에서 등적 원통 투영
+
+**대안:** equirectangular, Mercator, sin(latitude) 등적 투영, 고정 atlas anchor, 동적 geographic cell 분할. sphere와 torus의 위상 차이는 어떤 투영도 제거할 수 없다.
+
+**선택:** 경도는 주기적으로, 위도는 sin으로 현재 extent에 양자화한다. 서버는 셀만 받고 정확한 위도·경도는 받지 않는다. 최초 자동 요청이 거절/실패하면 중앙 공동 출발점, 공유 링크는 명시된 장소로 들어간다. 최초 GPS 응답이 늦는 동안 사용자가 이동했으면 위치를 덮어쓰지 않는다. GPS 버튼은 캐시하지 않은 현재 위치를 요청한다.
+
+**증거/수정:** ±180°/극점/유효 범위 검사, 권한 허용·거절 브라우저 흐름을 검증했다. GPS 버튼에서 maximumAge=60초를 재사용하자 위치 변경 후에도 캐시된 이전 위치로 돌아갔다. 명시적 GPS 복귀는 maximumAge=0으로 수정했고 새 위치 이동이 통과했다.
+
+**한계:** 양자화된 셀도 대략적 지역을 드러낸다. resize 시 같은 GPS의 착지점이 바뀐다. 영구적 장소 주소를 보장하지 않는다. 다음 실험은 고정 atlas anchor의 재방문 거리와 새 공간 도달 범위를 비교한다.
+
+### D005 — Canvas viewport와 실제 textarea 입력
+
+**대안:** 전체 DOM grid, Canvas, GPU 타일. 초기 작은 세계에서는 Canvas가 수천 DOM 셀 없이 같은 칸 크기와 터치 탐색을 제공한다. IME를 직접 구현하지 않고 native textarea composition을 이용한다.
+
+**선택:** 한국어 UI, canvas 렌더링, 키보드/터치 입력, 이동·pan·bounded zoom. pan은 커서를 화면 안의 가장 가까운 칸으로 옮긴다. 이동 전송은 40ms로 합치고 동일 셀을 중복 전송하지 않는다. 입력/삭제는 명시적 셀 주소를 전송한다. 서버 확인 전 글자를 확정 표시하지 않고 전송 상태를 표시한다.
+
+**증거/수정:** 실제 Chromium에서 두 context의 상호 입력·presence, native IME 조합 완료 1회 기록, 토러스 이동, 줌 한계, mobile touch/짧은 viewport를 검증했다. 동일 페이지 hash 변경도 위치 이동으로 처리하도록 고쳤다. 빠른 pan이 서버 제한을 소모하는 문제와 reconnect 순간 위치 초기화도 수정했다. 조합 중 위치/epoch가 바뀌면 이전 조합 완료를 취소하고, 빈 textarea의 mobile beforeinput 삭제 경로를 처리한다.
+
+**한계:** CDP IME와 모바일 에뮬레이션이 실제 iOS/Android 한국어 키보드 검증을 대신하지 않는다. 화면 읽기 도구에 전체 격자를 제공하는 접근성은 후속 작업이다. 문자 선택/범위 편집은 구현하지 않았다.
+
+### D006 — 정리 정책과 코어 증거를 분리
+
+**선택:** 셀 버전, 작성 session, 갱신 시각, 작업 묶음, 변경 history를 저장한다. 관리 API는 현재 셀과 묶음 생존/원래 크기를 제공한다. 별도 scavenger 프로그램이 나이 기준으로 후보를 고르고 epoch+version 조건부 삭제를 요청한다. 토큰이 없으면 관리 API를 제공하지 않는다.
+
+**대안:** 엔진 내부 TTL, 무조건 DELETE, 독립 증거 기반 정리. 내부 TTL은 정책 결합, 무조건 삭제는 새 글 삭제 위험 때문에 선택하지 않았다.
+
+**증거:** evidence 이후 덮어쓴 글은 오래된 정리 요청으로 지워지지 않는다. 삭제는 일반 셀 패치로 즉시 전파된다. 별도 프로그램의 수명 기본값 24시간은 실험값이며 제품 약속이 아니다.
+
+**실험 단축/위험:** history와 작업 중복 방지 레코드는 아직 무기한 보관한다. 표시상의 ephemeral과 개인정보의 삭제 보장은 다르다. 기록 retention/compaction, 정리 작업 스케줄링과 공개 서비스 abuse 대응은 운영 이전에 설계해야 한다. 미래 private world의 정책을 이 public 엔진에 섞지 않았고 아직 private world는 구현하지 않았다.

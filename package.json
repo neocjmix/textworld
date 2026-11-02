@@ -1,0 +1,22 @@
+{
+  "name": "textworld",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test tests/*.test.js",
+    "test:browser": "node tests/browser.mjs",
+    "experiment": "node experiments/topology.mjs",
+    "test:input": "node tests/input-regression.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
+  }
+}
