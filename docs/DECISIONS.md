@@ -68,4 +68,4 @@
 
 ### D007 — 첫 공개 배포는 Railway 단일 서비스와 영구 볼륨
 
-2026-11-02 사용자의 Railway 배포 요청에 따라 `Textworld/production`에 GitHub main 자동 배포를 연결했다. Node 24, Railpack, `/health`, `us-west2` replica 1, `/data` 1024 MB 영구 볼륨을 사용한다. SQLite 본체·WAL·SHM이 모두 볼륨에 놓이도록 `TEXTWORLD_DB=/data/world.sqlite`를 설정했다. 임시 파일시스템에 DB를 두는 방식은 재배포 손실 때문에 배제했다. 별도 Postgres로 전환하는 대신 이미 검증한 단일 writer를 유지한다. 운영 설정과 공개 URL은 [DEPLOYMENT.md](DEPLOYMENT.md)에 기록한다. 수평 복제·자동 history 정리·정기 백업은 이 배포에 포함하지 않는다. 이 선택은 향후 저장소를 바꾸거나 서비스를 이전할 수 있는 구현 선택이다.
+2026-11-02 사용자의 Railway 배포 요청에 따라 `Textworld/production`에 GitHub main을 배포 소스로 연결했다. 문서 push의 자동 배포 시작은 확인하지 못해 최신 소스 배포를 명시적으로 시작하며, 자동 배포는 후속 확인 대상으로 남긴다. Node 24, Railpack, `/health`, `us-west2` replica 1, `/data` 1024 MB 영구 볼륨을 사용한다. SQLite 본체·WAL·SHM이 모두 볼륨에 놓이도록 `TEXTWORLD_DB=/data/world.sqlite`를 설정했다. 임시 파일시스템에 DB를 두는 방식은 재배포 손실 때문에 배제했다. 별도 Postgres로 전환하는 대신 이미 검증한 단일 writer를 유지한다. 운영 설정과 공개 URL은 [DEPLOYMENT.md](DEPLOYMENT.md)에 기록한다. 수평 복제·자동 history 정리·정기 백업은 이 배포에 포함하지 않는다. 이 선택은 향후 저장소를 바꾸거나 서비스를 이전할 수 있는 구현 선택이다.
