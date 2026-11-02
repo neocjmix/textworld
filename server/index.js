@@ -1,5 +1,5 @@
 import http from 'node:http';
-import { randomUUID, timingSafeEqual } from 'node:crypto';
+import { randomUUID, randomInt, timingSafeEqual } from 'node:crypto';
 import { isIP } from 'node:net';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -14,9 +14,9 @@ import { createTurnRunner } from './agent-turns.js';
 import { createAgentHTTP } from './agent-http.js';
 import { Measurements, route as measurementRoute } from './measurements.js';
 import { createMCPAgent } from './mcp-agent.js';
+import { expire } from './expiration.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const palette = ['#ffbe75', '#79d4cd', '#c4a7ff', '#ff8fa3', '#a3d977', '#86b7ff'];
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
 const publicWorld = world => ({ width: world.width, height: world.height, epoch: world.epoch, textLayout: 2 });
 const errorRecord = error => ({ code: error.code || 'BAD_MESSAGE',
@@ -40,7 +40,7 @@ export function networkKey(req, trustProxy = false) {
 }
 
 export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || resolve(root, 'data/world.sqlite'),
-  scavengerToken = process.env.SCAVENGER_TOKEN || '', now = Date.now, policyNow = () => performance.now(),
+  now = Date.now, policyNow = () => performance.now(),
   metricsPath, metricsToken = process.env.TEXTWORLD_METRICS_TOKEN || '', metricsEnabled = true,
   trustProxy = process.env.TEXTWORLD_TRUST_PROXY || (process.env.RAILWAY_ENVIRONMENT_ID ? 'railway' : false) } = {}) {
   const world = new World({ storagePath, now });
@@ -64,7 +64,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   };
   const clients = new Map(), actors = new Set(), listeners = new Set();
   const networks = new NetworkBudgets({ now: policyNow });
-  let colorIndex = 0, closing = false, population=0,lastPopulationAt=performance.now();
+  let closing = false, population=0,lastPopulationAt=performance.now();
   const updatePopulation=()=>{const time=performance.now();measurements.record('activity.peer_ms',(time-lastPopulationAt)*population);population=actors.size;lastPopulationAt=time;};
   const limits = { ...LIMITS, view: VIEW_LIMITS, turn: { maxActions: 16, maxGraphemes: 256, maxUtf16: 4096,
     maxDurationMs: 30000, typingPerSecond: 10, movementPerSecond: 160 }, sessionIdleMs: 120000, maxWaitMs: 25000 };
@@ -85,7 +85,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       clearTimeout(actor.retry); actor.retry = null;
       if (snapshot) {
         send(socket, { type: 'snapshot', world: publicWorld(world), selfId: actor.peer.id,
-          cells: observation.cells, marks: observation.marks, freshness: observation.freshness, peers: observation.peers, view: observation.view, viewRevision: observation.revision, limits, ...extra });
+          cells: observation.cells, marks: observation.marks, freshness: observation.freshness, colors: observation.colors, peers: observation.peers, view: observation.view, viewRevision: observation.revision, limits, ...extra });
         actor.lastSnapshotEpoch = world.epoch;
       } else if (observation.revision !== previous || extra.force) send(socket, { type: 'view', world: publicWorld(world), observation });
     } catch (error) {
@@ -109,9 +109,14 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   const runTurn=runner.run.bind(runner);runner.run=async(...args)=>{const started=performance.now();try{const result=await runTurn(...args);measurements.record('turn.'+result.status);measurements.record('turn.steps',result.completedSteps);return result;}catch(error){measurements.record('turn.error');throw error;}finally{measurements.record('turn.ms',performance.now()-started);}};
   const createActor = (req, { name, view, position } = {}) => {
     const acceptedView = validateView(view);
+    if (world.usedColors.size >= 113 ** 3) throw new PolicyError('COLOR_CAPACITY', '새 사용자 색을 배정할 수 없습니다.', { status: 503 });
     const network = networks.acquire(networkKey(req, trustProxy));
+    const usedColors = world.usedColors;
+    let color;
+    do { color = '#' + [randomInt(113), randomInt(113), randomInt(113)].map(v => v.toString(16).padStart(2, '0')).join(''); } while (usedColors.has(color));
     const peer = { id: randomUUID(), name: typeof name === 'string' ? name.replace(/[\u0000-\u001F\u007F]/g, '').slice(0, 24) : '',
-      color: palette[colorIndex++ % palette.length], x: Math.floor(world.width / 2), y: Math.floor(world.height / 2) };
+      color, x: Math.floor(world.width / 2), y: Math.floor(world.height / 2) };
+    world.reserveAuthor(peer.id, color);
     peer.name ||= `여행자 ${actors.size + 1}`;
     const actor = { peer, network, closed: false, hello: false, alive: true, lastSnapshotEpoch: null };
     actor.policy = new ParticipantPolicy({ world, peer, now: policyNow, network,
@@ -130,12 +135,12 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       }
       actor.writing = new WritingSession(peer);
       actors.add(actor);updatePopulation();measurements.record('activity.session_created'); return actor;
-    } catch (error) { networks.release(network); throw error; }
+    } catch (error) { world.releaseAuthor(peer.id); networks.release(network); throw error; }
   };
   const removeActor = actor => {
     if (actor.closed) return;
     actor.closed = true; clearTimeout(actor.retry); runner.cancel(actor);
-    actors.delete(actor);updatePopulation();measurements.record('activity.session_closed'); networks.release(actor.network); presence();
+    actors.delete(actor);world.releaseAuthor(actor.peer.id);updatePopulation();measurements.record('activity.session_closed'); networks.release(actor.network); presence();
   };
   const agentHTTP = createAgentHTTP({ world, createActor: (req, options) => {
     const actor = createActor(req, options); queueMicrotask(presence); return actor;
@@ -143,16 +148,6 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   const mcp = createMCPAgent({ agentHTTP,
     acceptRequest: req => networks.get(networkKey(req, trustProxy)).request.spend() });
   const json = (res, status, value) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)); };
-  const authorized = req => {
-    if (!scavengerToken) return false;
-    const actual = Buffer.from(req.headers.authorization || ''), expected = Buffer.from(`Bearer ${scavengerToken}`);
-    return actual.length === expected.length && timingSafeEqual(actual, expected);
-  };
-  const body = async req => {
-    const chunks = []; let length = 0;
-    for await (const chunk of req) { length += chunk.length; if (length > 65536) throw new PolicyError('TOO_LARGE', 'Request too large', { status: 413 }); chunks.push(chunk); }
-    return JSON.parse(Buffer.concat(chunks).toString());
-  };
   const server = http.createServer(async (req, res) => {
     const started=performance.now(),route=measurementRoute(req.url.split('?')[0]);let bytes=0;
     const length=(chunk,encoding)=>typeof chunk==='string'?Buffer.byteLength(chunk,typeof encoding==='string'?encoding:'utf8'):Buffer.isBuffer(chunk)||ArrayBuffer.isView(chunk)?chunk.byteLength:0;
@@ -174,19 +169,6 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       if (await mcp.handle(req, res, url)) return;
       if (await agentHTTP.handle(req, res, url)) return;
       if (url.pathname === '/health') return json(res, 200, { ok: true, world: publicWorld(world), peers: actors.size });
-      if (url.pathname.startsWith('/api/scavenger/')) {
-        if (!authorized(req)) return json(res, 404, { error: 'Not found' });
-        if (url.pathname === '/api/scavenger/evidence' && req.method === 'GET') {
-          const before = url.searchParams.has('before') ? Number(url.searchParams.get('before')) : now();
-          if (!Number.isFinite(before)) throw new WorldError('BAD_TIME', 'Invalid timestamp');
-          return json(res, 200, { epoch: world.epoch, cells: world.evidence({ before }) });
-        }
-        if (url.pathname === '/api/scavenger/delete' && req.method === 'POST') {
-          const result = world.conditionalDelete(await body(req)); publish(result);
-          return json(res, 200, { deleted: result.cells.length, seq: result.seq });
-        }
-        return json(res, 405, { error: 'Unsupported method' });
-      }
       if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Unsupported method' });
       const decoded = decodeURIComponent(url.pathname);
       const base = decoded.startsWith('/shared/') ? resolve(root, 'shared') : resolve(root, 'public');
@@ -273,6 +255,13 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   }, 15000);
   // Only visible age-band transitions produce packets; no per-frame age updates.
   const aging = setInterval(() => {
+    const expirationStarted = performance.now();
+    try {
+      const deleted = expire(world, publish);
+      measurements.record('expiration.deleted_cells', deleted);
+      measurements.record('expiration.batch_full', Number(deleted >= 500));
+    } catch (error) { console.error('Text expiration failed:', error.message); }
+    finally { measurements.record('expiration.ms', performance.now() - expirationStarted); }
     for (const [socket, actor] of clients) if (world.now() >= actor.observer.nextFreshnessAt) scopedUpdate(socket, actor);
     notify();
   }, 5000);

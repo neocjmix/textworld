@@ -19,7 +19,7 @@ async function settled(page) {
     const s = window.textworld.inspect();
     const delta = (n, extent) => ((n + extent / 2) % extent + extent) % extent - extent / 2;
     const dx = delta(s.cursor.x + .5 - s.camera.x - s.viewport.cols / 2, s.world.width) * 9 * s.zoom;
-    const dy = delta(s.cursor.y + .5 - s.camera.y - s.viewport.rows / 2, s.world.height) * 26 * s.zoom;
+    const dy = delta(s.cursor.y + .5 - s.camera.y - s.viewport.rows * .43, s.world.height) * 26 * s.zoom;
     return !s.motionActive && Math.abs(dx) < .15 && Math.abs(dy) < .15;
   }, null, { timeout: 5000 });
   await delay(page, 30);
@@ -138,7 +138,7 @@ try {
     const frames = await finishTrace(page), after = await snapshot(page);
     smoothTransition(before, frames.filter(frame => frame.fieldHeight === 440), after, 'y');
     assert.deepEqual(after.cursor, before.cursor); assert.equal(app.world.seq, seq);
-    close(after.fieldHeight, 440); close(after.cursorY, 220);
+    close(after.fieldHeight, 440); close(after.cursorY, 189.2);
     const nativeDelta = { x: before.native.left - before.cursorLeft, y: before.native.top - before.cursorTop };
     for (const frame of frames.filter(frame => frame.native)) {
       close(frame.native.left - frame.cursorLeft, nativeDelta.x, .25, 'composition follows the same world cell x during resize');
@@ -158,7 +158,7 @@ try {
     const before = await snapshot(page); await trace(page); await viewport(page, { height: 844 }); await settled(page);
     const frames = await finishTrace(page), after = await snapshot(page);
     smoothTransition(before, frames.filter(frame => frame.fieldHeight === 844), after, 'y');
-    assert.deepEqual(after.cursor, before.cursor); close(after.cursorY, 422);
+    assert.deepEqual(after.cursor, before.cursor); close(after.cursorY, 362.92);
     evidence.push({ name: 'keyboard-close', before, after, frames });
   });
 
@@ -177,7 +177,7 @@ try {
       assert.equal(frame.zoom, before.zoom); assert.equal(frame.fontSize, before.fontSize);
     }
     assert.ok(smaller.some(frame => frame.cursorY > 155 && frame.cursorY < 287.5), 'minimal edge correction must still ease toward the center');
-    assert.deepEqual(after.cursor, before.cursor); close(after.cursorY, 150);
+    assert.deepEqual(after.cursor, before.cursor); close(after.cursorY, 129);
     evidence.push({ name: 'keyboard-small', before, after, frames });
   });
 
@@ -187,7 +187,7 @@ try {
     const frames = await finishTrace(page), after = await snapshot(page), moved = frames.filter(frame => frame.fieldTop === 80);
     smoothTransition(before, moved, after, 'y');
     assert.ok(moved.some(frame => Math.abs(frame.markerY - before.markerY) < 70), 'new viewport origin must not instantly shift the world by its full offset');
-    close(after.cursorY, 300); close(after.cursorX, 215); assert.deepEqual(after.cursor, before.cursor);
+    close(after.cursorY, 258); close(after.cursorX, 215); assert.deepEqual(after.cursor, before.cursor);
     evidence.push({ name: 'viewport-offset', before, after, frames });
   });
 
@@ -196,9 +196,9 @@ try {
     await viewport(page, { height: 440 }); await delay(page, 45); await viewport(page, { height: 600 }); await settled(page);
     const frames = await finishTrace(page), after = await snapshot(page);
     assert.ok(frames.some(frame => frame.fieldHeight === 440), 'intermediate keyboard viewport must be exercised');
-    assert.ok(frames.some(frame => frame.fieldHeight === 600 && Math.abs(frame.cursorY - 300) > 1), 'new target must retain an intermediate camera frame');
+    assert.ok(frames.some(frame => frame.fieldHeight === 600 && Math.abs(frame.cursorY - 258) > 1), 'new target must retain an intermediate camera frame');
     assert.ok(frames.every(frame => frame.markerY <= before.markerY + .5 && frame.markerY >= before.markerY - 202.5), 'retargeted world stays inside the old and smallest-viewport bounds');
-    close(after.cursorY, 300); assert.equal(after.zoom, before.zoom); assert.deepEqual(after.cursor, before.cursor);
+    close(after.cursorY, 258); assert.equal(after.zoom, before.zoom); assert.deepEqual(after.cursor, before.cursor);
     evidence.push({ name: 'keyboard-retarget', before, after, frames });
   });
 
@@ -208,8 +208,8 @@ try {
     await settled(page); const frames = await finishTrace(page), after = await snapshot(page);
     assert.equal(after.cursor.x, before.cursor.x + 10); assert.equal(after.cursor.y, before.cursor.y + 2);
     assert.ok(frames.some(frame => Math.abs((frame.camera.x - before.camera.x) - Math.round(frame.camera.x - before.camera.x)) > .05), 'camera must render sub-cell progress');
-    assert.ok(frames.some(frame => Math.abs(frame.cursorX - frame.fieldWidth / 2) > .1 || Math.abs(frame.cursorY - frame.fieldHeight / 2) > .1), 'cursor may temporarily leave the center while the camera follows');
-    smoothTransition(before, frames, after, 'x'); close(after.cursorX, 600); close(after.cursorY, 450);
+    assert.ok(frames.some(frame => Math.abs(frame.cursorX - frame.fieldWidth / 2) > .1 || Math.abs(frame.cursorY - frame.fieldHeight * .43) > .1), 'cursor may temporarily leave the center while the camera follows');
+    smoothTransition(before, frames, after, 'x'); close(after.cursorX, 600); close(after.cursorY, 387);
     evidence.push({ name: 'wheel', before, after, frames });
   }, { mobile: false });
 
@@ -241,14 +241,14 @@ try {
     close(moved.markerY, held.markerY, .01, 'horizontal dragging must not settle unrelated vertical lag');
     await page.mouse.up(); await settled(page);
     const after = await snapshot(page);
-    close(after.cursorX, 600); close(after.cursorY, 450);
+    close(after.cursorX, 600); close(after.cursorY, 387);
     evidence.push({ name: 'grab-interrupt', grabbed, held, moved, after });
   }, { mobile: false });
 
   await fixture('reduced motion keeps viewport and wheel changes immediate', async ({ page }) => {
     const before = await snapshot(page); await viewport(page, { height: 440 });
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-    let after = await snapshot(page); close(after.cursorY, 220); assert.equal(after.zoom, before.zoom);
+    let after = await snapshot(page); close(after.cursorY, 189.2); assert.equal(after.zoom, before.zoom);
     await page.locator('#field').dispatchEvent('wheel', { deltaX: 90, deltaY: 0, deltaMode: 0 });
     after = await snapshot(page); assert.equal(after.cursor.x, before.cursor.x + 10); close(after.cursorX, after.fieldWidth / 2);
     evidence.push({ name: 'reduced-motion', before, after });

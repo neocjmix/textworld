@@ -16,7 +16,7 @@ async function settledCamera(page) {
   await page.waitForFunction(() => !window.textworld.inspect().cameraActive);
   const s = await state(page);
   for (const [axis, span, extent] of [['x', s.viewport.cols, s.world.width], ['y', s.viewport.rows, s.world.height]]) {
-    const displacement = s.camera[axis] + span / 2 - s.cursor[axis] - .5;
+    const displacement = s.camera[axis] + span * (axis === 'y' ? .43 : .5) - s.cursor[axis] - .5;
     const wrapped = displacement - Math.round(displacement / extent) * extent;
     assert.ok(Math.abs(wrapped) < 1e-6, 'The visual camera must settle on the logical cursor');
   }

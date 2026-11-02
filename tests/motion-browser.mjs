@@ -25,7 +25,7 @@ async function centered(page) {
   await settled(page);
   const s = await state(page);
   for (const [axis, extent, span] of [['x', s.world.width, s.viewport.cols], ['y', s.world.height, s.viewport.rows]]) {
-    const error = wrap(s.camera[axis] + span / 2 - s.cursor[axis] - .5 + extent / 2, extent) - extent / 2;
+    const error = wrap(s.camera[axis] + span * (axis === 'y' ? .43 : .5) - s.cursor[axis] - .5 + extent / 2, extent) - extent / 2;
     assert.ok(Math.abs(error) < 1e-6,
       `${axis}: settled cursor must return to screen center; offset=${error} cells, cursor=${JSON.stringify(s.cursor)}, camera=${JSON.stringify(s.camera)}`);
   }
@@ -146,13 +146,10 @@ try {
   await stable(a);
   check('wheel smoothing consumes exactly the supplied OS momentum without a second fling');
 
-  await location(a); await mouseFlick(a); await a.locator('#zoom-out').click();
+  await location(a); await mouseFlick(a); await a.locator('#field').dispatchEvent('wheel', { deltaY: 100, ctrlKey: true, bubbles: true, cancelable: true });
   assert.equal((await state(a)).motionActive, false); await stable(a);
-  await location(a); await mouseFlick(a); await a.locator('#help-toggle').click();
-  assert.equal((await state(a)).motionActive, false); await stable(a);
-  await a.locator('#help-close').click();
   await location(a); await mouseFlick(a); await location(a, 40, 20); await stable(a);
-  check('zoom, help and coordinate navigation cancel old inertial movement');
+  check('zoom and coordinate navigation cancel old inertial movement');
 
   await location(a); await mouseFlick(a);
   // Visibility change is explicit here; the unit suite separately verifies a

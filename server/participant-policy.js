@@ -202,7 +202,7 @@ export class ParticipantPolicy {
     const cost = Math.max(count, removed.size, 1);
     consumeTogether([this.write, this.network?.write], cost);
     let result;
-    try { result = this.world.applyWrite({ author: this.peer.id, id: message.id, epoch: message.epoch,
+    try { this.world.persistAuthor(this.peer.id); result = this.world.applyWrite({ author: this.peer.id, id: message.id, epoch: message.epoch,
       ...origin, text, clear, lineStartX }); }
     catch (error) { this.write.refund(cost); this.network?.write.refund(cost); throw error; }
     this.peer.x = result.cursor.x; this.peer.y = result.cursor.y;

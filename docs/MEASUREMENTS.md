@@ -58,3 +58,5 @@ HTTP는 `GET /api/metrics?period=60|3600&since=...&before=...&limit=...`, Bearer
 첫 실험은 시야 계산/전체 참여자 전파의 증폭과 전체 peers 목록 반복 전송을 다음 후보로 지목한다. 같은 관측을 공유하는 계산 캐시, 변경 영역에 따른 구독자 선택, peer 변화분 전송을 비교하되 시야·토러스·CJK·freshness의 의미를 유지해야 한다. 이후 별도 부하 생성기에서 접속/활동 비율·이동·IME·관측 대기·MCP를 섞어 목표 제공량과 실제 처리량,429, backlog, p95, resource 사용량을 측정한다. 현재 단일 SQLite writer는 replica를 늘리는 것만으로 수평 확장되지 않는다. 이번 자료는 그 결정을 위한 기준을 쌓는 첫 단계다.
 
 첫 코드 고정 benchmark의 실제 결과와 해석은 [기준 기록](measurements/BASELINE.md)에 있고, 전체72개 집계도 저장소에 보존한다. 비용 보고서는 정적 자산 bytes와 동적 application bytes를 분리한다. 최초 글꼴 로딩이 많은 짧은 구간을 계속 활동하는 세션과 혼동하지 않는다.
+
+만료 실험은 5초 sweep마다 `expiration.ms`, `expiration.deleted_cells`, `expiration.batch_full`을 집계한다. batch_full은 삭제된 셀이 500개 이상인 실행 횟수의 지표이며 두 칸 문자의 경우 셀 수와 후보 글자 수가 다르다. 전체 순회의 시간과 적체 가능성을 살펴본다.

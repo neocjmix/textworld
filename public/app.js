@@ -17,11 +17,18 @@ const ctx = canvas.getContext('2d');
 const input = $('input');
 const nativeSurface = createNativeSurface(input);
 const baseCell = { width: 9, height: 26 };
+try {
+  if (!sessionStorage.getItem('textworld-intro-seen')) {
+    sessionStorage.setItem('textworld-intro-seen', '1');
+    const intro = $('intro'); intro.hidden = false;
+    intro.addEventListener('animationend', () => { intro.hidden = true; }, { once: true });
+  }
+} catch { /* Storage can be unavailable in private contexts. */ }
 const mapFont = '"Textworld Sarasa"';
 const glyphWidths = new Map();
 let fontReady = false;
 let world = null, selfId = null, cells = new Map(), peers = [];
-let localCells = new Map(), freshnessMarks = new Map(), freshnessBands = {};
+let localCells = new Map(), freshnessMarks = new Map(), freshnessBands = {}, colorBands = {};
 let observedView = null, viewRevision = 0, sentView = '', viewTimer, recoveryTimer;
 let cursor = { x: 0, y: 0 }, camera = { x: 0, y: 0 };
 let cameraAnchor = null, cameraEpoch = null;
@@ -81,7 +88,7 @@ function requestedView() {
   // A small margin keeps a smoothly moving camera covered. The server applies
   // the same maximum rectangle to every participant, regardless of transport.
   let cols = Math.min(VIEW_LIMITS.maxCols, Math.ceil(v.cols) + 8);
-  let rows = Math.min(VIEW_LIMITS.maxRows, Math.ceil(v.rows) + 4);
+  let rows = Math.min(VIEW_LIMITS.maxRows, Math.ceil(v.rows * 1.14) + 4);
   if (cols * rows > VIEW_LIMITS.maxArea) {
     const scale = Math.sqrt(VIEW_LIMITS.maxArea / (cols * rows));
     cols = Math.max(1, Math.floor(cols * scale));
@@ -125,7 +132,7 @@ function center({ immediate = false, residual = false, direct = false, timeConst
     cameraAnchor.y += shortest(cursor.y - wrap(cameraAnchor.y, world.height), world.height);
   }
   const target = { x: cameraAnchor.x + .5 - v.cols / 2 + (residual ? panRemainder.x : 0),
-    y: cameraAnchor.y + .5 - v.rows / 2 + (residual ? panRemainder.y : 0) };
+    y: cameraAnchor.y + .5 - v.rows * .43 + (residual ? panRemainder.y : 0) };
   if (direct && dragCameraOffset) { target.x += dragCameraOffset.x; target.y += dragCameraOffset.y; }
   // Large teleports must not leave the actual writing position off-screen.
   const px = (cameraAnchor.x + .5 - camera.x) * d.width;
@@ -140,7 +147,6 @@ function center({ immediate = false, residual = false, direct = false, timeConst
   } else if (px < d.width || px > size.width - d.width || py < d.height || py > size.height - d.height) immediate = true;
   cameraMotion.setTarget(target, { immediate, scale: { x: d.width, y: d.height }, timeConstant });
   if (cameraMotion.active && frame) { cancelAnimationFrame(frame); frame = null; }
-  $('coordinates').textContent = `${cursor.x}, ${cursor.y}`;
   updateCursorSurface();
 }
 function updateCursorSurface() {
@@ -176,7 +182,7 @@ function grabCamera() {
   const v = visible();
   dragCameraOffset = cameraAnchor ? {
     x: camera.x - (cameraAnchor.x + .5 - v.cols / 2 + panRemainder.x),
-    y: camera.y - (cameraAnchor.y + .5 - v.rows / 2 + panRemainder.y),
+    y: camera.y - (cameraAnchor.y + .5 - v.rows * .43 + panRemainder.y),
   } : { x: 0, y: 0 };
 }
 function queueMove(intent) {
@@ -230,9 +236,6 @@ function setZoom(value) {
   app.style.setProperty('--cell-height', `${d.height}px`);
   input.style.fontSize = `${18 * zoom}px`;
   input.style.lineHeight = `${d.height}px`;
-  $('zoom-level').textContent = `${Math.round(zoom * 100)}%`;
-  $('zoom-out').disabled = zoom <= .6;
-  $('zoom-in').disabled = zoom >= 2;
   panRemainder = { x: 0, y: 0 };
   center({ immediate: true });
   reportView();
@@ -279,18 +282,6 @@ function draw() {
   if (!world) return;
   const d = dimensions(), v = visible();
   const startX = Math.floor(camera.x), startY = Math.floor(camera.y);
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = '#e3e8dd';
-  ctx.beginPath();
-  for (let x = startX; x <= camera.x + v.cols; x++) {
-    const px = (x - camera.x) * d.width;
-    ctx.moveTo(px + .5, 0); ctx.lineTo(px + .5, size.height);
-  }
-  for (let y = startY; y <= camera.y + v.rows; y++) {
-    const py = (y - camera.y) * d.height;
-    ctx.moveTo(0, py + .5); ctx.lineTo(size.width, py + .5);
-  }
-  ctx.stroke();
   ctx.fillStyle = '#314137';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -300,12 +291,6 @@ function draw() {
     for (let x = startX - 1; x <= camera.x + v.cols; x++) {
       const wx = wrap(x, world.width), wy = wrap(y, world.height);
       const px = (x - camera.x) * d.width, py = (y - camera.y) * d.height;
-      if (wx === 0 || wy === 0) {
-        ctx.strokeStyle = '#b7c9b3'; ctx.setLineDash([3, 5]); ctx.beginPath();
-        if (wx === 0) { ctx.moveTo(px, py); ctx.lineTo(px, py + d.height); }
-        if (wy === 0) { ctx.moveTo(px, py); ctx.lineTo(px + d.width, py); }
-        ctx.stroke(); ctx.setLineDash([]);
-      }
       const cell = localCells.get(cellKey(wx, wy));
       if (observedView && !cell && (wrap(wx - observedView.x, world.width) >= observedView.cols
         || wrap(wy - observedView.y, world.height) >= observedView.rows)) {
@@ -315,17 +300,14 @@ function draw() {
         ctx.fillRect(px + 1, py + 1, d.width - 1, d.height - 1);
         ctx.fillStyle = '#314137';
       }
-      const band = cell ? (typeof cell.version === 'string' ? 'now' : freshnessBands[cell.version]) : freshnessBands[freshnessMarks.get(cellKey(wx, wy))];
-      const style = freshnessStyle(band);
-      if (style.background && (cell?.width !== 0)) {
-        const width = d.width * (cell?.width || 1);
-        ctx.fillStyle = style.background;
-        ctx.fillRect(px + 1, py + 2, width - 2, d.height - 4);
-        ctx.fillStyle = style.underline;
-        ctx.fillRect(px + 1, py + d.height - 3, width - 2, band === 'now' ? 2 : 1);
+      if (cell?.text) {
+        const local = typeof cell.version === 'string';
+        const style = freshnessStyle(local ? 'now' : freshnessBands[cell.version]);
+        ctx.globalAlpha = style.opacity;
+        ctx.fillStyle = local ? (peers.find(peer => peer.id === selfId)?.color || '#314137') : (colorBands[cell.version] || '#314137');
+        paintText(cell.text, px, py, d, cell.width || 1, fonts); drawnGlyphs++;
+        ctx.globalAlpha = 1;
       }
-      ctx.fillStyle = style.ink;
-      if (cell?.text) {paintText(cell.text, px, py, d, cell.width || 1, fonts);drawnGlyphs++;}
     }
   }
   ctx.textAlign = 'left';
@@ -379,7 +361,7 @@ window.visualViewport?.addEventListener('scroll', fitVisualViewport);
 fitVisualViewport();
 
 function focusInput() {
-  if (connected && !$('help').open) input.focus({ preventScroll: true });
+  if (connected) input.focus({ preventScroll: true });
 }
 function resetNativeProjection() {
   nativeProjection.reset(cursor);
@@ -563,18 +545,6 @@ function restorePointerTyping(event) {
   // Mouse-operated controls return to map typing; keyboard Tab users keep button focus.
   if (event.detail > 0 && isDesktop()) focusInput();
 }
-$('zoom-out').onclick = event => { setZoom(zoom - .2); restorePointerTyping(event); };
-$('zoom-in').onclick = event => { setZoom(zoom + .2); restorePointerTyping(event); };
-$('help-toggle').onclick = () => {
-  stopPan();
-  cancelComposition(); input.blur();
-  $('help').showModal(); $('help-toggle').setAttribute('aria-expanded', 'true');
-};
-$('help-close').onclick = () => $('help').close();
-$('help').addEventListener('close', () => {
-  $('help-toggle').setAttribute('aria-expanded', 'false');
-  if (isDesktop()) focusInput();
-});
 async function locate(initial = false) {
   stopPan();
   if (!world) return;
@@ -635,12 +605,14 @@ function connect() {
       const keepWriting = keepNativeContext || (!firstSnapshot && !wasConnected && oldEpoch === message.world.epoch && pending.size === 0);
       cancelMove(); lastSentPosition = null; world = message.world; selfId = message.selfId;
       freshnessBands = message.freshness || {};
+      colorBands = message.colors || {};
       freshnessMarks = new Map((message.marks || []).map(m => [cellKey(m.x, m.y), m.version]));
       observedView = message.view || null; viewRevision = message.viewRevision || 0;
       $('cursor').hidden = false;
       cells = new Map(message.cells.filter(c => c.text || c.width === 0).map(c => [cellKey(c.x, c.y), c]));
       peers = message.peers;
       const me = peers.find(p => p.id === selfId);
+      input.style.setProperty("--author-color", me?.color || "#314137");
       cursor = me ? { x: me.x, y: me.y } : { x: 0, y: 0 };
       if (pending.size) { notice('세계를 갱신했습니다. 전송 중이던 글자를 확인해 주세요.'); pending.clear(); }
       refreshLocalCells();
@@ -666,6 +638,7 @@ function connect() {
       if (message.world?.epoch !== world?.epoch) return;
       const observation = message.observation;
       freshnessBands = observation.freshness || {};
+      colorBands = observation.colors || {};
       freshnessMarks = new Map((observation.marks || []).map(m => [cellKey(m.x, m.y), m.version]));
       world = message.world;
       observedView = observation.view; viewRevision = observation.revision;

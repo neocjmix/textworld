@@ -75,8 +75,8 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
   overflow: visible;
   opacity: 1;
   background: #f8f8f2;
-  color: #314137;
-  -webkit-text-fill-color: #314137;
+  color: var(--author-color, #314137);
+  -webkit-text-fill-color: var(--author-color, #314137);
 }
 #input[data-native-preview]::selection { color: #314137; background: #d9e6d7; }
 #cursor {
@@ -153,7 +153,7 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
   position: absolute;
   z-index: 3;
   left: 50%;
-  bottom: max(calc(var(--edge) + 56px), calc(env(safe-area-inset-bottom) + 56px));
+  bottom: max(8px, env(safe-area-inset-bottom));
   transform: translateX(-50%);
   width: max-content;
   max-width: min(460px, calc(100% - 136px));
@@ -227,7 +227,7 @@ details p { margin-top: 12px; }
   .world-status { margin-top: 3px; }
   .identity { padding-top: 6px; padding-bottom: 6px; }
   .navigation-controls { gap: 6px; }
-  #notice { bottom: max(calc(var(--edge) + 44px), calc(env(safe-area-inset-bottom) + 44px)); }
+  #notice { bottom: max(8px, env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: no-preference) {
   #connection-dot { transition: background .2s; }
@@ -235,3 +235,9 @@ details p { margin-top: 12px; }
 
 .freshness-key { position: absolute; left: 12px; bottom: calc(96px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 6px; padding: 6px 8px; font-size: 10px; color: #526454; pointer-events: none; }
 .freshness-key i { width: 52px; height: 5px; border-radius: 2px; background: linear-gradient(90deg, #d5a435, #f2e1aa, #e3e8dd, #59665c); }
+
+#intro { position: absolute; z-index: 4; inset: 0; display: flex; align-items: center; justify-content: center; gap: 16px; pointer-events: none; background: #f8f8f2; font-size: clamp(38px, 8vw, 76px); font-weight: 700; letter-spacing: -3px; animation: intro-fade .6s ease 3s forwards; }
+.intro-mark { display: inline-flex; align-items: center; justify-content: center; width: 1.2em; height: 1.2em; border-radius: 7px; color: #f6f5ef; background: #243b33; font: bold .9em/1 monospace; letter-spacing: -.15em; padding-right: .15em; }
+.intro-mark span { color: #bad79f; }
+@keyframes intro-fade { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { #intro { animation-duration: .001s; } }

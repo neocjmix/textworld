@@ -7,10 +7,10 @@ A shared, spatial, real-time text world. People inhabit a 2D character grid as v
 ## Principles
 - Public world uses toroidal topology and density-responsive expansion/contraction.
 - Writing overwrites cells, never inserts or shifts neighboring content.
-- Each user is represented by a visible, single-cell cursor. The map settles with your cursor at the visible screen center; smooth movement can temporarily place it off-center. Scrolling moves your presence and input position.
+- Each user is represented by a visible, single-cell cursor. The map settles with your cursor at slightly above the visible screen center; smooth movement can temporarily place it off-center. Scrolling moves your presence and input position.
 - Zoom is bounded; GPS determines initial placement and supports return to current geographic position.
-- Public text is ephemeral. An independent scavenger can use cell provenance and history to remove old or damaged content.
-- Future private worlds may choose different topology, persistence, deterministic growth, and scavenger policies.
+- Public text is ephemeral. Characters automatically expire when their freshness reaches the lower bound.
+- Future private worlds may choose different topology, persistence and deterministic growth.
 - Mobile usability matters.
 
 See [AGENTS.md](AGENTS.md) for agent operating instructions. The product principles are binding; implementation details remain open for autonomous exploration.
@@ -26,7 +26,7 @@ npm start
 
 `http://localhost:3000`을 서로 다른 브라우저나 창 두 개에서 여세요. 서버는 기본적으로 `0.0.0.0:3000`에서 수신합니다. 같은 서버에 접속하면 글자와 커서를 공유합니다. `이곳 링크`로 특정 칸을 공유할 수 있습니다. 다른 기기에서 GPS·클립보드를 쓰려면 HTTPS가 필요합니다. localhost에서는 브라우저가 이를 허용합니다.
 
-- 지도가 브라우저 화면 전체를 채우며 내 커서는 이동이 끝나면 보이는 지도 화면의 중심에 놓입니다. 이동 중에는 부드러운 화면 전환을 위해 잠깐 중심에서 벗어날 수 있으며, 커서는 실제 입력할 셀을 계속 가리킵니다. 별도 입력 패널은 없습니다.
+- 지도가 브라우저 화면 전체를 채우며 내 커서는 이동이 끝나면 보이는 지도 화면의 중심보다 조금 위에 놓입니다. 이동 중에는 부드러운 화면 전환을 위해 잠깐 중심에서 벗어날 수 있으며, 커서는 실제 입력할 셀을 계속 가리킵니다. 별도 입력 패널은 없습니다.
 - 드래그·가로/세로 스크롤로 지도를 움직여 중심에 입력할 칸을 가져오세요. 드래그를 빠르게 놓으면 관성으로 이동하다 감속하며, 입력하거나 지도를 다시 잡으면 멈춥니다. 트랙패드는 OS가 보낸 이동량을 부드럽게 전달하며 관성을 중복해서 더하지 않습니다. 지도 이동 자체가 내 커서의 세계 좌표를 바꾸며 다른 사용자에게도 전달됩니다.
 - 지도를 클릭/탭하면 현재 커서의 셀에서 네이티브 키보드 입력을 받습니다. 탭한 곳으로 커서를 옮기지는 않습니다. 모바일에서는 OS 키보드가 열립니다. 한글·일본어·중국어의 조합과 후보 선택은 OS와 브라우저가 처리하고, 앱은 브라우저가 제공한 정확한 편집 범위와 실제 결과를 세계에 반영합니다. 세계 크기가 바뀌어 좌표가 재배치되면 기존 조합을 취소하고 새 커서 위치에서 다시 입력합니다.
 - 조합 중에는 실제 네이티브 입력 요소의 해당 범위를 지도 위에 보여줍니다. 입력·삭제를 보내면 서버 응답을 기다리지 않고 내 화면에 먼저 반영하며, 최종 공유 상태는 서버가 확정한 순서를 따릅니다. 조합 초안은 다른 사용자에게 보내지 않습니다.
@@ -35,7 +35,7 @@ npm start
 - Enter·Shift+Enter는 이번 글쓰기를 시작한 열의 다음 행으로 갑니다. 모바일 줄바꿈과 여러 줄 붙여넣기도 같은 기준을 씁니다.
 - 지도 드래그·스크롤·GPS·좌표 링크는 새 글쓰기 기준을 잡습니다. 글을 쓰는 중 방향키로 오타를 고쳐도 기준 열은 유지됩니다. Home은 현재 행의 작성 기준 열로 돌아갑니다.
 - Backspace는 방금 쓴 글자를 지우며, 직접 만든 줄바꿈 직후에는 글자를 지우지 않고 이전 줄 끝으로 돌아갑니다. 위치를 따로 옮겨 작성 경로를 벗어난 경우에는 왼쪽 칸의 글자를 지웁니다. 두 칸 문자는 시작 칸으로 돌아가 두 칸을 함께 지웁니다. Delete는 현재 칸이 속한 글자를 지우고 커서 위치를 유지합니다. 주변 글은 밀리거나 합쳐지지 않습니다.
-- `− / +`로 60~200% 확대·축소합니다. 모바일 키보드 높이나 화면 크기가 바뀌면 사용 가능한 화면 영역을 즉시 맞추고 선택한 셀이 새 중심으로 부드럽게 이동합니다. 크게 줄어든 화면에서는 먼저 입력 셀이 가려지지 않을 만큼만 보정합니다. OS의 동작 줄이기 설정에서는 화면 전환을 즉시 마칩니다.
+- 핀치 또는 Ctrl/⌘+휠로 60~200% 확대·축소합니다. 모바일 키보드 높이나 화면 크기가 바뀌면 사용 가능한 화면 영역을 즉시 맞추고 선택한 셀이 새 위치로 부드럽게 이동합니다. 크게 줄어든 화면에서는 먼저 입력 셀이 가려지지 않을 만큼만 보정합니다. OS의 동작 줄이기 설정에서는 화면 전환을 즉시 마칩니다.
 - GPS를 허용하면 현재 크기의 세계에 투영합니다. 거절하면 공동 출발점에서 사용할 수 있습니다. 정확한 위도·경도는 전송하지 않습니다.
 - 연결이 끊기면 입력을 비활성화하고 다시 연결합니다. 미확정 입력을 자동 재전송하지 않습니다. 재접속 후 내용을 확인하세요.
 
@@ -78,17 +78,11 @@ npm run experiment          # 공간 모델의 결정적 반례 비교
 
 브라우저 테스트는 `/usr/bin/chromium`을 사용합니다. 다른 환경에서는 Chromium을 설치하고 `CHROMIUM_PATH`를 설정하세요. 스크린샷은 `artifacts/`에 생성됩니다. 실제 휴대폰의 OS 키보드를 사용한 검증과 모바일 에뮬레이션은 다릅니다. 상세한 실행 증거와 미검증 항목은 [검증 기록](docs/VERIFICATION.md)에 있습니다.
 
-## 별도 scavenger
+## 신선도와 자동 삭제
 
-서버와 별도 프로그램이 같은 `SCAVENGER_TOKEN` 환경변수를 사용하도록 설정한 뒤 실행합니다. 토큰이 없으면 관리 API가 비활성화됩니다.
+새 글은 진하고 시간이 흐를수록 투명해집니다. 약 1시간이 지나 신선도 하한에 도달하면 자동 삭제됩니다. 공유 시간 표식의 최대 5초 오차를 고려해 최소 5초 더 기다리고, 5초마다 최대 500개 글자를 정리하므로 부하가 높으면 추가 지연이 생길 수 있습니다. 삭제 직전 셀 버전과 세계 epoch를 확인하며, 그 사이 덮어쓴 글은 지우지 않습니다. 두 칸 문자는 함께 삭제합니다.
 
-```sh
-node server/scavenger.js
-```
-
-기본적으로 24시간 이상 지난 현재 셀을 최대 500개 정리합니다. `TEXTWORLD_URL`, `SCAVENGER_MAX_AGE_MS`로 접속 주소와 수명을 바꿀 수 있습니다. 한 번 실행하고 종료하므로 주기 실행은 운영자가 별도로 구성합니다. 코어에는 나이 정책이 없습니다. 프로그램은 evidence를 읽고 셀 버전이 그대로일 때만 삭제합니다. 읽은 뒤 새로 쓴 글은 지우지 않습니다.
-
-화면에서 지운 글의 과거 버전은 현재 실험 DB의 history에 남습니다. 표시 수명과 데이터 보존 기간은 다릅니다. history 정리 정책은 아직 구현하지 않았습니다.
+색은 익명 접속 세션마다 고유하게 배정되어 작성된 글에 남습니다. 재접속은 새 익명 세션이므로 새 색을 받습니다. 사용자가 색을 바꾸는 기능은 백로그입니다. 이전에 작성된 색상 정보 없는 글은 중립색으로 표시합니다. 화면에서 삭제된 글의 history는 현재 DB에 남으며 보존 기간 정책은 아직 없습니다.
 
 ## 현재 범위
 
@@ -108,6 +102,6 @@ Railway에서 공개 실험 중인 초기 프로토타입입니다. 익명 참�
 
 중요한 선택은 [결정 기록](docs/DECISIONS.md), 대안 비교와 다음 실험은 [공간 모델 실험](docs/EXPERIMENTS.md)을 참고하세요. 제품 헌법은 변경하지 않았습니다.
 
-최근 바뀐 글과 좌표에는 금색 배경·밑줄이 나타나고 시간이 지나면 강조가 줄어듭니다. 오래된 글도 읽을 수 있으며, 최근 삭제 자리에는 잠깐 흔적이 남습니다. 글자별 시각을 추가 저장하지 않고 기존 변경 번호와 공유 시간 표식을 이용합니다. `npm run test:freshness`로 실제 Chromium 표시·자동 노화·입력 문맥 유지·모바일 범례를 검사합니다.
+신선도는 글자 투명도로 표시하며, 변경 번호와 공유 시간 표식을 이용해 글자별 시각 저장을 피합니다. `npm run test:freshness`는 실제 Chromium의 표시와 입력 문맥을 검사합니다.
 
 운영 규모·비용 측정은 기본 활성화되어 별도 `.metrics.sqlite`에 분/시간 집계로 누적됩니다. [수집 항목·보존·내보내기·비용 가정](docs/MEASUREMENTS.md), `npm run bench:scale`, `npm run metrics:export`, `npm run metrics:report`를 제공합니다. 계측은 글 내용·좌표·IP를 기록하지 않으며 관리 토큰으로만 조회합니다.

@@ -16,6 +16,7 @@ export class World {
     this.db = new DatabaseSync(storagePath);
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;
       CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS author_colors (author TEXT PRIMARY KEY, color TEXT NOT NULL UNIQUE);
       CREATE TABLE IF NOT EXISTS cells (x INTEGER, y INTEGER, text TEXT NOT NULL,
         version INTEGER NOT NULL, author TEXT NOT NULL, updatedAt INTEGER NOT NULL,
         groupId TEXT NOT NULL, PRIMARY KEY(x,y));
@@ -74,6 +75,9 @@ export class World {
       UPDATE history SET updatedAt=0 WHERE updatedAt!=0;
       COMMIT;`);
     this.now = now;
+    this.authorColors = new Map(this.db.prepare("SELECT author,color FROM author_colors").all().map(row => [row.author,row.color]));
+    this.usedColors = new Set(this.authorColors.values());
+    this.persistedAuthors = new Set(this.authorColors.keys());
     const meta = saved ? JSON.parse(saved.value) : { width, height, epoch: 1, seq: 0 };
     Object.assign(this, meta);
     this.cells = new Map(this.db.prepare('SELECT c.x,c.y,c.text,c.width,c.leadX,c.version,c.author,t.updatedAt,c.groupId AS "group" FROM cells c JOIN change_times t ON t.version=(SELECT MAX(version) FROM change_times WHERE version<=c.version)').all().map(cell => [cellKey(cell.x, cell.y), cell]));
@@ -174,6 +178,35 @@ export class World {
     for (const cell of cells) this.cells.set(cellKey(cell.x, cell.y), cell);
     return result;
   }
+  reserveAuthor(author, color) {
+    this.authorColors.set(author, color);
+    this.usedColors.add(color);
+  }
+  releaseAuthor(author) {
+    if (!this.persistedAuthors.has(author)) {
+      this.usedColors.delete(this.authorColors.get(author));
+      this.authorColors.delete(author);
+    }
+  }
+  persistAuthor(author) {
+    if (!this.persistedAuthors.has(author) && this.authorColors.has(author)) this.registerAuthor(author, this.authorColors.get(author));
+  }
+  registerAuthor(author, color) {
+    this.db.prepare("INSERT INTO author_colors (author,color) VALUES (?,?)").run(author, color);
+    this.authorColors.set(author, color);
+    this.usedColors.add(color);
+    this.persistedAuthors.add(author);
+  }
+  expiredCandidates(before, limit = 500) {
+    const result = [];
+    for (const cell of this.cells.values()) {
+      if (cell.text && cell.updatedAt <= before) {
+        result.push({ x: cell.x, y: cell.y, version: cell.version });
+        if (result.length >= limit) break;
+      }
+    }
+    return result;
+  }
   evidence({ before = this.now(), limit = 500 } = {}) {
     return this.db.prepare(`SELECT c.x,c.y,c.text,c.width,c.leadX,c.version,c.author,t.updatedAt,c.groupId AS "group",
       (SELECT count(*) FROM history h WHERE h.x=c.x AND h.y=c.y) AS revisions,
@@ -182,7 +215,7 @@ export class World {
       FROM cells c JOIN change_times t ON t.version=(SELECT MAX(version) FROM change_times WHERE version<=c.version) WHERE c.text!='' AND t.updatedAt<=? ORDER BY t.updatedAt LIMIT ?`).all(before, Math.min(500, Math.max(1, limit)));
   }
   conditionalDelete({ id, epoch, candidates }) {
-    const author = 'scavenger';
+    const author = 'expiry';
     const previous = this.prior(author, id);
     if (previous) return previous;
     this.assertEpoch(epoch);
@@ -198,7 +231,7 @@ export class World {
         for (const cell of span) changes.set(cellKey(cell.x, cell.y), { x: cell.x, y: cell.y, text: '' });
       }
     }
-    return this.commit([...changes.values()], { author, id, reason: 'scavenge', cursor: null });
+    return this.commit([...changes.values()], { author, id, reason: 'expire', cursor: null });
   }
   resize(width, height, peers = [], { seed = randomInt(0, 4294967296) } = {}) {
     if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width < 32 || height < 16 || width > 1024 || height > 512) {

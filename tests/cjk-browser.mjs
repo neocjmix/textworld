@@ -22,7 +22,7 @@ async function centered(page) {
   });
   const s = await state(page);
   for (const [axis, span, extent] of [['x', s.viewport.cols, s.world.width], ['y', s.viewport.rows, s.world.height]]) {
-    const distance = s.camera[axis] + span / 2 - s.cursor[axis] - .5;
+    const distance = s.camera[axis] + span * (axis === 'y' ? .43 : .5) - s.cursor[axis] - .5;
     const wrapped = ((distance + extent / 2) % extent + extent) % extent - extent / 2;
     assert.ok(Math.abs(wrapped) < 1e-6, `${axis} cursor must remain at the map center`);
   }
@@ -319,12 +319,12 @@ try {
     for (const glyph of ['한', '한', '中', 'あ', 'Ａ']) assert.ok(Math.abs(metrics.widths[glyph] - 18) < .01, `${glyph} must advance 18px`);
     assert.ok(metrics.paints.length > 30); assert.ok(metrics.paints.every(paint => /^18px /.test(paint.font) && paint.argumentCount === 3), 'new glyphs must use natural 18px Sarasa advances without fillText maxWidth');
     assert.equal(metrics.input.x + metrics.input.width / 2, metrics.viewport.width / 2);
-    assert.equal(metrics.input.y + metrics.input.height / 2, metrics.viewport.height / 2);
+    assert.equal(metrics.input.y + metrics.input.height / 2, metrics.viewport.height * .43);
     delete metrics.paints; measurements.push(metrics);
     await centered(page);
   }
   async function reachableControls(page) {
-    const controls = await page.evaluate(() => ['share', 'help-toggle', 'gps', 'zoom-in', 'zoom-out'].map(id => {
+    const controls = await page.evaluate(() => ['share', 'gps'].map(id => {
       const el = document.getElementById(id), r = el.getBoundingClientRect();
       return { id, inside: r.x >= 0 && r.y >= 0 && r.right <= innerWidth && r.bottom <= innerHeight,
         hit: el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)),
@@ -358,7 +358,7 @@ try {
     await page.screenshot({ path: 'artifacts/standard-cjk-committed.png' });
   }, { x: 40, y: 30, seed: sample });
 
-  await scenario('Mobile map and reduced-height help preserve usable controls, natural spacing and centered input', async ({ app, page, cdp }) => {
+  await scenario('Mobile map and reduced-height viewport preserve usable controls, natural spacing and centered input', async ({ app, page, cdp }) => {
     await checkFontAndGeometry(page); await reachableControls(page);
     await page.screenshot({ path: 'artifacts/standard-cjk-mobile.png' });
     const seq = app.world.seq;
@@ -367,18 +367,8 @@ try {
     await compose(cdp, '한글 입력'); await nativeDraft(page, '한글 입력', 0, { x: 40, y: 30 });
     await page.screenshot({ path: 'artifacts/standard-cjk-composition-mobile.png' });
     await compose(cdp, ''); await paint(page); assert.equal(app.world.seq, seq);
-    await page.locator('#help-toggle').click();
-    assert.equal(await page.locator('#help').evaluate(el => el.open), true);
-    assert.match(await page.locator('#help').textContent(), /영문은 한 칸, 한글·한자는 두 칸/);
-    await page.screenshot({ path: 'artifacts/standard-cjk-help-mobile.png' });
-    await page.locator('#help-close').click();
     await page.setViewportSize({ width: 390, height: 390 }); await paint(page); await reachableControls(page); await centered(page);
-    await page.locator('#help-toggle').click();
-    const help = await page.locator('#help').evaluate(el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, right: r.right, bottom: r.bottom, width: el.clientWidth, contentWidth: el.scrollWidth, height: el.clientHeight, contentHeight: el.scrollHeight }; });
-    assert.ok(help.x >= 0 && help.y >= 0 && help.right <= 390 && help.bottom <= 390);
-    assert.ok(help.contentWidth <= help.width, 'help text must not cause horizontal overflow');
-    assert.ok(help.contentHeight > help.height, 'reduced viewport uses a scrollable help dialog');
-    await page.locator('#help-close').click();
+    assert.equal(await page.locator('#help-toggle, #zoom-in, #zoom-out').count(), 0);
   }, { x: 40, y: 30, mobile: true, seed: sample });
 
   await writeFile('artifacts/standard-cjk-results.json', JSON.stringify({ passed: passed.length, failed, measurements, coverage: 'Chromium native CDP composition, native DOM range placement/clipping, committed Canvas handoff and actual app/WebSocket; physical OS keyboards and candidate windows remain unverified' }, null, 2));

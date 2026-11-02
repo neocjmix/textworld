@@ -139,10 +139,12 @@ export class Observer {
     const rectangle = viewRectangle(world, peer, this.view);
     const marks = [];
     const current = cellsInRectangle(world, rectangle, marks);
-    const ages = {};
+    const ages = {}, colors = {};
     let nextFreshnessAt = Infinity;
     for (const cell of [...current.values(), ...marks]) {
-      const updatedAt = world.getCell(cell.x, cell.y)?.updatedAt;
+      const original = world.getCell(cell.x, cell.y);
+      const updatedAt = original?.updatedAt;
+      if (original) colors[cell.version] = world.authorColors.get(original.author) || '#314137';
       const band = freshness(updatedAt, world.now()); ages[cell.version] = band;
       if (Number.isFinite(updatedAt)) nextFreshnessAt = Math.min(nextFreshnessAt, updatedAt + FRESHNESS.find(item => item.name === band).until);
     }
@@ -164,6 +166,6 @@ export class Observer {
       view: { ...rectangle }, marks, freshness: { ...ages }, cells: new Map([...current].map(([key, cell]) => [key, { ...cell }])),
       peers: localPeers.map(other => ({ ...other })) };
     return { revision: this.revision, reset: !!reset, view: rectangle,
-      cells: reset ? [...current.values()] : cells, forget: reset ? [] : forget, marks: marks.map(mark => ({ ...mark })), freshness: ages, peers: localPeers };
+      cells: reset ? [...current.values()] : cells, forget: reset ? [] : forget, marks: marks.map(mark => ({ ...mark })), freshness: ages, colors, peers: localPeers };
   }
 }

@@ -39,7 +39,7 @@ async function scenario(name, run) {
     });
     const state = await page.evaluate(() => window.textworld.inspect());
     for (const [axis, extent, span] of [['x', state.world.width, state.viewport.cols], ['y', state.world.height, state.viewport.rows]]) {
-      const distance = state.camera[axis] + span / 2 - state.cursor[axis] - 0.5;
+      const distance = state.camera[axis] + span * (axis === 'y' ? .43 : .5) - state.cursor[axis] - 0.5;
       const wrapped = ((distance + extent / 2) % extent + extent) % extent - extent / 2;
       assert.ok(Math.abs(wrapped) < 1e-6, `${axis} native input cursor must return to center after motion settles`);
     }

@@ -35,7 +35,7 @@ async function centered(page) {
     ['x', snapshot.world.width, snapshot.viewport.cols],
     ['y', snapshot.world.height, snapshot.viewport.rows],
   ]) {
-    const center = snapshot.camera[axis] + span / 2;
+    const center = snapshot.camera[axis] + span * (axis === 'y' ? .43 : .5);
     const expected = snapshot.cursor[axis] + 0.5;
     const error = Math.abs(wrap(center - expected + extent / 2, extent) - extent / 2);
     assert.ok(error < 1e-6, `${axis}: cursor must be at viewport center, error ${error}`);
@@ -45,7 +45,7 @@ async function centered(page) {
     const host = document.getElementById('input'), input = host.getBoundingClientRect();
     const cursor = document.getElementById('cursor').getBoundingClientRect();
     return {
-      fieldX: field.x + field.width / 2, fieldY: field.y + field.height / 2,
+      fieldX: field.x + field.width / 2, fieldY: field.y + field.height * .43,
       inputX: input.x + input.width / 2, inputY: input.y + input.height / 2,
       cursorX: cursor.x + cursor.width / 2, cursorY: cursor.y + cursor.height / 2,
       nativePreview: host.hasAttribute('data-native-preview'),
@@ -182,9 +182,9 @@ try {
   check('small trackpad deltas accumulate into cell movement instead of disappearing');
 
   const beforeZoom = (await state(a)).cursor;
-  for (let index = 0; index < 10; index++) if (await a.locator('#zoom-out').isEnabled()) await a.locator('#zoom-out').click();
+  for (let index = 0; index < 10; index++) await a.locator('#field').dispatchEvent('wheel', { deltaY: 100, ctrlKey: true, bubbles: true, cancelable: true });
   assert.equal((await state(a)).zoom, 0.6); await centered(a);
-  for (let index = 0; index < 12; index++) if (await a.locator('#zoom-in').isEnabled()) await a.locator('#zoom-in').click();
+  for (let index = 0; index < 20; index++) await a.locator('#field').dispatchEvent('wheel', { deltaY: -100, ctrlKey: true, bubbles: true, cancelable: true });
   assert.equal((await state(a)).zoom, 2); assert.deepEqual((await state(a)).cursor, beforeZoom); await centered(a);
   check('zoom is bounded and preserves center cell identity');
   await a.keyboard.type('Q'); await settle(a);

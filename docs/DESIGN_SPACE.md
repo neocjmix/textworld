@@ -8,7 +8,7 @@ Investigate rather than assume:
 - Concurrent writes: deterministic ordering, overwrite semantics, stale edits, latency and offline behavior.
 - Presence: cursor movement from keyboard/touch/pan/scroll/zoom, visibility, transport throttling and reconnection.
 - Text semantics: Enter, wrapping, deletion, paste, Unicode grapheme clusters, IME composition, selection, accessibility.
-- Scavenger evidence: timestamps, provenance, change groups, damage signals, safe conditional deletion; policy belongs outside the engine.
+- Expiration: shared time markers, provenance, change groups, safe conditional deletion; policy belongs outside the engine.
 - World policy boundaries: public vs private topology, persistence, deterministic growth, permissions.
 - Rendering: efficient sparse viewport updates, mobile touch interaction, zoom bounds.
 

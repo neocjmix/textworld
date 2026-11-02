@@ -1,11 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
-import { fileURLToPath } from 'node:url';
-import { promisify } from 'node:util';
 import { WebSocket } from 'ws';
 import { createTextworld } from '../server/index.js';
+import { expire } from '../server/expiration.js';
 import { connect, hasCell, hasPeer, observationOf } from './ws-client.js';
 
 async function fixture(t, options = {}) {
@@ -51,25 +48,6 @@ test('independent sockets converge on overwrites, visible presence, stale epochs
   const after = a.messages.length;
   b.socket.close();
   await a.next(message => observationOf(message)?.peers.length === 2 && hasPeer(message, c.state.selfId), after);
-});
-
-test('scavenger capability is private and deletion uses observed cell versions', async t => {
-  const { app, url, base } = await fixture(t, { scavengerToken: 'test-capability', now: () => 1000 });
-  const live = await joined(url);
-  const auth = { authorization: 'Bearer test-capability', 'content-type': 'application/json' };
-  assert.equal((await fetch(`${base}/api/scavenger/evidence`)).status, 404);
-  app.world.applyWrite({ author: 'a', id: 'old', epoch: 1, x: 0, y: 0, text: 'old' });
-  const evidence = await (await fetch(`${base}/api/scavenger/evidence?before=1000`, { headers: auth })).json();
-  assert.equal(evidence.cells.length, 3);
-  app.world.applyWrite({ author: 'b', id: 'new', epoch: 1, x: 0, y: 0, text: 'N' });
-  await live.sync();
-  const after = live.messages.length;
-  const deleted = await (await fetch(`${base}/api/scavenger/delete`, { method: 'POST', headers: auth, body: JSON.stringify({ id: 'clean', epoch: evidence.epoch, candidates: evidence.cells }) })).json();
-  assert.equal(deleted.deleted, 2);
-  const patch = await live.next(message => message.type === 'view' && message.observation.forget.length === 2, after);
-  assert.deepEqual(patch.observation.forget, [{ x: 1, y: 0 }, { x: 2, y: 0 }]);
-  assert.equal(app.world.getCell(0, 0).text, 'N'); assert.equal(app.world.getCell(1, 0).text, '');
-  assert.equal((await (await fetch(`${base}/health`)).json()).ok, true);
 });
 
 test('invalid frames and cross-origin browser connections do not mutate the world', async t => {
@@ -121,25 +99,18 @@ test('a burst of stale frames sends only one fresh epoch snapshot and explicit s
   assert.equal(a.messages.filter(message => message.type === 'snapshot').length, beforeSnapshots + 2);
 });
 
-test('standalone scavenger process removes aged cells while retaining current text', async t => {
-  const token = randomUUID();
-  let clock = Date.now() - 2 * 24 * 60 * 60 * 1000;
-  const { app, url, base } = await fixture(t, { scavengerToken: token, now: () => clock });
-  app.world.applyWrite({ author: 'old-user', id: 'old-text', epoch: 1, x: 3, y: 4, text: '오래된글' });
-  clock = Date.now();
-  app.world.applyWrite({ author: 'current-user', id: 'current-text', epoch: 1, x: 3, y: 5, text: '새글' });
+test('expiry removes old wide glyphs, preserves fresh overwrites and reaches live observers', async t => {
+  let clock = 10000000;
+  const { app, url, base } = await fixture(t, { now: () => clock });
+  app.world.applyWrite({ author: 'old', id: 'old', epoch: 1, x: 3, y: 4, text: '오래' });
+  clock += 3605001;
+  app.world.applyWrite({ author: 'new', id: 'new', epoch: 1, x: 3, y: 4, text: 'N' });
   const observer = await joined(url), after = observer.messages.length;
-  const execute = () => promisify(execFile)(process.execPath, [fileURLToPath(new URL('../server/scavenger.js', import.meta.url))], {
-    env: { ...process.env, SCAVENGER_TOKEN: token, TEXTWORLD_URL: base, SCAVENGER_MAX_AGE_MS: String(24 * 60 * 60 * 1000) }, timeout: 5000,
-  });
-  const first = await execute();
-  assert.equal(JSON.parse(first.stdout).deleted, 8); assert.equal(first.stderr, ''); assert.ok(!first.stdout.includes(token));
-  assert.equal(app.world.getCell(3, 4).text, ''); assert.equal(app.world.getCell(3, 5).text, '새');
-  const removal = await observer.next(message => message.type === 'view' && message.observation.forget.length === 8, after);
-  assert.ok(removal.observation.forget.every(cell => cell.y === 4));
-  assert.equal(observer.state.cells.get('3,5').text, '새');
-  const second = await execute();
-  assert.equal(second.stdout.trim(), 'No expired cells.'); assert.equal(app.world.getCell(3, 5).text, '새');
+  assert.equal(expire(app.world, () => observer.send({ type: 'sync' })), 2);
+  await observer.next(message => message.type === 'snapshot' && !message.cells.some(cell => cell.x === 5 && cell.y === 4), after);
+  assert.equal(app.world.getCell(3, 4).text, 'N');
+  assert.equal(app.world.getCell(5, 4).text, '');
+  assert.equal((await fetch(`${base}/api/scavenger/evidence`)).status, 404);
 });
 
 test('explicit writing origin reaches both sockets while an omitted origin starts at the input column', async t => {

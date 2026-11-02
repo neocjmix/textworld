@@ -20,13 +20,13 @@ export function connect(url) {
       waiters.splice(waiters.indexOf(waiter), 1); clearTimeout(waiter.timer); waiter.resolve(message);
     }
   });
-  const next = (predicate, after = 0) => new Promise((resolve, reject) => {
+  const next = (predicate, after = 0, timeout = 3000) => new Promise((resolve, reject) => {
     const existing = messages.slice(after).find(predicate);
     if (existing) return resolve(existing);
     const waiter = { predicate, after, resolve, timer: setTimeout(() => {
       waiters.splice(waiters.indexOf(waiter), 1);
       reject(new Error(`Timed out waiting for protocol message; recent: ${JSON.stringify(messages.slice(-3))}`));
-    }, 3000) };
+    }, timeout) };
     waiters.push(waiter);
   });
   const send = value => socket.send(JSON.stringify({ layout: 2, ...value }));
