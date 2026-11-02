@@ -152,3 +152,9 @@ Railway의 [공개 네트워킹 기술 명세](https://docs.railway.com/networki
 ### 신선도 저장 구조 운영 주의
 
 `change_times`가 없는 기존 DB는 `.pre-change-times-v3-<시각>-<uuid>.sqlite`로 먼저 백업·fsync한 뒤 시각을 공유 표로 이전한다. 원본 좌표·글자·폭·version을 보존하고 cells/history의 기존 updatedAt은0으로 바꾼다. 새 서버는 version 이전의 가장 가까운 공통 시간 표식을 조회한다. 이 변경 전 서버로 단순 롤백하면0을 실제 시각으로 해석하므로 이 구조를 이해하는 호환 서버 또는 백업 복원이 필요하다. backup 이후 쓰기 보존 여부를 먼저 판단해야 한다. DB 스키마 구조 호환과 데이터 의미 호환은 다르다.
+
+### 공유 신선도 배포 — 2026-11-02
+
+구현 `45448f4d6f8942686b9ea21ce6432577b4880ad2`, 배포 `89edd0e8-ec71-4ef0-a12e-343b817cd297`가15:05:25 UTC에SUCCESS에 도달했다. 기동 로그에서 `/data/world.sqlite.pre-change-times-v3-1793631922265-41c11d11-0bdb-4d14-9498-f0f44df014a5.sqlite` 백업 생성과 정상 기동을 확인했다.
+
+배포 전 같은 시야에서 기록한680개 기존 셀의 좌표·본문·폭·연속칸·버전이 모두 보존됐다. 공개 관측은 정확한 시각을 노출하지 않고 old/earlier 공유 신선도 표를 돌려줬다. 실제 공개 Chromium에서도 신선도 범례·공유 표 수신과 연결을 확인했으며 pageerror0, 추가 쓰기0건이었다. 근거 artifacts/freshness-live-verification.json 및 freshness-live.png. 로컬 검사는 서버182개·브라우저50개, 합계232개 통과다.
