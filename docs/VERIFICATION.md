@@ -199,3 +199,5 @@ Sarasa Fixed K Regular 1.0.43은 실제 18px 렌더링에서 `i/W/M/é/Ω/—/�
 최종 `npm test` 177/177 통과. 기존 브라우저108개에 더해 MCP 경로 통합 후 기본 브라우저25개를 다시 실행해 통과했다. MCP8개 검사는 공식 클라이언트로 도구 발견, 두 참여자의 CJK 덮어쓰기, 중복 방지, 대량 요청 거부, 시야 제한, JSON-RPC batch 거부, Host·Origin 검사, 도구429와 실제 전송HTTP429·Retry-After, 취소를 확인한다. 네트워크 요청 예산을 내부 API에서 중복 차감하지 않는 검사도 통과했다. 공식 클라이언트 예제의 실제 로컬 실행은 접속·7grapheme 입력·관측·종료까지617ms, 종료 코드0, 종료 후 참여자0명이었다.
 
 MCP 도구 결과의 참여자 오류는 structuredContent.status와 isError로, 입구 요청 폭주는 실제HTTP429로 표현한다. 최신 및 초기화 방식 클라이언트를 검사했으며 특정 상용 MCP 호스트 UI에서의 연결은 별도 검증 대상이다.
+
+MCP 운영 검증: 배포SUCCESS 이후 공개 `/mcp`에 공식 클라이언트로 연결해 도구발견·두참여자·시야·공유presence·대량입력거부·429재시도·취소를 모두 통과했다. 세션 정리 후 참여자0명, 추가 쓰기0건. 근거 `artifacts/mcp-public-verification.json`, 배포 기록은 DEPLOYMENT.md 참조.
