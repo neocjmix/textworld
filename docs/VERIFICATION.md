@@ -44,7 +44,7 @@
 - 실제 Android/iOS 한국어 키보드, Safari/Firefox, 모바일 OS 키보드가 만드는 visualViewport 변화. 짧은 viewport 에뮬레이션은 실제 키보드 검증이 아니다.
 - 장시간 부하, 200/800ms 지연 비교, 대규모 history·셀 수, 프로세스 crash/fsync 전원 손실, 다중 서버.
 - 전체 격자를 읽는 보조기술 접근성. 현재 Canvas 안내/라벨과 native textarea를 제공하지만 읽기 경험은 부족하다.
-- 운영 HTTPS 배포, abuse 대응, 인증/권한, history 보존 기한과 compaction. 공개 인터넷 서비스로 배포하지 않았다.
+- abuse 대응, 인증/권한, history 보존 기한과 compaction. 이 최초 검증 이후 Railway HTTPS 배포와 실제 공개 주소의 두 브라우저 동기화는 [배포 기록](DEPLOYMENT.md)에서 추가 검증했다.
 - 크기 변경에 대한 사용자 인지 실험. 현재 확장은 경계 문장 인접성을 유지하지 못하며, GPS 장소/좌표 링크는 resize에 안정적이지 않다.
 
 다음 실험: 같은 경계 문장·커서·GPS anchor fixture에 정수 torus와 immutable 행/열 ID의 빈 strip 변환을 적용하고, 글자 충돌, 인접성 단절, 사용자 커서 이동 거리, GPS 재방문 거리를 비교한다.

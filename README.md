@@ -1,5 +1,7 @@
 # Textworld
 
+공개 실험: **https://textworld-production-987c.up.railway.app** · [Railway 운영 안내](docs/DEPLOYMENT.md)
+
 A shared, spatial, real-time text world. People inhabit a 2D character grid as visible cursors, move, read, and overwrite cells together.
 
 ## Principles
@@ -58,6 +60,6 @@ node server/scavenger.js
 
 ## 현재 범위
 
-공개 배포 전 운영 검증이 필요한 초기 프로토타입입니다. 익명 참여, 단일 서버, 전체 세계 스냅샷/방송, 유한한 실험 크기(32×16~1024×512)를 사용합니다. 확장 시 기존 경계의 글이 떨어질 수 있고, 축소는 점유된 가장자리 때문에 보류될 수 있습니다. GPS 착지점과 공유 좌표 링크는 크기가 바뀌면 과거의 장소를 보장하지 않습니다. 비공개 세계, 분산 권위, 인증, abuse 대응, history 보존 기한은 구현하지 않았습니다.
+Railway에서 공개 실험 중인 초기 프로토타입입니다. 익명 참여, 단일 서버, 전체 세계 스냅샷/방송, 유한한 실험 크기(32×16~1024×512)를 사용합니다. 확장 시 기존 경계의 글이 떨어질 수 있고, 축소는 점유된 가장자리 때문에 보류될 수 있습니다. GPS 착지점과 공유 좌표 링크는 크기가 바뀌면 과거의 장소를 보장하지 않습니다. 비공개 세계, 분산 권위, 인증, abuse 대응, history 보존 기한은 구현하지 않았습니다.
 
 중요한 선택은 [결정 기록](docs/DECISIONS.md), 대안 비교와 다음 실험은 [공간 모델 실험](docs/EXPERIMENTS.md)을 참고하세요. 제품 헌법은 변경하지 않았습니다.
