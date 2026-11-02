@@ -1,5 +1,6 @@
 import { wrap, cellKey, graphemes, graphemeWidth, gpsToCell } from '/shared/world.js';
 import { WritingSession } from '/shared/writing.js';
+import { freshnessStyle } from '/shared/freshness.js';
 import { VIEW_LIMITS } from '/shared/participant-rules.js';
 import { NativeProjection } from '/shared/native-projection.js';
 import { createPanMotion } from './inertia.js';
@@ -19,7 +20,7 @@ const mapFont = '"Textworld Sarasa"';
 const glyphWidths = new Map();
 let fontReady = false;
 let world = null, selfId = null, cells = new Map(), peers = [];
-let localCells = new Map();
+let localCells = new Map(), freshnessMarks = new Map(), freshnessBands = {};
 let observedView = null, viewRevision = 0, sentView = '', viewTimer, recoveryTimer;
 let cursor = { x: 0, y: 0 }, camera = { x: 0, y: 0 };
 let cameraAnchor = null, cameraEpoch = null;
@@ -309,6 +310,16 @@ function draw() {
         ctx.fillRect(px + 1, py + 1, d.width - 1, d.height - 1);
         ctx.fillStyle = '#314137';
       }
+      const band = cell ? (typeof cell.version === 'string' ? 'now' : freshnessBands[cell.version]) : freshnessBands[freshnessMarks.get(cellKey(wx, wy))];
+      const style = freshnessStyle(band);
+      if (style.background && (cell?.width !== 0)) {
+        const width = d.width * (cell?.width || 1);
+        ctx.fillStyle = style.background;
+        ctx.fillRect(px + 1, py + 2, width - 2, d.height - 4);
+        ctx.fillStyle = style.underline;
+        ctx.fillRect(px + 1, py + d.height - 3, width - 2, band === 'now' ? 2 : 1);
+      }
+      ctx.fillStyle = style.ink;
       if (cell?.text) paintText(cell.text, px, py, d, cell.width || 1, fonts);
     }
   }
@@ -616,6 +627,8 @@ function connect() {
         && writing.lineStartX < message.world.width && writing.trail.every(stableStep);
       const keepWriting = keepNativeContext || (!firstSnapshot && !wasConnected && oldEpoch === message.world.epoch && pending.size === 0);
       cancelMove(); lastSentPosition = null; world = message.world; selfId = message.selfId;
+      freshnessBands = message.freshness || {};
+      freshnessMarks = new Map((message.marks || []).map(m => [cellKey(m.x, m.y), m.version]));
       observedView = message.view || null; viewRevision = message.viewRevision || 0;
       $('cursor').hidden = false;
       cells = new Map(message.cells.filter(c => c.text || c.width === 0).map(c => [cellKey(c.x, c.y), c]));
@@ -645,6 +658,8 @@ function connect() {
     } else if (message.type === 'view') {
       if (message.world?.epoch !== world?.epoch) return;
       const observation = message.observation;
+      freshnessBands = observation.freshness || {};
+      freshnessMarks = new Map((observation.marks || []).map(m => [cellKey(m.x, m.y), m.version]));
       world = message.world;
       observedView = observation.view; viewRevision = observation.revision;
       if (observation.reset) cells = new Map();
@@ -705,4 +720,4 @@ document.fonts.load(`18px ${mapFont}`, '한글日本語中文iWM').then(faces =>
   notice('지도 글꼴을 불러오지 못했습니다. 페이지를 새로고침해 주세요.');
 });
 // Read-only browser diagnostics for verifying spatial invariants.
-window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), observedView, viewRevision, peers: structuredClone(peers), cells: [...cells.values()], localCells: [...localCells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, cameraActive: cameraMotion.active, fontReady }) };
+window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), observedView, viewRevision, freshnessMarks: [...freshnessMarks], freshness: freshnessBands, peers: structuredClone(peers), cells: [...cells.values()], localCells: [...localCells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, cameraActive: cameraMotion.active, fontReady }) };

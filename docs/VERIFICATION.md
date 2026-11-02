@@ -201,3 +201,9 @@ Sarasa Fixed K Regular 1.0.43은 실제 18px 렌더링에서 `i/W/M/é/Ω/—/�
 MCP 도구 결과의 참여자 오류는 structuredContent.status와 isError로, 입구 요청 폭주는 실제HTTP429로 표현한다. 최신 및 초기화 방식 클라이언트를 검사했으며 특정 상용 MCP 호스트 UI에서의 연결은 별도 검증 대상이다.
 
 MCP 운영 검증: 배포SUCCESS 이후 공개 `/mcp`에 공식 클라이언트로 연결해 도구발견·두참여자·시야·공유presence·대량입력거부·429재시도·취소를 모두 통과했다. 세션 정리 후 참여자0명, 추가 쓰기0건. 근거 `artifacts/mcp-public-verification.json`, 배포 기록은 DEPLOYMENT.md 참조.
+
+## 공유 신선도와 공간 표시 — 2026-11-02
+
+최종 서버 검사182개, 실제 Chromium 기본25·즉시입력8·IME14·신선도3개를 실행했다. 신선도 검사는 Canvas 픽셀의 색을 확인하고 데스크톱·모바일 화면을 직접 열어 검토했다. 자동 신선도 변경에서 본문을 다시 보내지 않고 native 입력 문맥을 유지하는 것을 확인했다. 별도5개 단위 검사는 시간 경계·시야 밖 표식 비노출·CJK 삭제 흔적·재접속·중복 요청·이전 DB 백업과 나이 보존을 검사한다. 50개의 독립적인 낱글자 commit이 시간 표식1개를 공유하며, 다음5초 구간에서만2개가 됐다. cells/history의 기존 시각 칸은0, 새 operations 결과에는 칸별 시각이 없었다. 화면 근거는 artifacts/freshness-desktop.png 및 freshness-mobile.png다.
+
+새 쓰기의 시간은 공유 구간 기준이라 최대 약5초 이른 값으로 판단할 수 있다. scavenger evidence도 같은 근사 시각을 사용하며 삭제 안전성은 기존 셀 버전 검사로 유지한다. 기존 이력은 정확한 시각을 공유 표로 이전해 보존한다. 현재 메모리 셀 API의 물질화된 시각 값과 무제한 history 보관은 기존 구조의 후속 정리 대상이다.

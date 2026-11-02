@@ -1,3 +1,4 @@
+import { freshness, FRESHNESS } from '../shared/freshness.js';
 import { VIEW_LIMITS } from '../shared/participant-rules.js';
 import { cellKey, occupiedCell, wrap } from '../shared/world.js';
 
@@ -29,7 +30,7 @@ export function contains(view, x, y, world) {
   return wrap(x - view.x, world.width) < view.cols && wrap(y - view.y, world.height) < view.rows;
 }
 
-const cellRecord = cell => ({
+const cellRecord = (cell, now) => ({
   x: cell.x, y: cell.y, text: cell.text, width: cell.width ?? 1,
   leadX: cell.leadX ?? null, version: cell.version,
 });
@@ -51,7 +52,8 @@ function glyphSpan(world, cell) {
   return [cell];
 }
 
-function cellsInRectangle(world, rectangle) {
+function cellsInRectangle(world, rectangle, marks = []) {
+  const now = world.now();
   const cells = new Map();
   // The loop is bounded by the accepted view, not by total world occupancy.
   // Clamp dimensions before iterating so a small torus never repeats addresses.
@@ -59,8 +61,12 @@ function cellsInRectangle(world, rectangle) {
     const y = wrap(rectangle.y + row, world.height);
     for (let col = 0; col < rectangle.cols; col++) {
       const x = wrap(rectangle.x + col, world.width), cell = world.getCell(x, y);
-      if (!occupiedCell(cell)) continue;
-      for (const member of glyphSpan(world, cell)) cells.set(cellKey(member.x, member.y), cellRecord(member));
+      if (!occupiedCell(cell)) {
+        if (cell && ['now', 'recent', 'minutes'].includes(freshness(cell.updatedAt, now)))
+          marks.push({ x, y, version: cell.version });
+        continue;
+      }
+      for (const member of glyphSpan(world, cell)) cells.set(cellKey(member.x, member.y), cellRecord(member, now));
     }
   }
   return cells;
@@ -119,6 +125,7 @@ function observationCost(world, rectangle, current, old, sameWorld) {
 export class Observer {
   constructor({ world, peer, view, charge = () => {} }) {
     this.world = world; this.peer = peer; this.view = validateView(view);
+    this.nextFreshnessAt = Infinity;
     this.charge = charge; this.revision = 0; this.last = null;
   }
 
@@ -130,7 +137,15 @@ export class Observer {
   read(peers = [], { since, force = false } = {}) {
     const { world, peer } = this, old = this.last, previousRevision = this.revision;
     const rectangle = viewRectangle(world, peer, this.view);
-    const current = cellsInRectangle(world, rectangle);
+    const marks = [];
+    const current = cellsInRectangle(world, rectangle, marks);
+    const ages = {};
+    let nextFreshnessAt = Infinity;
+    for (const cell of [...current.values(), ...marks]) {
+      const updatedAt = world.getCell(cell.x, cell.y)?.updatedAt;
+      const band = freshness(updatedAt, world.now()); ages[cell.version] = band;
+      if (Number.isFinite(updatedAt)) nextFreshnessAt = Math.min(nextFreshnessAt, updatedAt + FRESHNESS.find(item => item.name === band).until);
+    }
     const localPeers = peersInRectangle(world, peer, rectangle, peers);
     const cells = [], forget = [];
     for (const [key, cell] of current) if (!sameCell(old?.cells.get(key), cell)) cells.push(cell);
@@ -139,15 +154,16 @@ export class Observer {
     // A rejected observation must not advance the baseline or its revision.
     // Retry therefore charges for exactly the still-unseen addresses again.
     this.charge(observationCost(world, rectangle, current, old, sameWorld));
-    const changed = !sameWorld || !sameRectangle(old?.view, rectangle) || cells.length || forget.length || !samePeers(old?.peers, localPeers);
+    this.nextFreshnessAt = nextFreshnessAt;
+    const changed = !sameWorld || !sameRectangle(old?.view, rectangle) || cells.length || forget.length || JSON.stringify(old?.marks) !== JSON.stringify(marks) || JSON.stringify(old?.freshness) !== JSON.stringify(ages) || !samePeers(old?.peers, localPeers);
     if (changed) this.revision++;
     const reset = force || !sameWorld || since !== previousRevision;
     // Snapshots own their records: mutation of a response cannot corrupt the
     // comparison baseline or manufacture observations in the next response.
     this.last = { epoch: world.epoch, width: world.width, height: world.height,
-      view: { ...rectangle }, cells: new Map([...current].map(([key, cell]) => [key, { ...cell }])),
+      view: { ...rectangle }, marks, freshness: { ...ages }, cells: new Map([...current].map(([key, cell]) => [key, { ...cell }])),
       peers: localPeers.map(other => ({ ...other })) };
     return { revision: this.revision, reset: !!reset, view: rectangle,
-      cells: reset ? [...current.values()] : cells, forget: reset ? [] : forget, peers: localPeers };
+      cells: reset ? [...current.values()] : cells, forget: reset ? [] : forget, marks: marks.map(mark => ({ ...mark })), freshness: ages, peers: localPeers };
   }
 }

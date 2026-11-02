@@ -61,7 +61,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       clearTimeout(actor.retry); actor.retry = null;
       if (snapshot) {
         send(socket, { type: 'snapshot', world: publicWorld(world), selfId: actor.peer.id,
-          cells: observation.cells, peers: observation.peers, view: observation.view, viewRevision: observation.revision, limits, ...extra });
+          cells: observation.cells, marks: observation.marks, freshness: observation.freshness, peers: observation.peers, view: observation.view, viewRevision: observation.revision, limits, ...extra });
         actor.lastSnapshotEpoch = world.epoch;
       } else if (observation.revision !== previous || extra.force) send(socket, { type: 'view', world: publicWorld(world), observation });
     } catch (error) {
@@ -222,6 +222,11 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       actor.alive = false; socket.ping();
     }
   }, 15000);
+  // Only visible age-band transitions produce packets; no per-frame age updates.
+  const aging = setInterval(() => {
+    for (const [socket, actor] of clients) if (world.now() >= actor.observer.nextFreshnessAt) scopedUpdate(socket, actor);
+    notify();
+  }, 5000);
   const adaptation = setInterval(() => {
     try {
       const result = world.adapt(peers());
@@ -235,7 +240,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     server, world, wss,
     listen: (port = 3000, host = '0.0.0.0') => new Promise(resolve => server.listen(port, host, () => resolve(server.address()))),
     close: async () => {
-      closing = true; clearInterval(heartbeat); clearInterval(adaptation);
+      closing = true; clearInterval(heartbeat); clearInterval(adaptation); clearInterval(aging);
       agentHTTP.close(); await runner.shutdown(); await mcp.close();
       for (const actor of actors) removeActor(actor);
       for (const socket of clients.keys()) socket.terminate();

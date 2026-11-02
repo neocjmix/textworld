@@ -31,11 +31,12 @@ export class World {
       new Set(this.db.prepare(`PRAGMA table_info(${table})`).all().map(column => column.name)),
     ]));
     const needsMigration = [...columnsByTable.values()].some(columns => !columns.has('width') || !columns.has('leadX'));
+    const needsTimeMigration = !this.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='change_times'").get();
     this.migrationBackupPath = null;
-    if (storagePath !== ':memory:' && saved && needsMigration) {
+    if (storagePath !== ':memory:' && saved && (needsMigration || needsTimeMigration)) {
       // VACUUM INTO captures the complete committed WAL state. A unique path
       // preserves any failed/previous backup; SQLite also refuses overwrites.
-      const backupPath = `${storagePath}.pre-width-v2-${Date.now()}-${randomUUID()}.sqlite`;
+      const backupPath = `${storagePath}.${needsMigration ? "pre-width-v2" : "pre-change-times-v3"}-${Date.now()}-${randomUUID()}.sqlite`;
       try {
         this.db.prepare('VACUUM INTO ?').run(backupPath);
         // SQLite VACUUM INTO does not fsync its output before returning.
@@ -61,10 +62,20 @@ export class World {
       }
       this.db.exec('COMMIT');
     } catch (error) { this.db.exec('ROLLBACK'); this.db.close(); throw error; }
+    // Time belongs to a committed change, not to each addressed cell.
+    // Keep legacy columns as zero-valued compatibility slots (SQLite stores 0
+    // without a numeric payload); their removal can be a separate migration.
+    if (needsTimeMigration) this.db.exec(`BEGIN IMMEDIATE;
+      CREATE TABLE IF NOT EXISTS change_times (version INTEGER PRIMARY KEY, updatedAt INTEGER NOT NULL);
+      INSERT OR IGNORE INTO change_times SELECT seq, MAX(updatedAt) FROM history GROUP BY seq;
+      INSERT OR IGNORE INTO change_times SELECT version, MAX(updatedAt) FROM cells GROUP BY version;
+      UPDATE cells SET updatedAt=0 WHERE updatedAt!=0;
+      UPDATE history SET updatedAt=0 WHERE updatedAt!=0;
+      COMMIT;`);
     this.now = now;
     const meta = saved ? JSON.parse(saved.value) : { width, height, epoch: 1, seq: 0 };
     Object.assign(this, meta);
-    this.cells = new Map(this.db.prepare('SELECT x,y,text,width,leadX,version,author,updatedAt,groupId AS "group" FROM cells').all().map(cell => [cellKey(cell.x, cell.y), cell]));
+    this.cells = new Map(this.db.prepare('SELECT c.x,c.y,c.text,c.width,c.leadX,c.version,c.author,t.updatedAt,c.groupId AS "group" FROM cells c JOIN change_times t ON t.version=(SELECT MAX(version) FROM change_times WHERE version<=c.version)').all().map(cell => [cellKey(cell.x, cell.y), cell]));
     this.lastResize = this.now();
     this.saveMeta();
   }
@@ -81,7 +92,11 @@ export class World {
   prior(author, id) {
     if (typeof id !== 'string' || id.length < 1 || id.length > 100) throw new WorldError('BAD_ID', '입력 식별자가 필요합니다.');
     const previous = this.db.prepare('SELECT result FROM operations WHERE author=? AND id=?').get(author, id);
-    return previous ? { ...JSON.parse(previous.result), duplicate: true } : null;
+    if (!previous) return null;
+    const result = JSON.parse(previous.result);
+    const stamp = this.db.prepare('SELECT updatedAt FROM change_times WHERE version<=? ORDER BY version DESC LIMIT 1').get(result.seq);
+    if (stamp) for (const cell of result.cells) cell.updatedAt = stamp.updatedAt;
+    return { ...result, duplicate: true };
   }
   applyWrite({ author, id, epoch, x, y, text, lineStartX, clear = [] }) {
     const previous = this.prior(author, id);
@@ -133,18 +148,24 @@ export class World {
   }
   commit(changes, { author, id, cursor, reason }) {
     const seq = this.seq + 1;
-    const updatedAt = this.now();
+    const time = this.now();
+    const previousTime = this.db.prepare('SELECT updatedAt FROM change_times ORDER BY version DESC LIMIT 1').get();
+    // A sparse sequence-to-time index: all writes within a five-second
+    // interval share one marker; cells already carry the sequence reference.
+    const newTime = !previousTime || time < previousTime.updatedAt || time - previousTime.updatedAt >= 5000;
+    const updatedAt = newTime ? time : previousTime.updatedAt;
     const cells = changes.map(cell => ({ ...cell, width: cell.width ?? 1, leadX: cell.leadX ?? null, version: seq, author, updatedAt, group: id }));
     const result = { seq, epoch: this.epoch, cells, cursor, id, author };
     this.db.exec('BEGIN IMMEDIATE');
     try {
+      if (newTime) this.db.prepare('INSERT INTO change_times VALUES (?,?)').run(seq, updatedAt);
       const upsert = this.db.prepare('INSERT OR REPLACE INTO cells (x,y,text,version,author,updatedAt,groupId,width,leadX) VALUES (?,?,?,?,?,?,?,?,?)');
       const history = this.db.prepare('INSERT INTO history (seq,x,y,text,author,updatedAt,groupId,reason,width,leadX) VALUES (?,?,?,?,?,?,?,?,?,?)');
       for (const cell of cells) {
-        upsert.run(cell.x, cell.y, cell.text, seq, author, updatedAt, id, cell.width, cell.leadX);
-        history.run(seq, cell.x, cell.y, cell.text, author, updatedAt, id, reason, cell.width, cell.leadX);
+        upsert.run(cell.x, cell.y, cell.text, seq, author, 0, id, cell.width, cell.leadX);
+        history.run(seq, cell.x, cell.y, cell.text, author, 0, id, reason, cell.width, cell.leadX);
       }
-      this.db.prepare('INSERT INTO operations VALUES (?,?,?)').run(author, id, JSON.stringify(result));
+      this.db.prepare('INSERT INTO operations VALUES (?,?,?)').run(author, id, JSON.stringify({ ...result, cells: result.cells.map(({ updatedAt, ...cell }) => cell) }));
       this.db.prepare("INSERT OR REPLACE INTO meta (key,value) VALUES ('world',?)").run(JSON.stringify({ ...this.metadata(), seq }));
       this.db.exec('COMMIT');
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
@@ -153,11 +174,11 @@ export class World {
     return result;
   }
   evidence({ before = this.now(), limit = 500 } = {}) {
-    return this.db.prepare(`SELECT c.x,c.y,c.text,c.width,c.leadX,c.version,c.author,c.updatedAt,c.groupId AS "group",
+    return this.db.prepare(`SELECT c.x,c.y,c.text,c.width,c.leadX,c.version,c.author,t.updatedAt,c.groupId AS "group",
       (SELECT count(*) FROM history h WHERE h.x=c.x AND h.y=c.y) AS revisions,
       (SELECT count(*) FROM history h WHERE h.author=c.author AND h.groupId=c.groupId) AS originalGroupCells,
       (SELECT count(*) FROM cells g WHERE g.groupId=c.groupId AND g.author=c.author AND (g.text!='' OR g.width=0)) AS survivingGroupCells
-      FROM cells c WHERE c.text!='' AND c.updatedAt<=? ORDER BY c.updatedAt LIMIT ?`).all(before, Math.min(500, Math.max(1, limit)));
+      FROM cells c JOIN change_times t ON t.version=(SELECT MAX(version) FROM change_times WHERE version<=c.version) WHERE c.text!='' AND t.updatedAt<=? ORDER BY t.updatedAt LIMIT ?`).all(before, Math.min(500, Math.max(1, limit)));
   }
   conditionalDelete({ id, epoch, candidates }) {
     const author = 'scavenger';

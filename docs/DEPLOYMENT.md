@@ -148,3 +148,7 @@ Railway의 [공개 네트워킹 기술 명세](https://docs.railway.com/networki
 구현 커밋 `1216df5ce753eb318f5c2a26855b4b6a64e9cd4b`의 배포 `2c20311e-9898-4f7f-9751-561d359ef225`가 **14:03:04 UTC에 SUCCESS**에 도달했다. 기존 서비스·영구 볼륨을 유지했다. 공개 MCP 주소는 `https://textworld-production-987c.up.railway.app/mcp`다.
 
 14:03:23 UTC부터 공식 MCP 클라이언트로 공개 주소의 도구5개 발견, 참여자2개의 제한된 시야·presence 공유,20,000자 입력413·무변경, 도구429·재시도100ms, 취소를 확인했다. 모든 검증 세션을 종료한 뒤 `/health`는200·참여자0명이었고 discovery의 `/mcp` 안내도 확인했다. 운영 MCP 점검의 추가 쓰기는0건이다. 결과는 `artifacts/mcp-public-verification.json`이다. 특정 상용 MCP 호스트 UI에서의 설정은 직접 실행하지 않았으며 공식 클라이언트와 연결 예제를 제공한다.
+
+### 신선도 저장 구조 운영 주의
+
+`change_times`가 없는 기존 DB는 `.pre-change-times-v3-<시각>-<uuid>.sqlite`로 먼저 백업·fsync한 뒤 시각을 공유 표로 이전한다. 원본 좌표·글자·폭·version을 보존하고 cells/history의 기존 updatedAt은0으로 바꾼다. 새 서버는 version 이전의 가장 가까운 공통 시간 표식을 조회한다. 이 변경 전 서버로 단순 롤백하면0을 실제 시각으로 해석하므로 이 구조를 이해하는 호환 서버 또는 백업 복원이 필요하다. backup 이후 쓰기 보존 여부를 먼저 판단해야 한다. DB 스키마 구조 호환과 데이터 의미 호환은 다르다.

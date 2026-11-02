@@ -107,3 +107,5 @@ Railway에서 공개 실험 중인 초기 프로토타입입니다. 익명 참�
 조사 근거는 [입력 표준·벤더](docs/research/IME_STANDARDS.md), [한국어·일본어·중국어 개발 사례](docs/research/IME_LOCAL_PRACTICE.md), [CJK 글꼴 비교·실측](docs/research/CJK_FONT.md)에 있습니다. Sarasa Fixed K 1.0.43의 전체 Regular 파일은 약 5.07 MiB이며 [OFL 라이선스와 출처](public/fonts/README.md)를 함께 제공합니다. 첫 연결은 글꼴 로딩 뒤 시작하고 버전 파일은 장기 캐시합니다. 모든 Unicode 문자·이모지를 글꼴에 포함한다는 의미는 아닙니다.
 
 중요한 선택은 [결정 기록](docs/DECISIONS.md), 대안 비교와 다음 실험은 [공간 모델 실험](docs/EXPERIMENTS.md)을 참고하세요. 제품 헌법은 변경하지 않았습니다.
+
+최근 바뀐 글과 좌표에는 금색 배경·밑줄이 나타나고 시간이 지나면 강조가 줄어듭니다. 오래된 글도 읽을 수 있으며, 최근 삭제 자리에는 잠깐 흔적이 남습니다. 글자별 시각을 추가 저장하지 않고 기존 변경 번호와 공유 시간 표식을 이용합니다. `npm run test:freshness`로 실제 Chromium 표시·자동 노화·입력 문맥 유지·모바일 범례를 검사합니다.

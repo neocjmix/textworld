@@ -90,6 +90,8 @@ export class TextworldAgent {
     for (const { x, y } of observation.forget || []) this.cells.delete(`${x},${y}`);
     for (const cell of observation.cells || []) this.cells.set(`${cell.x},${cell.y}`, { ...cell });
     this.peers = (observation.peers || []).map(peer => ({ ...peer }));
+    this.freshness = { ...observation.freshness };
+    this.marks = (observation.marks || []).map(mark => ({ ...mark }));
     this.view = { ...observation.view };
     this.revision = observation.revision;
   }

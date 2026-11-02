@@ -14,7 +14,8 @@
     "test:motion": "node tests/motion-browser.mjs",
     "test:cjk": "node tests/cjk-browser.mjs",
     "test:typing": "node tests/typing-latency.mjs",
-    "test:viewport": "node tests/viewport-motion.mjs"
+    "test:viewport": "node tests/viewport-motion.mjs",
+    "test:freshness": "node tests/freshness-browser.mjs"
   },
   "engines": {
     "node": ">=24"
