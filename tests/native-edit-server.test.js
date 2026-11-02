@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { WebSocket } from 'ws';
 import { World } from '../server/world.js';
 import { createTextworld } from '../server/index.js';
+import { connect, hasCell, hasPeer } from './ws-client.js';
 
 function fixture(t, options = {}) {
   const world = new World({ width: 64, height: 32, ...options });
@@ -11,23 +11,6 @@ function fixture(t, options = {}) {
   const write = (text, x, y = 3) => world.applyWrite({ author: 'seed', id: `seed-${++id}`, epoch: world.epoch, x, y, text });
   const edit = values => world.applyWrite({ author: 'writer', id: `edit-${++id}`, epoch: world.epoch, x: 10, y: 3, text: '', ...values });
   return { world, write, edit };
-}
-
-function connect(url) {
-  const socket = new WebSocket(url), messages = [], waiters = [];
-  socket.on('message', raw => {
-    const message = JSON.parse(raw.toString()); messages.push(message);
-    for (const waiter of [...waiters]) if (waiter.predicate(message)) {
-      waiters.splice(waiters.indexOf(waiter), 1); clearTimeout(waiter.timer); waiter.resolve(message);
-    }
-  });
-  const next = predicate => new Promise((resolve, reject) => {
-    const existing = messages.find(predicate);
-    if (existing) return resolve(existing);
-    const waiter = { predicate, resolve, timer: setTimeout(() => reject(new Error('Timed out waiting for native-edit protocol message')), 2000) };
-    waiters.push(waiter);
-  });
-  return { socket, messages, next, send: value => socket.send(JSON.stringify({ layout: 2, ...value })) };
 }
 
 test('native candidate replacement commits its cleared footprint and text in one version without moving a suffix', t => {
@@ -99,30 +82,38 @@ test('every malformed native clear footprint is rejected before changing cells, 
   }
 });
 
-test('two independent observers receive one identical native replacement patch and its final cursor', async t => {
+test('two independent observers receive one atomic native replacement and its final cursor', async t => {
   const app = createTextworld({ storagePath: ':memory:', now: () => 1000 }); t.after(() => app.close());
   const address = await app.listen(0, '127.0.0.1'), url = `ws://127.0.0.1:${address.port}/ws`;
   const writer = connect(url), a = connect(url), b = connect(url);
-  const [snapshot] = await Promise.all([writer.next(m => m.type === 'snapshot'), a.next(m => m.type === 'snapshot'), b.next(m => m.type === 'snapshot')]);
+  await Promise.all([writer.next(m => m.type === 'snapshot'), a.next(m => m.type === 'snapshot'), b.next(m => m.type === 'snapshot')]);
+  for (const client of [writer, a, b]) {
+    client.send({ type: 'view', cols: 128, rows: 64 });
+    await client.locate(10, 3);
+  }
   writer.send({ type: 'write', id: 'seed', epoch: 1, x: 10, y: 3, text: 'nihao!' });
   await writer.next(m => m.type === 'ack' && m.id === 'seed');
   const suffix = { ...app.world.getCell(15, 3) };
   const operation = { type: 'write', id: 'replace', epoch: 1, x: 10, y: 3, text: '你好', clear: Array.from({ length: 5 }, (_, index) => ({ x: 10 + index, y: 3 })) };
   writer.send(operation);
   const [patchA, patchB, ack] = await Promise.all([
-    a.next(m => m.type === 'cells' && m.id === 'replace'), b.next(m => m.type === 'cells' && m.id === 'replace'), writer.next(m => m.type === 'ack' && m.id === 'replace'),
+    a.next(m => hasCell(m, 10, 3, '你', 2)), b.next(m => hasCell(m, 10, 3, '你', 2)), writer.next(m => m.type === 'ack' && m.id === 'replace'),
   ]);
-  assert.deepEqual(patchA, patchB); assert.equal(patchA.seq, 2); assert.equal(ack.seq, 2);
-  assert.ok(patchA.cells.every(cell => cell.version === 2)); assert.deepEqual(ack.cursor, { x: 14, y: 3 });
+  assert.deepEqual(patchA.observation.cells, patchB.observation.cells);
+  assert.deepEqual(patchA.observation.forget, patchB.observation.forget);
+  assert.equal(ack.seq, 2);
+  assert.ok(patchA.observation.cells.every(cell => cell.version === 2));
+  assert.deepEqual(patchA.observation.forget, [{ x: 14, y: 3 }]);
+  assert.deepEqual(ack.cursor, { x: 14, y: 3 });
   assert.deepEqual(app.world.getCell(15, 3), suffix);
-  await b.next(m => m.type === 'presence' && m.peers.some(peer => peer.id === snapshot.selfId && peer.x === 14 && peer.y === 3));
+  await b.next(m => hasPeer(m, writer.state.selfId, 14, 3));
   writer.send(operation); await writer.next(m => m.type === 'ack' && m.id === 'replace' && m.duplicate);
-  writer.send({ type: 'sync' }); await writer.next(m => m.type === 'snapshot' && m.seq === 2);
-  assert.equal(a.messages.filter(m => m.type === 'cells' && m.id === 'replace').length, 1);
-  assert.equal(b.messages.filter(m => m.type === 'cells' && m.id === 'replace').length, 1);
+  await writer.sync();
+  assert.equal(a.messages.filter(m => m.type === 'view' && hasCell(m, 10, 3, '你', 2)).length, 1);
+  assert.equal(b.messages.filter(m => m.type === 'view' && hasCell(m, 10, 3, '你', 2)).length, 1);
 });
 
-test('the full 2048-address native footprint crosses the old frame limit but fits the bounded 64KiB protocol', async t => {
+test('large native footprints fit transport but exceed participant reach without mutating any cells', async t => {
   const app = createTextworld({ storagePath: ':memory:', now: () => 1000 }); t.after(() => app.close());
   const address = await app.listen(0, '127.0.0.1'), writer = connect(`ws://127.0.0.1:${address.port}/ws`);
   await writer.next(m => m.type === 'snapshot');
@@ -131,13 +122,13 @@ test('the full 2048-address native footprint crosses the old frame limit but fit
   const bytes = Buffer.byteLength(JSON.stringify(operation));
   assert.ok(bytes > 16384 && bytes < 65536);
   writer.send(operation);
-  const ack = await writer.next(m => m.type === 'ack' && m.id === operation.id);
-  assert.equal(ack.seq, 1); assert.deepEqual(ack.cursor, { x: 7, y: 20 });
-  assert.equal(app.world.getCell(5, 20).text, '한'); assert.equal(app.world.getCell(6, 20).width, 0);
-  assert.equal(app.world.db.prepare('SELECT count(*) AS n FROM history').get().n, 2050);
+  const error = await writer.next(m => m.type === 'error' && m.id === operation.id);
+  assert.equal(error.code, 'TOO_LARGE'); assert.equal(error.status, 413);
+  assert.equal(app.world.seq, 0);
+  assert.equal(app.world.db.prepare('SELECT count(*) AS n FROM history').get().n, 0);
   writer.socket.send('x'.repeat(65537));
   const [code] = await new Promise(resolve => writer.socket.once('close', (...args) => resolve(args)));
-  assert.equal(code, 1009); assert.equal(app.world.seq, 1);
+  assert.equal(code, 1009); assert.equal(app.world.seq, 0);
 });
 
 test('versioned WOFF2 font responses are immutable while the font stylesheet remains refreshable', async t => {

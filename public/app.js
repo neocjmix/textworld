@@ -1,5 +1,6 @@
 import { wrap, cellKey, graphemes, graphemeWidth, gpsToCell } from '/shared/world.js';
 import { WritingSession } from '/shared/writing.js';
+import { VIEW_LIMITS } from '/shared/participant-rules.js';
 import { NativeProjection } from '/shared/native-projection.js';
 import { createPanMotion } from './inertia.js';
 import { createNativeInput } from './native-input.js';
@@ -19,6 +20,7 @@ const glyphWidths = new Map();
 let fontReady = false;
 let world = null, selfId = null, cells = new Map(), peers = [];
 let localCells = new Map();
+let observedView = null, viewRevision = 0, sentView = '', viewTimer, recoveryTimer;
 let cursor = { x: 0, y: 0 }, camera = { x: 0, y: 0 };
 let cameraAnchor = null, cameraEpoch = null;
 let viewportOrigin = { x: 0, y: 0 };
@@ -70,7 +72,37 @@ function refreshLocalCells() {
   localCells = world ? projectLocalCells(cells, pending.values(), world) : cells;
   schedule();
 }
+function requestedView() {
+  const v = visible();
+  // A small margin keeps a smoothly moving camera covered. The server applies
+  // the same maximum rectangle to every participant, regardless of transport.
+  let cols = Math.min(VIEW_LIMITS.maxCols, Math.ceil(v.cols) + 8);
+  let rows = Math.min(VIEW_LIMITS.maxRows, Math.ceil(v.rows) + 4);
+  if (cols * rows > VIEW_LIMITS.maxArea) {
+    const scale = Math.sqrt(VIEW_LIMITS.maxArea / (cols * rows));
+    cols = Math.max(1, Math.floor(cols * scale));
+    rows = Math.max(1, Math.floor(rows * scale));
+  }
+  return { cols, rows };
+}
+function reportView({ immediate = false, force = false } = {}) {
+  clearTimeout(viewTimer);
+  const report = () => {
+    viewTimer = null;
+    const view = requestedView(), encoded = JSON.stringify(view);
+    if ((force || encoded !== sentView) && send({ type: 'view', ...view })) sentView = encoded;
+  };
+  if (immediate) report(); else viewTimer = setTimeout(report, 100);
+}
+function flushMove() {
+  clearTimeout(moveTimer); moveTimer = null;
+  const next = queuedMove; queuedMove = null;
+  if (next && JSON.stringify(next) !== lastSentPosition && send(next)) lastSentPosition = JSON.stringify(next);
+}
 function submit(operation) {
+  // Navigation and typing share one ordered stream. A delayed scroll frame
+  // must reach the server before the edit whose origin it established.
+  flushMove();
   const message = { ...operation, layout: 2, id: `${selfId}:${++id}`, epoch: world.epoch };
   if (!send(message)) return false;
   pending.set(message.id, message);
@@ -142,17 +174,10 @@ function grabCamera() {
     y: camera.y - (cameraAnchor.y + .5 - v.rows / 2 + panRemainder.y),
   } : { x: 0, y: 0 };
 }
-function queueMove() {
-  queuedMove = { type: 'move', ...cursor, epoch: world.epoch };
+function queueMove(intent) {
+  queuedMove = { type: 'move', ...cursor, epoch: world.epoch, ...(intent ? { intent } : {}) };
   if (moveTimer) return;
-  moveTimer = setTimeout(() => {
-    moveTimer = null;
-    const next = queuedMove;
-    queuedMove = null;
-    if (next && JSON.stringify(next) !== lastSentPosition && send(next)) {
-      lastSentPosition = JSON.stringify(next);
-    }
-  }, 40);
+  moveTimer = setTimeout(flushMove, 40);
 }
 function cancelComposition() {
   if (applyingNativeEdit) return;
@@ -205,6 +230,7 @@ function setZoom(value) {
   $('zoom-in').disabled = zoom >= 2;
   panRemainder = { x: 0, y: 0 };
   center({ immediate: true });
+  reportView();
 }
 function paintCursor(peer, x, y, d) {
   const own = peer.id === selfId, color = own ? '#287054' : peer.color || '#b17640';
@@ -275,6 +301,14 @@ function draw() {
         ctx.stroke(); ctx.setLineDash([]);
       }
       const cell = localCells.get(cellKey(wx, wy));
+      if (observedView && !cell && (wrap(wx - observedView.x, world.width) >= observedView.cols
+        || wrap(wy - observedView.y, world.height) >= observedView.rows)) {
+        // Unobserved space is distinct from a confirmed empty cell, including
+        // the edge revealed briefly while the camera or network catches up.
+        ctx.fillStyle = '#dfe4dc';
+        ctx.fillRect(px + 1, py + 1, d.width - 1, d.height - 1);
+        ctx.fillStyle = '#314137';
+      }
       if (cell?.text) paintText(cell.text, px, py, d, cell.width || 1, fonts);
     }
   }
@@ -298,6 +332,7 @@ function resizeCanvas() {
   canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   center({ timeConstant: 110, viewportChange: true }); draw();
+  reportView();
 }
 function fitVisualViewport() {
   const v = window.visualViewport;
@@ -338,8 +373,8 @@ function write(text) {
   if (!connected || !world || socket.readyState !== WebSocket.OPEN) { notice('연결 후 다시 입력해 주세요.'); return false; }
   text = text.replace(/\r\n?/g, '\n');
   if (!text) return true;
-  if (text.length > 4096 || /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u.test(text) || graphemes(text).length > 512) {
-    notice('한 번에 512자까지 입력할 수 있습니다. 제어 문자는 지원하지 않습니다.'); return false;
+  if (text.length > 4096 || /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u.test(text) || graphemes(text.replace(/\t/g, '    ')).length > 64) {
+    notice('한 번에 64자까지 확정할 수 있습니다. 긴 글은 나누어 입력해 주세요.'); return false;
   }
   const plan = writing.plan(text, cursor, world);
   // Returns move presence; they do not create blank characters or database edits.
@@ -348,8 +383,8 @@ function write(text) {
     move(plan.cursor.x, plan.cursor.y, { newOrigin: false });
     return true;
   }
-  cancelMove(); lastSentPosition = null;
   if (submit({ type: 'write', ...cursor, text, lineStartX: writing.lineStartX })) {
+    lastSentPosition = null;
     writing.accept(plan);
     cursor = plan.cursor; navigationRevision++;
     panRemainder = { x: 0, y: 0 }; center();
@@ -360,13 +395,14 @@ function write(text) {
 function erase(backward) {
   stopPan();
   if (!connected || !world || socket.readyState !== WebSocket.OPEN) return;
+  flushMove();
   if (backward) {
     const action = writing.backspace(cursor, world, localCells);
     move(action.cursor.x, action.cursor.y, { newOrigin: false });
     if (!action.erase) return;
   }
   cancelMove(); lastSentPosition = null;
-  submit({ type: 'erase', ...cursor });
+  submit({ type: 'erase', ...cursor, ...(backward ? { intent: 'backspace' } : {}) });
 }
 function unsupportedInput(type) {
   const message = type === 'selection'
@@ -396,10 +432,13 @@ nativeInput = createNativeInput(input, {
     // Native UTF-16 ranges are projected once, then committed atomically.
     // No key-code assembly, native-string normalization, or tail guessing.
     if (plan.text.length > 4096 || /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u.test(plan.text)
-      || graphemes(plan.text).length > 512 || plan.clear.length > 2048) return false;
+      || graphemes(plan.text.replace(/\r\n?/g, '\n').replace(/\t/g, '    ')).length > 64 || plan.clear.length > 128) {
+      notice('한 번에 64자까지 확정하거나 바꿀 수 있습니다. 긴 글은 나누어 입력해 주세요.');
+      return false;
+    }
     applyingNativeEdit = true;
     try {
-      cancelMove(); lastSentPosition = null;
+      flushMove(); lastSentPosition = null;
       const mutatesCells = plan.changed && (plan.clear.length > 0 || plan.steps.some(step => step.kind === 'write'));
       if (mutatesCells) {
         if (!submit({ type: 'write',
@@ -410,7 +449,7 @@ nativeInput = createNativeInput(input, {
       writing.active = true;
       cursor = { ...plan.cursor }; navigationRevision++;
       panRemainder = { x: 0, y: 0 }; center();
-      if (!mutatesCells || plan.writeCursor?.x !== cursor.x || plan.writeCursor?.y !== cursor.y) queueMove();
+      if (!mutatesCells || plan.writeCursor?.x !== cursor.x || plan.writeCursor?.y !== cursor.y) queueMove('native-caret');
       return true;
     } finally { applyingNativeEdit = false; }
   },
@@ -561,6 +600,7 @@ function goToHash() {
   return false;
 }
 function connect() {
+  sentView = '';
   socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
   socket.onmessage = event => {
     const message = JSON.parse(event.data);
@@ -576,6 +616,7 @@ function connect() {
         && writing.lineStartX < message.world.width && writing.trail.every(stableStep);
       const keepWriting = keepNativeContext || (!firstSnapshot && !wasConnected && oldEpoch === message.world.epoch && pending.size === 0);
       cancelMove(); lastSentPosition = null; world = message.world; selfId = message.selfId;
+      observedView = message.view || null; viewRevision = message.viewRevision || 0;
       $('cursor').hidden = false;
       cells = new Map(message.cells.filter(c => c.text || c.width === 0).map(c => [cellKey(c.x, c.y), c]));
       peers = message.peers;
@@ -587,6 +628,7 @@ function connect() {
       // Recovery snapshots and uncertain writes still invalidate native ranges.
       if (!keepNativeContext) resetComposition();
       connection(true);
+      reportView({ immediate: true });
       if (!keepWriting) writing.reset(cursor);
       if (!keepNativeContext) resetNativeProjection();
       if (firstSnapshot) {
@@ -600,26 +642,49 @@ function connect() {
       } else if (oldEpoch !== world.epoch) notice('세계의 크기가 바뀌었습니다.');
       center();
       if (!wasConnected && isDesktop()) focusInput();
-    } else if (message.type === 'cells') {
-      if (message.epoch !== world?.epoch) return;
-      for (const c of message.cells) {
+    } else if (message.type === 'view') {
+      if (message.world?.epoch !== world?.epoch) return;
+      const observation = message.observation;
+      world = message.world;
+      observedView = observation.view; viewRevision = observation.revision;
+      if (observation.reset) cells = new Map();
+      for (const point of observation.forget || []) cells.delete(cellKey(point.x, point.y));
+      for (const c of observation.cells) {
         if (c.text || c.width === 0) cells.set(cellKey(c.x, c.y), c); else cells.delete(cellKey(c.x, c.y));
       }
-      if (message.author === selfId) pending.delete(message.id);
+      peers = observation.peers;
+      // A scoped view is a cache update, not navigation or a native edit.
+      // In particular an echo must not rewind newer local typing or reset IME.
       refreshLocalCells();
-    } else if (message.type === 'presence') { peers = message.peers; schedule(); }
-    else if (message.type === 'ack') {
+    } else if (message.type === 'ack') {
       if (pending.delete(message.id)) refreshLocalCells();
     }
     else if (message.type === 'error') {
       pending.delete(message.id);
       refreshLocalCells();
-      if (message.code !== 'STALE_EPOCH') send({ type: 'sync' });
-      notice(`입력 미반영: ${message.message}`);
+      const observationOnly = message.requestType === 'view';
+      if (!observationOnly && message.code !== 'STALE_EPOCH') {
+        stopPan(); cancelMove(); resetComposition();
+        if (message.cursor) cursor = { ...message.cursor };
+        writing.reset(cursor); resetNativeProjection(); center();
+      }
+      clearTimeout(recoveryTimer);
+      if (message.code !== 'STALE_EPOCH') {
+        // A throttled request must not create an immediate sync/error loop.
+        recoveryTimer = setTimeout(() => {
+          recoveryTimer = null;
+          if (observationOnly) reportView({ immediate: true, force: true });
+          else send({ type: 'sync' });
+        }, message.status === 429 ? Math.max(100, message.retryAfterMs || 1000) : 0);
+      }
+      notice(message.status === 429
+        ? `${message.message} 약 ${Math.max(1, Math.ceil((message.retryAfterMs || 1000) / 1000))}초 뒤 다시 시도하세요.`
+        : `${observationOnly ? '지도 갱신' : '입력'} 미반영: ${message.message}`);
     }
-    $('population').textContent = `${peers.length}명 함께`;
+    $('population').textContent = `주변 ${peers.length}명`;
   };
   socket.onclose = () => {
+    clearTimeout(viewTimer); clearTimeout(recoveryTimer);
     cancelMove(); connection(false); resetComposition(); schedule();
     notice(pending.size ? '연결이 끊겼습니다. 전송 중이던 글자는 다시 연결한 뒤 확인해 주세요.' : '다시 연결하고 있습니다.');
     if (pending.size) writing.reset(cursor);
@@ -640,4 +705,4 @@ document.fonts.load(`18px ${mapFont}`, '한글日本語中文iWM').then(faces =>
   notice('지도 글꼴을 불러오지 못했습니다. 페이지를 새로고침해 주세요.');
 });
 // Read-only browser diagnostics for verifying spatial invariants.
-window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), peers: structuredClone(peers), cells: [...cells.values()], localCells: [...localCells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, cameraActive: cameraMotion.active, fontReady }) };
+window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), observedView, viewRevision, peers: structuredClone(peers), cells: [...cells.values()], localCells: [...localCells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, cameraActive: cameraMotion.active, fontReady }) };

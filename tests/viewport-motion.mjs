@@ -121,7 +121,10 @@ async function fixture(name, run, { mobile = true, reducedMotion = 'no-preferenc
     }
     assert.deepEqual(errors, []);
     passed.push(name); console.log(`PASS ${name}`);
-  } catch (error) { failed.push({ name, error: error.stack }); console.error(`FAIL ${name}: ${error.stack}`); }
+  } catch (error) {
+    const state = await inspect(page).catch(() => null);
+    failed.push({ name, error: error.stack, state }); console.error(`FAIL ${name}: ${error.stack}`);
+  }
   finally { await context.close(); await app.close(); }
 }
 

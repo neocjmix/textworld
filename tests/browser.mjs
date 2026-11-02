@@ -191,6 +191,9 @@ try {
   await waitCell(b, beforeZoom.x, beforeZoom.y, 'Q'); await centered(a);
   check('mouse-operated map controls return desktop typing to the center cell');
 
+  // A participant observes its current neighborhood; follow the writer to the
+  // seam instead of relying on the former whole-world broadcast.
+  await goTo(b, 127, 63);
   await goTo(a, 127, 63); await a.mouse.click(520, 370); await a.keyboard.insertText('끝처');
   await settle(a); await waitCell(b, 127, 63, '끝'); await waitCell(b, 1, 63, '처');
   assert.equal((await state(a)).cursor.x, 3); await centered(a);

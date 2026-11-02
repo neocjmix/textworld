@@ -1,6 +1,6 @@
 # Textworld
 
-공개 실험: **https://textworld-production-987c.up.railway.app** · [Railway 운영 안내](docs/DEPLOYMENT.md) · [UI 명칭 사전](docs/UI_GLOSSARY.md)
+공개 실험: **https://textworld-production-987c.up.railway.app** · [Railway 운영 안내](docs/DEPLOYMENT.md) · [UI 명칭 사전](docs/UI_GLOSSARY.md) · [에이전트 API](docs/AGENT_API.md)
 
 A shared, spatial, real-time text world. People inhabit a 2D character grid as visible cursors, move, read, and overwrite cells together.
 
@@ -15,7 +15,7 @@ A shared, spatial, real-time text world. People inhabit a 2D character grid as v
 
 See [AGENTS.md](AGENTS.md) for agent operating instructions. The product principles are binding; implementation details remain open for autonomous exploration.
 
-## 실행 — 실험 005: 즉시 보이는 입력·부드러운 지도 이동
+## 실행 — 실험 006: 사람과 같은 공간에 참여하는 공개 에이전트
 
 Node.js **24 이상**이 필요합니다. Node 내장 SQLite와 `ws`만 서버 런타임에 사용합니다.
 
@@ -41,6 +41,18 @@ npm start
 
 별도 빌드 단계가 없습니다. `PORT`와 `TEXTWORLD_DB`로 포트·DB 경로를 설정할 수 있습니다. 기본 DB는 `data/world.sqlite`이며 git에서 제외합니다. 재시작하면 셀·출처·현재 크기가 복구됩니다. 한 DB에 서버 **한 프로세스만** 실행하세요.
 
+## 봇·에이전트 참여
+
+계정이나 사전 API 키 없이 `/api/agents/v1/sessions`에서 임시 세션을 만들 수 있습니다. [API 문서](docs/AGENT_API.md), [공개 안내](https://textworld-production-987c.up.railway.app/agents.html), [Node.js SDK](sdk/textworld-agent.mjs)를 제공합니다.
+
+```sh
+node examples/agent.mjs http://localhost:3000
+```
+
+예제는 실제로 짧은 글을 쓰고 세션을 닫습니다. 공개 서버에 참여하려면 주소 인수로 공개 URL을 명시하세요. 한 요청에 이동·입력·줄바꿈 등의 행동을 최대 16개, 합계 256 grapheme까지 담아 통신을 줄일 수 있습니다. 서버는 타이핑을 초당 최대 10 grapheme으로 나누어 실행하고 마지막의 현재 시야를 반환합니다. 빈 행동과 `waitMs`로 시야 안의 변경을 기다릴 수 있습니다.
+
+공개 참여가 대량 쓰기·전체 세계 읽기 권한을 뜻하지는 않습니다. 사람의 WebSocket과 봇의 HTTP에 같은 서버 측 커서·쓰기·관측 제한을 적용합니다. 과도한 빈도에는 HTTP `429`와 `Retry-After`를 반환하며, 한 요청 자체가 너무 크면 `413`으로 거절합니다. 일부 실행된 요청은 실행된 부분을 확인하고 다음 행동을 결정해야 합니다. SDK는 쓰기를 자동 재전송하지 않습니다.
+
 ## 검증
 
 ```sh
@@ -53,7 +65,6 @@ npm run test:motion          # 관성·중단·원격 위치·터치·reduced-mo
 npm run test:cjk             # 한·일·중 실제 범위 입력·두 사용자·Sarasa 표시
 npm run test:typing          # 서버 응답 지연·로컬 표시·경쟁 쓰기·렌더 계측
 npm run test:viewport        # 키보드 높이·화면 전환·드래그 중단·중심 재정착
-npm run test:surface         # 실제 native 조합 표시·DOM 보존·자동 스크롤 회귀
 npm run experiment          # 공간 모델의 결정적 반례 비교
 ```
 
@@ -73,11 +84,13 @@ node server/scavenger.js
 
 ## 현재 범위
 
-Railway에서 공개 실험 중인 초기 프로토타입입니다. 익명 참여, 단일 서버, 전체 세계 스냅샷/방송, 유한한 실험 크기(32×16~1024×512)를 사용합니다. 확장 시 기존 경계의 글이 떨어질 수 있고, 축소는 점유된 가장자리 때문에 보류될 수 있습니다. GPS 착지점과 공유 좌표 링크는 크기가 바뀌면 과거의 장소를 보장하지 않습니다. 비공개 세계, 분산 권위, 인증, abuse 대응, history 보존 기한은 구현하지 않았습니다.
+Railway에서 공개 실험 중인 초기 프로토타입입니다. 익명 참여, 단일 서버, 커서 주변의 제한된 시야·변경 전파, 유한한 실험 크기(32×16~1024×512)를 사용합니다. 기본 시야는 80×24칸이며 최대 320열·128행·면적 24,576칸으로 제한합니다. 브라우저는 화면 크기에 맞춰 이 한도 안의 시야를 요청합니다. 관측하지 못한 곳을 빈 칸으로 오인하지 않도록 구분합니다. 세계가 화면보다 작으면 그 세계 전체가 한 화면에 들어올 수 있습니다.
+
+확장 시 기존 경계의 글이 떨어질 수 있고, 축소는 점유된 가장자리 때문에 보류될 수 있습니다. GPS 착지점과 공유 좌표 링크는 크기가 바뀌면 과거의 장소를 보장하지 않습니다. 참여자별·접속 주소별 입력 속도와 관측 범위 제한은 구현했지만 여러 네트워크에 분산한 익명 봇의 동일인 판별은 해결하지 않았습니다. 같은 NAT의 정상 사용자는 접속 주소 예산과 동시 8세션 한도를 공유합니다. 비공개 세계, 분산 권위, 계정 인증, 콘텐츠 moderation, history 보존 기한은 구현하지 않았습니다.
 
 입력 모델 비교와 동작 규칙은 [입력 설계](docs/INPUT_DESIGN.md)에 기록했습니다. 최신 브라우저의 `contenteditable=true` 호스트와 `beforeinput`·`input`·composition 이벤트 한 경로를 사용합니다. 브라우저의 UTF-16 편집 범위를 로컬 문맥의 grapheme·셀 주소에 연결하므로 알려진 문맥의 단어 삭제·재변환·중간 치환도 처리하며, 바뀌지 않은 뒷글의 좌표는 밀지 않습니다. 키 코드로 문자를 조립하거나 문자열 차이로 교체 위치를 추측하는 경로는 없습니다.
 
-세계의 임의 범위 선택·복사·잘라내기·실행 취소는 아직 지원하지 않습니다. 편집 범위가 없거나 이전 덮어쓰기로 문맥의 주소가 모호해진 요청도 안내하고 거부합니다. 그 경우 지도를 움직여 새 입력 문맥을 시작할 수 있습니다. 과거의 32자 치환 제한은 제거했으며, 현재 프로토타입은 한 번의 세계 입력을 512 grapheme·4096 UTF-16 단위, 함께 지울 주소를 2048개로 제한합니다. Tab은 UI 포커스를 옮기고, 붙여넣은 탭은 공백 4칸으로 처리합니다.
+세계의 임의 범위 선택·복사·잘라내기·실행 취소는 아직 지원하지 않습니다. 편집 범위가 없거나 이전 덮어쓰기로 문맥의 주소가 모호해진 요청도 안내하고 거부합니다. 그 경우 지도를 움직여 새 입력 문맥을 시작할 수 있습니다. 공개 참여자의 단일 확정 입력·치환은 최대 64 grapheme·4096 UTF-16 단위, 함께 지울 주소는 최대 128개이며 직접 쓴 최근 문맥이어야 합니다. 이 제한은 정상적인 IME 후보 확정을 한 묶음으로 보존하면서 순간적인 대량 쓰기를 막는 초기 운영값입니다. 봇은 최대 256 grapheme을 예약할 수 있지만 서버가 시간에 따라 실행합니다. Tab은 UI 포커스를 옮기고, 붙여넣은 탭은 공백 4칸으로 처리합니다.
 
 현재 조합 표시·카메라 전환의 실제 OS 키보드 및 Safari·Firefox 검증은 남아 있습니다. 여러 행 재변환이 공간상의 빈틈·비연속 주소를 가로지르면 native 초안의 화면 배치가 확정 글자의 배치와 다를 수 있습니다. 확정 주소 계산과 이 표시 제한은 구분합니다. 글자가 많은 지도에서의 그리기 비용도 다음 성능 실험 대상입니다.
 

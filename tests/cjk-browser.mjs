@@ -108,8 +108,9 @@ async function nativeDraft(page, text, start, anchor) {
   return geometry;
 }
 
-async function scenario(name, run, { mobile = false, x = 10, y = 8, seed = [] } = {}) {
+async function scenario(name, run, { mobile = false, x = 10, y = 8, seed = [], largeWorld = false } = {}) {
   const app = createTextworld({ storagePath: ':memory:', now: () => 1_000_000 });
+  if (largeWorld) app.world.resize(1024, 512);
   for (const [index, entry] of seed.entries()) app.world.applyWrite({ author: 'neighbor', id: `seed-${index}`, epoch: app.world.epoch, ...entry });
   const { port } = await app.listen(0, '127.0.0.1');
   const context = await browser.newContext(mobile
@@ -169,7 +170,7 @@ try {
     await compose(cdp, '你好'); await paint(page);
     assert.equal((await state(page)).preedit, '你好'); assert.equal(app.world.seq, seq);
     await nativeDraft(page, '你好', 0, { x: 10, y: 8 });
-    assert.equal(observerMessages.filter(message => message.type === 'cells').length, 0);
+    assert.equal(observerMessages.filter(message => message.type === 'view' && message.observation.cells.length).length, 0);
     await commit(cdp, page, '你好');
     assert.equal(app.world.seq, seq + 1);
     await observed(observer, 12, 8, '好', seq + 1);
@@ -177,7 +178,9 @@ try {
     assert.equal(textAt(app, 10), '你'); assert.equal(cellAt(app, 11).leadX, 10);
     assert.deepEqual((await state(page)).cursor, { x: 14, y: 8 });
     assert.equal(await page.locator('#input').textContent(), '你好');
-    assert.equal(observerMessages.filter(message => message.type === 'cells').length, 1);
+    const patches = observerMessages.filter(message => message.type === 'view' && message.observation.cells.length);
+    assert.equal(patches.length, 1);
+    assert.deepEqual(patches[0].observation.cells.map(cell => cell.version), [seq + 1, seq + 1, seq + 1, seq + 1]);
   });
 
   await scenario('Korean provisional jamo is replaced in place and consecutive syllables retain native context', async ({ app, page, observer, cdp }) => {
@@ -212,9 +215,10 @@ try {
     assert.equal(await page.locator('#input').textContent(), '東京で日本を学びます。');
     assert.deepEqual((await state(page)).cursor, { x: 20, y: 8 });
     await observed(observer, 18, 8, '本', seq + 1);
-    const patches = observerMessages.filter(message => message.type === 'cells' && message.seq === seq + 1);
-    assert.equal(patches.length, 1); assert.ok(patches[0].cells.every(cell => cell.version === seq + 1));
-    assert.ok(!patches[0].cells.some(cell => cell.x >= 22));
+    const patches = observerMessages.filter(message => message.type === 'view' && message.observation.cells.some(cell => cell.version === seq + 1));
+    assert.equal(patches.length, 1); assert.ok(patches[0].observation.cells.every(cell => cell.version === seq + 1));
+    assert.ok(!patches[0].observation.cells.some(cell => cell.x >= 22));
+    assert.deepEqual(patches[0].observation.forget, [{ x: 20, y: 8 }, { x: 21, y: 8 }]);
   });
 
   await scenario('Reconversion after multiline paste previews and commits on the earlier row without moving the later row', async ({ app, page, observer, context, cdp }) => {
@@ -246,6 +250,24 @@ try {
     assert.equal(await page.locator('#input').textContent(), phrase);
     await observed(observer, 10 + 2 * (phrase.length - 1), 8, phrase.at(-1), seq + 1);
   });
+
+  await scenario('A long mobile CJK commit follows its bounded writing path without revealing the rest of a large world', async ({ app, page, observer, cdp }) => {
+    const phrase = '日本語の長い文章を変換し三十二文字を超えても途中で切れず正しい候補が一度だけ共有されます';
+    const before = await state(page), seq = app.world.seq;
+    assert.ok(phrase.length * 2 > before.observedView.cols, 'The native candidate must span more than this phone can observe');
+    await compose(cdp, phrase); await paint(page);
+    assert.equal(app.world.seq, seq, 'Uncommitted native drafts remain local');
+    await commit(cdp, page, phrase);
+    assert.equal(app.world.seq, seq + 1, 'The complete native candidate is one atomic world edit');
+    for (const [index, glyph] of [...phrase].entries()) assert.equal(textAt(app, 100 + 2 * index, 100), glyph);
+    const after = await state(page);
+    assert.deepEqual(after.cursor, { x: 100 + 2 * phrase.length, y: 100 });
+    assert.equal(await page.locator('#input').textContent(), phrase);
+    assert.equal(after.observedView.cols, before.observedView.cols, 'Typing cannot expand observation privileges');
+    assert.ok(after.cells.every(cell => ((cell.x - after.observedView.x + after.world.width) % after.world.width) < after.observedView.cols + 1));
+    assert.ok(!after.cells.some(cell => cell.x === 100 && cell.y === 100), 'Earlier text outside the new view must leave the browser cache');
+    await observed(observer, 100, 100, phrase[0], seq + 1);
+  }, { mobile: true, x: 100, y: 100, largeWorld: true });
 
   await scenario('Narrow-to-wide native replacement overwrites its footprint without shifting surviving neighbors', async ({ app, page, observer, cdp }) => {
     await commit(cdp, page, 'aX!Z'); const prefix = cellAt(app, 10), suffix = cellAt(app, 13), seq = app.world.seq;
