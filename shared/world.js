@@ -14,19 +14,25 @@ export function gpsToCell(latitude, longitude, { width, height }) {
   return { x: Math.min(width - 1, Math.floor(u * width)), y: Math.min(height - 1, Math.floor(v * height)) };
 }
 
-export function writePlan(text, x, y, world) {
+export function writePlan(text, x, y, world, { lineStartX = x } = {}) {
   const cells = new Map();
-  const originX = wrap(x, world.width);
-  x = originX;
+  const steps = [];
+  // The writing origin survives input-event boundaries; the first glyph still
+  // belongs to the current cursor, and only a newline returns to this column.
+  const originX = wrap(lineStartX, world.width);
+  x = wrap(x, world.width);
   y = wrap(y, world.height);
   for (const char of graphemes(text.replace(/\r\n?/g, '\n').replace(/\t/g, '    '))) {
+    const from = { x, y };
     if (char === '\n') {
       x = originX;
       y = wrap(y + 1, world.height);
+      steps.push({ kind: 'return', from, to: { x, y } });
       continue;
     }
     cells.set(cellKey(x, y), { x, y, text: char });
     x = wrap(x + 1, world.width);
+    steps.push({ kind: 'write', from, to: { x, y } });
   }
-  return { cells: [...cells.values()], cursor: { x, y } };
+  return { cells: [...cells.values()], cursor: { x, y }, steps };
 }

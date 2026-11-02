@@ -173,9 +173,9 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
 .step-number { font: 11px/1.8 monospace; color: #8c9f83; }
 .help-step h2 { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
 .help-step p, details p { margin: 0; font-size: 12px; line-height: 1.8; color: #68786a; word-break: keep-all; }
-.keyboard-guide { border-top: 1px solid var(--line); padding-top: 16px; font-size: 10px; line-height: 2.2; color: var(--muted); }
-.keyboard-guide span { padding: 0 3px; }
-kbd { font: 10px ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--ink); }
+.keyboard-guide { display: grid; grid-template-columns: max-content 1fr; gap: 8px 14px; border-top: 1px solid var(--line); padding-top: 16px; font-size: 11px; line-height: 1.5; color: var(--muted); }
+.keyboard-guide dd { margin: 0; }
+kbd { font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--ink); }
 details { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 16px; }
 summary { cursor: pointer; font-size: 11px; color: #506a55; }
 details p { margin-top: 12px; }

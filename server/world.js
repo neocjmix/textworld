@@ -46,15 +46,18 @@ export class World {
     const previous = this.db.prepare('SELECT result FROM operations WHERE author=? AND id=?').get(author, id);
     return previous ? { ...JSON.parse(previous.result), duplicate: true } : null;
   }
-  applyWrite({ author, id, epoch, x, y, text }) {
+  applyWrite({ author, id, epoch, x, y, text, lineStartX }) {
     const previous = this.prior(author, id);
     if (previous) return previous;
     this.assertEpoch(epoch);
     this.assertPosition(x, y);
+    if (lineStartX !== undefined && !Number.isSafeInteger(lineStartX)) {
+      throw new WorldError('BAD_POSITION', '줄 시작 좌표는 정수여야 합니다.');
+    }
     if (typeof text !== 'string' || text.length > 4096 || graphemes(text).length > 512 || /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u.test(text)) {
       throw new WorldError('BAD_TEXT', '한 번에 512자 이내의 텍스트를 입력하세요.');
     }
-    const plan = writePlan(text, x, y, this);
+    const plan = writePlan(text, x, y, this, { lineStartX });
     return this.commit(plan.cells, { author, id, cursor: plan.cursor, reason: 'write' });
   }
   erase({ author, id, epoch, x, y }) {

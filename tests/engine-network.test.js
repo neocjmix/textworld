@@ -182,3 +182,33 @@ test('standalone scavenger process removes aged cells while retaining current te
   assert.equal(second.stdout.trim(), 'No expired cells.');
   assert.equal(app.world.getCell(3, 5).text, '새');
 });
+
+
+test('explicit writing origin reaches both sockets while legacy write messages remain compatible', async t => {
+  const app = createTextworld({ storagePath: ':memory:' });
+  t.after(() => app.close());
+  const address = await app.listen(0, '127.0.0.1');
+  const url = `ws://127.0.0.1:${address.port}/ws`;
+  const writer = connect(url), observer = connect(url);
+  const snapshot = await writer.next(m => m.type === 'snapshot');
+  await observer.next(m => m.type === 'snapshot');
+  writer.send({ type: 'write', id: 'prefix', epoch: 1, x: 7, y: 3, text: 'AB' });
+  await writer.next(m => m.type === 'ack' && m.id === 'prefix');
+  writer.send({ type: 'write', id: 'continued', epoch: 1, x: 9, y: 3, lineStartX: 7, text: 'C\nD' });
+  const patch = await observer.next(m => m.type === 'cells' && m.id === 'continued');
+  assert.deepEqual(patch.cells.map(({ x, y, text }) => ({ x, y, text })), [
+    { x: 9, y: 3, text: 'C' }, { x: 7, y: 4, text: 'D' },
+  ]);
+  const ack = await writer.next(m => m.type === 'ack' && m.id === 'continued');
+  assert.deepEqual(ack.cursor, { x: 8, y: 4 });
+  await observer.next(m => m.type === 'presence' && m.peers.some(p => p.id === snapshot.selfId && p.x === 8 && p.y === 4));
+  const before = app.world.snapshot();
+  writer.send({ type: 'write', id: 'invalid-origin', epoch: 1, x: 7, y: 3, lineStartX: null, text: 'X\nY' });
+  await writer.next(m => m.type === 'error' && m.id === 'invalid-origin' && m.code === 'BAD_POSITION');
+  assert.deepEqual(app.world.snapshot(), before);
+  writer.send({ type: 'write', id: 'legacy-lines', epoch: 1, x: 20, y: 3, text: 'E\nF' });
+  const legacy = await observer.next(m => m.type === 'cells' && m.id === 'legacy-lines');
+  assert.deepEqual(legacy.cells.map(({ x, y, text }) => ({ x, y, text })), [
+    { x: 20, y: 3, text: 'E' }, { x: 20, y: 4, text: 'F' },
+  ]);
+});

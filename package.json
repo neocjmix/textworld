@@ -8,7 +8,8 @@
     "test": "node --test tests/*.test.js",
     "test:browser": "node tests/browser.mjs",
     "experiment": "node experiments/topology.mjs",
-    "test:input": "node tests/input-regression.mjs"
+    "test:input": "node tests/input-regression.mjs",
+    "test:writing": "node tests/writing-interactions.mjs"
   },
   "engines": {
     "node": ">=24"

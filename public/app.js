@@ -1,4 +1,5 @@
-import { wrap, cellKey, graphemes, gpsToCell, writePlan } from '/shared/world.js';
+import { wrap, cellKey, graphemes, gpsToCell } from '/shared/world.js';
+import { WritingSession } from '/shared/writing.js';
 
 const $ = id => document.getElementById(id);
 const app = $('app');
@@ -8,12 +9,14 @@ const input = $('input');
 const baseCell = { width: 24, height: 30 };
 let world = null, selfId = null, cells = new Map(), peers = [];
 let cursor = { x: 0, y: 0 }, camera = { x: 0, y: 0 };
+const writing = new WritingSession(cursor);
 let zoom = 1, size = { width: 1, height: 1 }, connected = false, socket;
 let firstSnapshot = true, frame, reconnectTimer, noticeTimer;
 let id = 0, pending = new Map(), navigationRevision = 0, gpsRequest = 0;
 let moveTimer, queuedMove, lastSentPosition;
 let composing = false, compositionSession = null, compositionTail = null, preedit = '';
 let panRemainder = { x: 0, y: 0 };
+let imeReturnGuard = false, imeGuardTimer;
 const pointers = new Map();
 let drag = null, pinch = null;
 
@@ -72,11 +75,13 @@ function cancelComposition() {
     schedule();
   }
 }
-function move(x, y, { manual = true, resetPan = true } = {}) {
+function move(x, y, { manual = true, resetPan = true, newOrigin = true, caret = false } = {}) {
   if (!world) return;
   const next = { x: wrap(x, world.width), y: wrap(y, world.height) };
   if (next.x !== cursor.x || next.y !== cursor.y) cancelComposition();
   cursor = next;
+  if (newOrigin) writing.reset(cursor);
+  else if (caret) writing.reposition(cursor);
   if (manual) navigationRevision++;
   if (resetPan) panRemainder = { x: 0, y: 0 };
   center();
@@ -210,32 +215,62 @@ function focusInput() {
   if (connected && !$('help').open) input.focus({ preventScroll: true });
 }
 function write(text) {
-  if (!connected || !world) { notice('연결 후 다시 입력해 주세요.'); return; }
+  if (!connected || !world || socket.readyState !== WebSocket.OPEN) { notice('연결 후 다시 입력해 주세요.'); return; }
   text = text.replace(/\r\n?/g, '\n');
   if (!text) return;
   if (text.length > 4096 || /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u.test(text) || graphemes(text).length > 512) {
     notice('한 번에 512자까지 입력할 수 있습니다. 제어 문자는 지원하지 않습니다.'); return;
   }
+  const plan = writing.plan(text, cursor, world);
+  // Returns move presence; they do not create blank characters or database edits.
+  if (!plan.cells.length) {
+    writing.accept(plan);
+    move(plan.cursor.x, plan.cursor.y, { newOrigin: false });
+    return;
+  }
   cancelMove(); lastSentPosition = null;
-  const opId = `${selfId}:${++id}`, end = writePlan(text, cursor.x, cursor.y, world).cursor;
-  if (send({ type: 'write', id: opId, epoch: world.epoch, ...cursor, text })) {
-    pending.set(opId, text); cursor = end; navigationRevision++;
+  const opId = `${selfId}:${++id}`;
+  if (send({ type: 'write', id: opId, epoch: world.epoch, ...cursor, text, lineStartX: writing.lineStartX })) {
+    writing.accept(plan);
+    pending.set(opId, text); cursor = plan.cursor; navigationRevision++;
     panRemainder = { x: 0, y: 0 }; center();
   }
 }
 function erase(backward) {
-  if (!connected || !world) return;
-  if (backward) move(cursor.x - 1, cursor.y);
+  if (!connected || !world || socket.readyState !== WebSocket.OPEN) return;
+  if (backward) {
+    const action = writing.backspace(cursor, world);
+    move(action.cursor.x, action.cursor.y, { newOrigin: false });
+    if (!action.erase) return;
+  }
   cancelMove(); lastSentPosition = null;
   const opId = `${selfId}:${++id}`;
   pending.set(opId, '');
   send({ type: 'erase', id: opId, epoch: world.epoch, ...cursor });
 }
+function unsupportedInput(type) {
+  input.value = '';
+  const message = type === 'selection'
+    ? '세계의 범위 선택·복사·잘라내기는 아직 지원하지 않습니다.'
+    : type === 'lineEnd'
+      ? '이 공간에는 정해진 줄 끝이 없습니다. 방향키로 위치를 고르세요.'
+      : /^history/.test(type)
+        ? '공유 글의 실행 취소·다시 실행은 아직 지원하지 않습니다. 칸을 골라 수정해 주세요.'
+        : '단어·범위 편집은 아직 지원하지 않습니다. 칸 단위로 수정해 주세요.';
+  notice(message);
+}
+function returnKey() {
+  if (imeReturnGuard) return;
+  write('\n');
+}
+
 function resetComposition() {
+  imeReturnGuard = false; clearTimeout(imeGuardTimer);
   composing = false; compositionSession = null; compositionTail = null; preedit = ''; input.value = '';
 }
 input.addEventListener('compositionstart', () => {
   composing = true; compositionTail = null;
+  imeReturnGuard = false; clearTimeout(imeGuardTimer);
   compositionSession = { epoch: world?.epoch };
 });
 input.addEventListener('compositionupdate', event => {
@@ -248,11 +283,21 @@ input.addEventListener('compositionend', event => {
   else notice('위치가 바뀌어 조합을 취소했습니다. 중심 칸에 다시 입력해 주세요.');
   compositionSession = null; preedit = ''; input.value = ''; compositionTail = text;
   schedule(); setTimeout(() => { compositionTail = null; }, 0);
+  // Enter used to confirm an IME candidate must not also insert a return.
+  if (imeReturnGuard) imeGuardTimer = setTimeout(() => { imeReturnGuard = false; }, 0);
 });
+const isReturn = type => type === 'insertLineBreak' || type === 'insertParagraph';
+const isDeletion = type => type === 'deleteContentBackward' || type === 'deleteContentForward';
+const isInsertion = type => !type || ['insertText', 'insertFromPaste', 'insertCompositionText', 'insertFromComposition'].includes(type);
 input.addEventListener('beforeinput', event => {
-  if (composing || event.isComposing || !event.cancelable) return;
-  if (event.inputType === 'deleteContentBackward' || event.inputType === 'deleteContentForward') {
-    event.preventDefault(); erase(event.inputType === 'deleteContentBackward');
+  if (composing || event.isComposing) return;
+  const type = event.inputType;
+  if (isReturn(type)) {
+    if (event.cancelable) { event.preventDefault(); returnKey(); }
+  } else if (isDeletion(type)) {
+    if (event.cancelable) { event.preventDefault(); erase(type === 'deleteContentBackward'); }
+  } else if (!isInsertion(type)) {
+    if (event.cancelable) { event.preventDefault(); unsupportedInput(type); }
   }
 });
 input.addEventListener('input', event => {
@@ -263,23 +308,50 @@ input.addEventListener('input', event => {
   if (compositionTail !== null && (event.inputType === 'insertCompositionText' || event.inputType === 'insertFromComposition' || event.data === compositionTail)) {
     input.value = ''; compositionTail = null; return;
   }
-  if (event.inputType === 'deleteContentBackward' || event.inputType === 'deleteContentForward') {
+  if (isReturn(event.inputType)) { input.value = ''; returnKey(); return; }
+  if (isDeletion(event.inputType)) {
     erase(event.inputType === 'deleteContentBackward'); input.value = ''; return;
   }
+  if (!isInsertion(event.inputType)) { unsupportedInput(event.inputType); return; }
   write(input.value); input.value = '';
 });
 input.addEventListener('keydown', event => {
-  if (event.isComposing || composing || event.keyCode === 229) return;
-  if (!world || event.metaKey || event.ctrlKey || event.altKey) return;
+  const inComposition = event.isComposing || composing || event.keyCode === 229;
+  if (inComposition) {
+    if (event.key === 'Enter') imeReturnGuard = true;
+    return;
+  }
+  // A distinct subsequent press is a new command, not the earlier IME confirmation.
+  if (event.key === 'Enter') { imeReturnGuard = false; clearTimeout(imeGuardTimer); }
+  if (!world) return;
+  if (event.shiftKey && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Delete'].includes(event.key)) {
+    event.preventDefault(); unsupportedInput('selection'); return;
+  }
+  if ((event.metaKey || event.ctrlKey) && ['a', 'c', 'x', 'insert'].includes(event.key.toLowerCase())) {
+    event.preventDefault(); unsupportedInput('selection'); return;
+  }
+  if ((event.metaKey || event.ctrlKey) && ['z', 'y'].includes(event.key.toLowerCase())) {
+    event.preventDefault(); unsupportedInput(event.key.toLowerCase() === 'y' || event.shiftKey ? 'historyRedo' : 'historyUndo'); return;
+  }
+  if ((event.metaKey || event.ctrlKey || event.altKey) && ['Backspace', 'Delete'].includes(event.key)) {
+    event.preventDefault(); unsupportedInput('deleteWordBackward'); return;
+  }
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
   const delta = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
-  if (delta) { event.preventDefault(); move(cursor.x + delta[0], cursor.y + delta[1]); }
-  else if (event.key === 'Enter') { event.preventDefault(); move(cursor.x, cursor.y + 1); }
+  if (delta) { event.preventDefault(); move(cursor.x + delta[0], cursor.y + delta[1], { newOrigin: false, caret: true }); }
+  else if (event.key === 'Home') { event.preventDefault(); move(writing.lineStartX, cursor.y, { newOrigin: false, caret: true }); }
+  else if (event.key === 'End') { event.preventDefault(); unsupportedInput('lineEnd'); }
+  else if (event.key === 'Enter') { event.preventDefault(); returnKey(); }
   else if (event.key === 'Backspace' || event.key === 'Delete') { event.preventDefault(); erase(event.key === 'Backspace'); }
   else if (event.key === 'Escape') { event.preventDefault(); cancelComposition(); input.blur(); }
 });
 input.addEventListener('paste', event => {
   if (composing) return;
   event.preventDefault(); write(event.clipboardData.getData('text/plain'));
+});
+for (const type of ['copy', 'cut']) input.addEventListener(type, event => {
+  if (composing) return;
+  event.preventDefault(); unsupportedInput('selection');
 });
 document.addEventListener('keydown', event => {
   if ((event.target === document.body || event.target === canvas) && !event.metaKey && !event.ctrlKey && !event.altKey && (event.key.length === 1 || event.key === 'Process')) focusInput();
@@ -386,6 +458,7 @@ function connect() {
     const message = JSON.parse(event.data);
     if (message.type === 'snapshot') {
       const wasConnected = connected, previousCursor = { ...cursor }, oldEpoch = world?.epoch;
+      const keepWriting = !firstSnapshot && !wasConnected && oldEpoch === message.world.epoch && pending.size === 0;
       cancelMove(); lastSentPosition = null; world = message.world; selfId = message.selfId;
       cells = new Map(message.cells.filter(c => c.text).map(c => [cellKey(c.x, c.y), c]));
       peers = message.peers;
@@ -393,13 +466,14 @@ function connect() {
       cursor = me ? { x: me.x, y: me.y } : { x: 0, y: 0 };
       if (pending.size) { notice('세계를 갱신했습니다. 전송 중이던 글자를 확인해 주세요.'); pending.clear(); }
       resetComposition(); connection(true);
+      if (!keepWriting) writing.reset(cursor);
       if (firstSnapshot) {
         firstSnapshot = false;
         if (!goToHash()) locate(true);
         notice(isDesktop() ? '지도를 움직여 자리를 고르고, 바로 입력하세요.' : '지도를 움직여 자리를 고르고, 탭해서 입력하세요.');
         if (isDesktop()) focusInput();
       } else if (!wasConnected) {
-        move(previousCursor.x, previousCursor.y, { manual: false });
+        move(previousCursor.x, previousCursor.y, { manual: false, newOrigin: !keepWriting });
         notice('다시 연결했습니다. 이전 위치에서 계속하세요.');
       } else if (oldEpoch !== world.epoch) notice('세계의 크기가 바뀌었습니다.');
       center();
@@ -422,6 +496,7 @@ function connect() {
   socket.onclose = () => {
     cancelMove(); connection(false); resetComposition(); schedule();
     notice(pending.size ? '연결이 끊겼습니다. 전송 중이던 글자는 다시 연결한 뒤 확인해 주세요.' : '다시 연결하고 있습니다.');
+    if (pending.size) writing.reset(cursor);
     pending.clear(); clearTimeout(reconnectTimer); reconnectTimer = setTimeout(connect, 1000);
   };
   socket.onerror = () => socket.close();
@@ -430,4 +505,4 @@ window.addEventListener('hashchange', goToHash);
 setZoom(1);
 connect();
 // Read-only browser diagnostics for verifying spatial invariants.
-window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), peers: structuredClone(peers), cells: [...cells.values()], connected, pending: pending.size, zoom, composing, preedit }) };
+window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), peers: structuredClone(peers), cells: [...cells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX }) };

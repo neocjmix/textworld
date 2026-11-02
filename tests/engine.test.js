@@ -73,6 +73,112 @@ test('newline resets to the write origin and CRLF never creates an extra cell', 
   assert.deepEqual(plan.cursor, { x: 6, y: 0 });
 });
 
+test('explicit line origin preserves the current insertion cell and aligns subsequent rows', t => {
+  const { world, write } = fixture(t);
+  write('AB', 7, 3);
+  write('옆', 6, 4, 'neighbor');
+  const neighbor = { ...world.getCell(6, 4) };
+  const result = world.applyWrite({
+    author: 'alice', id: 'continue-lines', epoch: world.epoch,
+    x: 9, y: 3, text: 'CD\nEF\nG', lineStartX: 7,
+  });
+  assert.deepEqual(result.cells.map(({ x, y, text }) => ({ x, y, text })), [
+    { x: 9, y: 3, text: 'C' }, { x: 10, y: 3, text: 'D' },
+    { x: 7, y: 4, text: 'E' }, { x: 8, y: 4, text: 'F' },
+    { x: 7, y: 5, text: 'G' },
+  ]);
+  assert.deepEqual(result.cursor, { x: 8, y: 5 });
+  assert.equal(world.getCell(7, 3).text, 'A');
+  assert.equal(world.getCell(8, 3).text, 'B');
+  assert.deepEqual(world.getCell(6, 4), neighbor);
+});
+
+test('typing a prefix then pasting lines matches one multiline paste with the same origin', t => {
+  const { world: incremental } = fixture(t);
+  const { world: pasted } = fixture(t);
+  const origin = { x: 7, y: 3, lineStartX: 7, epoch: 1, author: 'alice' };
+  let cursor = { x: origin.x, y: origin.y };
+  for (const [index, text] of ['한', '글', 'ABC\n두번째\n끝'].entries()) {
+    cursor = incremental.applyWrite({ ...origin, ...cursor, id: `part-${index}`, text }).cursor;
+  }
+  const whole = pasted.applyWrite({ ...origin, id: 'whole', text: '한글ABC\n두번째\n끝' });
+  const content = world => world.snapshot().cells
+    .map(({ x, y, text }) => ({ x, y, text }))
+    .sort((a, b) => a.y - b.y || a.x - b.x);
+  assert.deepEqual(content(incremental), content(pasted));
+  assert.deepEqual(cursor, whole.cursor);
+});
+
+test('line origin wraps independently at torus seams and legacy clients retain paste-origin behavior', () => {
+  const size = { width: 32, height: 16 };
+  const anchored = writePlan('AB\r\nC\nD', 31, 15, size, { lineStartX: -2 });
+  assert.deepEqual(anchored.cells, [
+    { x: 31, y: 15, text: 'A' }, { x: 0, y: 15, text: 'B' },
+    { x: 30, y: 0, text: 'C' }, { x: 30, y: 1, text: 'D' },
+  ]);
+  assert.deepEqual(anchored.cursor, { x: 31, y: 1 });
+  const legacy = writePlan('A\nB', 31, 15, size);
+  assert.deepEqual(legacy.cells, [
+    { x: 31, y: 15, text: 'A' }, { x: 31, y: 0, text: 'B' },
+  ]);
+  assert.deepEqual(legacy.cursor, { x: 0, y: 0 });
+});
+
+test('write-plan traversal preserves newline return points across both torus seams', () => {
+  const plan = writePlan('AB\nC', 31, 15, { width: 32, height: 16 }, { lineStartX: 30 });
+  assert.deepEqual(plan.steps, [
+    { kind: 'write', from: { x: 31, y: 15 }, to: { x: 0, y: 15 } },
+    { kind: 'write', from: { x: 0, y: 15 }, to: { x: 1, y: 15 } },
+    { kind: 'return', from: { x: 1, y: 15 }, to: { x: 30, y: 0 } },
+    { kind: 'write', from: { x: 30, y: 0 }, to: { x: 31, y: 0 } },
+  ]);
+  // Undoing the last glyph reaches the return point; reversing that return
+  // then finds the former line end rather than the cell left of the new line.
+  let cursor = plan.cursor;
+  for (const step of [...plan.steps].reverse()) {
+    assert.deepEqual(cursor, step.to);
+    cursor = step.from;
+  }
+  assert.deepEqual(cursor, { x: 31, y: 15 });
+  const newline = writePlan('\r\n', 12, 15, { width: 32, height: 16 }, { lineStartX: 7 });
+  assert.deepEqual(newline.cells, []);
+  assert.deepEqual(newline.steps, [
+    { kind: 'return', from: { x: 12, y: 15 }, to: { x: 7, y: 0 } },
+  ]);
+});
+
+test('write-plan traversal retains every tab and repeated-address step without adding durable fields', t => {
+  const { world } = fixture(t, { width: 32, height: 16 });
+  const tabs = writePlan('\t', 31, 2, world);
+  assert.equal(tabs.steps.length, 4);
+  assert.ok(tabs.steps.every(step => step.kind === 'write'));
+  assert.deepEqual(tabs.steps.map(step => step.from.x), [31, 0, 1, 2]);
+  assert.deepEqual(tabs.cursor, { x: 3, y: 2 });
+  const repeated = writePlan('A'.repeat(32) + 'B', 0, 2, world);
+  assert.equal(repeated.cells.length, 32);
+  assert.equal(repeated.steps.length, 33);
+  assert.deepEqual(repeated.steps[0].from, repeated.steps[32].from);
+  const committed = world.applyWrite({ author: 'alice', id: 'no-trail-storage', epoch: world.epoch, x: 0, y: 2, text: 'A\nB', lineStartX: 7 });
+  assert.equal('steps' in committed, false);
+  const stored = JSON.parse(world.db.prepare('SELECT result FROM operations WHERE author=? AND id=?').get('alice', 'no-trail-storage').result);
+  assert.equal('steps' in stored, false);
+});
+
+test('invalid line origins do not mutate cells, operation order or provenance', t => {
+  const { world, write } = fixture(t);
+  write('기존', 5, 6);
+  const before = world.snapshot();
+  const evidence = world.evidence();
+  for (const [index, lineStartX] of [null, '7', NaN, Infinity, 0.5, Number.MAX_SAFE_INTEGER + 1].entries()) {
+    assert.throws(() => world.applyWrite({
+      author: 'alice', id: `bad-origin-${index}`, epoch: world.epoch,
+      x: 5, y: 6, text: 'X\nY', lineStartX,
+    }), { code: 'BAD_POSITION' });
+    assert.deepEqual(world.snapshot(), before);
+    assert.deepEqual(world.evidence(), evidence);
+  }
+});
+
 test('server ordering converges same-cell overwrites and a retried earlier operation cannot resurrect text', t => {
   const { world } = fixture(t);
   const a = { author: 'alice', id: 'a-1', epoch: world.epoch, x: 3, y: 4, text: 'A' };
