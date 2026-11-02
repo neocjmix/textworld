@@ -15,7 +15,11 @@
     "test:cjk": "node tests/cjk-browser.mjs",
     "test:typing": "node tests/typing-latency.mjs",
     "test:viewport": "node tests/viewport-motion.mjs",
-    "test:freshness": "node tests/freshness-browser.mjs"
+    "test:freshness": "node tests/freshness-browser.mjs",
+    "bench:scale": "node scripts/scale-bench.mjs",
+    "metrics:report": "node scripts/metrics-report.mjs",
+    "test:measurements": "node tests/measurements-browser.mjs",
+    "metrics:export": "node scripts/export-metrics.mjs"
   },
   "engines": {
     "node": ">=24"

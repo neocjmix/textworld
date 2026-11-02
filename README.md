@@ -109,3 +109,5 @@ Railway에서 공개 실험 중인 초기 프로토타입입니다. 익명 참�
 중요한 선택은 [결정 기록](docs/DECISIONS.md), 대안 비교와 다음 실험은 [공간 모델 실험](docs/EXPERIMENTS.md)을 참고하세요. 제품 헌법은 변경하지 않았습니다.
 
 최근 바뀐 글과 좌표에는 금색 배경·밑줄이 나타나고 시간이 지나면 강조가 줄어듭니다. 오래된 글도 읽을 수 있으며, 최근 삭제 자리에는 잠깐 흔적이 남습니다. 글자별 시각을 추가 저장하지 않고 기존 변경 번호와 공유 시간 표식을 이용합니다. `npm run test:freshness`로 실제 Chromium 표시·자동 노화·입력 문맥 유지·모바일 범례를 검사합니다.
+
+운영 규모·비용 측정은 기본 활성화되어 별도 `.metrics.sqlite`에 분/시간 집계로 누적됩니다. [수집 항목·보존·내보내기·비용 가정](docs/MEASUREMENTS.md), `npm run bench:scale`, `npm run metrics:export`, `npm run metrics:report`를 제공합니다. 계측은 글 내용·좌표·IP를 기록하지 않으며 관리 토큰으로만 조회합니다.

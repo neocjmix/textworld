@@ -1,0 +1,41 @@
+{
+  "capturedAt": "2026-11-02 15:25:10 UTC",
+  "windowHours": 1,
+  "sampleRateSeconds": 60,
+  "source": "Railway get_service_metrics",
+  "note": "Light traffic; includes deployments and idle time. Aggregated platform summaries, not a scaling or invoice prediction.",
+  "metrics": [
+    {
+      "measurement": "CPU_USAGE",
+      "current": 0.00012220000000000002,
+      "average": 0.0015251409836065579,
+      "min": 0,
+      "max": 0.01841766666666667,
+      "sampleCount": 61
+    },
+    {
+      "measurement": "MEMORY_USAGE_GB",
+      "current": 0.057901056,
+      "average": 0.11998913049180322,
+      "min": 0.042029056,
+      "max": 0.169551872,
+      "sampleCount": 61
+    },
+    {
+      "measurement": "DISK_USAGE_GB",
+      "current": 0.038764544,
+      "average": 0.03985535580327873,
+      "min": 0.036364288,
+      "max": 0.040574976,
+      "sampleCount": 61
+    },
+    {
+      "measurement": "NETWORK_TX_GB",
+      "current": 0,
+      "average": 0.00019014724590163935,
+      "min": 0,
+      "max": 0.005856262,
+      "sampleCount": 61
+    }
+  ]
+}

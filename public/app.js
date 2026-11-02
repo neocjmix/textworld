@@ -1,3 +1,4 @@
+import { createBrowserMeasurements } from './measurements.js';
 import { wrap, cellKey, graphemes, graphemeWidth, gpsToCell } from '/shared/world.js';
 import { WritingSession } from '/shared/writing.js';
 import { freshnessStyle } from '/shared/freshness.js';
@@ -65,6 +66,8 @@ function send(message) {
   socket.send(JSON.stringify(message));
   return true;
 }
+const browserMeasurements = createBrowserMeasurements(send);
+setInterval(()=>{if(connected)browserMeasurements.flush();},60000);
 function schedule() {
   if (frame || cameraMotion.active) return;
   frame = requestAnimationFrame(() => { frame = null; draw(); });
@@ -106,6 +109,7 @@ function submit(operation) {
   flushMove();
   const message = { ...operation, layout: 2, id: `${selfId}:${++id}`, epoch: world.epoch };
   if (!send(message)) return false;
+  browserMeasurements.begin(message.id);
   pending.set(message.id, message);
   refreshLocalCells();
   return true;
@@ -268,6 +272,7 @@ function paintText(text, x, y, d, columns, fonts) {
   ctx.fillText(text, x + d.width * columns / 2, y + d.height / 2 + 1);
 }
 function draw() {
+  const drawStarted=performance.now();let drawnGlyphs=0;
   ctx.clearRect(0, 0, size.width, size.height);
   ctx.fillStyle = '#f8f8f2';
   ctx.fillRect(0, 0, size.width, size.height);
@@ -320,7 +325,7 @@ function draw() {
         ctx.fillRect(px + 1, py + d.height - 3, width - 2, band === 'now' ? 2 : 1);
       }
       ctx.fillStyle = style.ink;
-      if (cell?.text) paintText(cell.text, px, py, d, cell.width || 1, fonts);
+      if (cell?.text) {paintText(cell.text, px, py, d, cell.width || 1, fonts);drawnGlyphs++;}
     }
   }
   ctx.textAlign = 'left';
@@ -334,6 +339,7 @@ function draw() {
       }
     }
   }
+  browserMeasurements.draw(drawStarted,Math.ceil(v.cols)*Math.ceil(v.rows),drawnGlyphs);
   // Native composition and the actual cursor share the camera's transform.
 }
 function resizeCanvas() {
@@ -672,6 +678,7 @@ function connect() {
       // In particular an echo must not rewind newer local typing or reset IME.
       refreshLocalCells();
     } else if (message.type === 'ack') {
+      browserMeasurements.ack(message.id);
       if (pending.delete(message.id)) refreshLocalCells();
     }
     else if (message.type === 'error') {
@@ -699,6 +706,7 @@ function connect() {
     $('population').textContent = `주변 ${peers.length}명`;
   };
   socket.onclose = () => {
+    browserMeasurements.reset();
     clearTimeout(viewTimer); clearTimeout(recoveryTimer);
     cancelMove(); connection(false); resetComposition(); schedule();
     notice(pending.size ? '연결이 끊겼습니다. 전송 중이던 글자는 다시 연결한 뒤 확인해 주세요.' : '다시 연결하고 있습니다.');
