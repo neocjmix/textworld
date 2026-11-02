@@ -23,6 +23,12 @@ async function scenario(name, run) {
       return state?.connected && state.peers[0]?.x === 7 && state.peers[0]?.y === 8;
     });
     await run({ app, page });
+    const state = await page.evaluate(() => window.textworld.inspect());
+    for (const [axis, extent, span] of [['x', state.world.width, state.viewport.cols], ['y', state.world.height, state.viewport.rows]]) {
+      const distance = state.camera[axis] + span / 2 - state.cursor[axis] - 0.5;
+      const wrapped = ((distance + extent / 2) % extent + extent) % extent - extent / 2;
+      assert.ok(Math.abs(wrapped) < 1e-6, `${axis} native input cursor must remain centered`);
+    }
     results.push(name);
     console.log(`PASS ${name}`);
   } finally {
@@ -92,8 +98,28 @@ try {
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 20, y: 12 });
   });
 
+  await scenario('map panning cancels composition before a late completion', async ({ app, page }) => {
+    await beginComposition(page);
+    await page.evaluate(() => {
+      const canvas = document.getElementById('field');
+      const state = window.textworld.inspect();
+      const width = canvas.getBoundingClientRect().width / state.viewport.cols;
+      canvas.dispatchEvent(new WheelEvent('wheel', { deltaX: width * 2, bubbles: true, cancelable: true }));
+    });
+    await page.waitForFunction(() => window.textworld.inspect().cursor.x === 9);
+    await page.evaluate(() => document.getElementById('input').dispatchEvent(
+      new CompositionEvent('compositionupdate', { data: '하' }),
+    ));
+    assert.equal(await page.evaluate(() => window.textworld.inspect().preedit), '', 'cancelled preedit must not reappear');
+    await finishWithCompanionInput(page);
+    assert.equal(app.world.snapshot().cells.length, 0);
+    assert.equal(app.world.seq, 0);
+    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 9, y: 8 });
+  });
+
   await scenario('empty-textarea beforeinput deletion erases exactly one world cell', async ({ app, page }) => {
-    await page.locator('#input').focus();
+    await page.mouse.click(400, 300);
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'input');
     await page.keyboard.insertText('AB');
     await page.waitForFunction(() => window.textworld.inspect().cells.length === 2 && window.textworld.inspect().pending === 0);
     assert.equal(await page.locator('#input').inputValue(), '');

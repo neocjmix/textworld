@@ -7,7 +7,7 @@ A shared, spatial, real-time text world. People inhabit a 2D character grid as v
 ## Principles
 - Public world uses toroidal topology and density-responsive expansion/contraction.
 - Writing overwrites cells, never inserts or shifts neighboring content.
-- Each user is represented by a visible, single-cell cursor; browsing and scrolling affect presence, and the cursor remains in the viewport.
+- Each user is represented by a visible, single-cell cursor. The current map interface keeps your cursor at the visible screen center; scrolling the world moves your presence and input position.
 - Zoom is bounded; GPS determines initial placement and supports return to current geographic position.
 - Public text is ephemeral. An independent scavenger can use cell provenance and history to remove old or damaged content.
 - Future private worlds may choose different topology, persistence, deterministic growth, and scavenger policies.
@@ -15,7 +15,7 @@ A shared, spatial, real-time text world. People inhabit a 2D character grid as v
 
 See [AGENTS.md](AGENTS.md) for agent operating instructions. The product principles are binding; implementation details remain open for autonomous exploration.
 
-## 실행 — 실험 001
+## 실행 — 실험 002: 전체 화면 지도
 
 Node.js **24 이상**이 필요합니다. Node 내장 SQLite와 `ws`만 서버 런타임에 사용합니다.
 
@@ -26,10 +26,12 @@ npm start
 
 `http://localhost:3000`을 서로 다른 브라우저나 창 두 개에서 여세요. 서버는 기본적으로 `0.0.0.0:3000`에서 수신합니다. 같은 서버에 접속하면 글자와 커서를 공유합니다. `이곳 링크`로 특정 칸을 공유할 수 있습니다. 다른 기기에서 GPS·클립보드를 쓰려면 HTTPS가 필요합니다. localhost에서는 브라우저가 이를 허용합니다.
 
-- 칸 클릭/탭 → 아래 입력창에 입력. 한글 조합과 이모지는 grapheme 단위로 한 칸을 차지합니다.
-- 입력·붙여넣기는 덮어쓰기입니다. 오른쪽 끝에서 같은 행의 왼쪽으로 이어집니다.
+- 지도가 브라우저 화면 전체를 채우며 내 커서는 항상 보이는 지도 화면의 중심에 있습니다. 별도 입력 패널은 없습니다.
+- 드래그·가로/세로 스크롤로 지도를 움직여 중심에 입력할 칸을 가져오세요. 지도 이동 자체가 내 커서의 세계 좌표를 바꾸며 다른 사용자에게도 전달됩니다.
+- 지도를 클릭/탭하면 현재 중심 셀에서 네이티브 키보드 입력을 받습니다. 탭한 곳으로 커서를 옮기지는 않습니다. 모바일에서는 OS 키보드가 열립니다. 한글 조합과 이모지는 grapheme 단위로 한 칸을 차지합니다.
+- 입력·붙여넣기는 덮어쓰기입니다. 입력하면 다음 칸으로 진행하며 지도가 따라 움직여 커서는 중심에 남습니다. 오른쪽 끝에서 같은 행의 왼쪽으로 이어집니다.
 - 방향키 이동, Enter는 같은 열의 다음 행, Backspace는 왼쪽 칸 삭제, Delete는 현재 칸 삭제입니다.
-- 드래그·스크롤로 탐색하고 `− / +`로 확대·축소합니다. 커서는 항상 화면 안에 있습니다.
+- `− / +`로 60~200% 확대·축소합니다. 확대·축소나 화면 크기 변경에도 선택한 셀은 중심에 남습니다. 모바일 키보드가 열리면 키보드를 제외한 보이는 지도 영역의 중심을 사용합니다.
 - GPS를 허용하면 현재 크기의 세계에 투영합니다. 거절하면 공동 출발점에서 사용할 수 있습니다. 정확한 위도·경도는 전송하지 않습니다.
 - 연결이 끊기면 입력을 비활성화하고 다시 연결합니다. 미확정 입력을 자동 재전송하지 않습니다. 재접속 후 내용을 확인하세요.
 
