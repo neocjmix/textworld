@@ -1,6 +1,43 @@
 # 실행 검증 — 2026-11-02
 
-## 표준 입력 범위와 Sarasa CJK monospace — 최신
+## 즉시 입력 표시·native 조합 표면·부드러운 카메라 — 최신
+
+| 실행 | 결과 | 확인한 범위 |
+| --- | --- | --- |
+| `npm test` | 89/89 통과 | 기존 엔진, 서버와 같은 로컬 표시 투영, 경쟁 쓰기 재투영, 카메라 시간·토러스·reduced-motion |
+| `npm run test:browser` | 25/25 통과 | 두 사용자·모바일·GPS·줌·재접속, 정지 후 중심 정착 |
+| `npm run test:input` | 12/12 통과 | 기존 조합·범위·주소 보존 resize·불확실한 쓰기 취소 |
+| `npm run test:writing` | 20/20 통과 | 기존 Enter·Backspace·붙여넣기·CJK 교체의 공간 의미 유지 |
+| `npm run test:ime` | 14/14 통과 | 기존 표준 native 입력 범위·조합 수명 계약 |
+| `npm run test:motion` | 10/10 통과 | 관성·중단·원격 위치, 이동 중 실제 셀에 붙은 커서와 정지 후 중심 복귀 |
+| `npm run test:cjk` | 9/9 통과 | native 조합 범위·clip·기준선, 언어별 교체·두 사용자·모바일 |
+| `npm run test:typing` | 8/8 통과 | 서버 응답을 300ms 이상 보류해도 첫 프레임에 글·삭제 표시, 이전 ack·경쟁 쓰기·native 조합 중복 없음 |
+| `npm run test:viewport` | 9/9 통과 | 키보드 열림·닫힘·offset·극단 축소·빠른 전환·휠·reduced-motion·움직이는 지도 잡기 |
+
+총 **196개** 자동 검사를 실행해 통과했다. 프런트엔드 문법 검사와 `git diff --check`도 통과했다.
+
+### 지연과 렌더링을 구분해 측정
+
+300ms 서버 수신 지연을 준 동일 Chromium 실험에서 영문 input→최초 Canvas paint 시작은 **318.7→4.5ms**, 한글 확정은 **319.1→7.0ms**였다. 기존 화면은 지도만 약 3~4ms에 먼저 이동하고 글은 서버 응답까지 비었다. 이제 `localCells`를 즉시 그린 뒤 서버의 최신 확정 상태와 남은 작업을 합치므로 그 빈 구간이 없다. 이 수치는 모니터 scan-out 완료나 실제 모바일 OS 키보드 지연이 아니다.
+
+카메라 애니메이션을 처음 붙였을 때 4,760글자 밀집 화면에서 그리기 중앙값 16.3ms, 프레임 간격 중앙값 28.7ms를 관측했다. 중복 RAF를 제거하고 Unicode 폭 메모·텍스트 패스의 그리기 설정을 묶은 최종 구현에서는 각각 **9.7ms, 19.4ms**였다. 저밀도 화면은 그리기 중앙값 2.9ms, 프레임 간격 16.6ms였다. 단일 환경의 실측이며 동시 부하 영향도 있어 모든 화면에서 60fps를 보장하는 결과는 아니다.
+
+별도 대안 실험의 glyph bitmap 캐시는 원래 10.4~12.1ms였던 화면을 32.9~33.2ms로 늦춰 기각했다. 같은 `fillText`를 유지하는 단순 상태 묶기는 7.0~7.6ms였다. 이 대안 비교 수치는 위 최종 앱 측정과 구분한다. DPR2의 상태 묶기 효과는 실행 간 변동이 커 확정하지 않았다.
+
+근거: `artifacts/typing-latency-baseline.json`, `typing-latency-final.json`, `typing-latency-results.json`, `glyph-batch-prototype-results.json`. 실행 산출물은 git에서 제외한다.
+
+### 발견한 실패와 수정
+
+- 실제 contenteditable의 조합 범위만 표시한다. native DOM·selection을 바꾸지 않고 `Range`와 CSS clip/transform을 사용한다. Canvas에 조합 글을 한 번 더 그리지 않는다. 브라우저 font box와 Canvas baseline을 맞췄다.
+- `overflow:hidden` 컨테이너는 긴 native 조합 때 브라우저가 내부를 최대 8,800px 자동 스크롤할 수 있었다. `window.scrollX/Y`는 0이어서 이것만 확인하면 놓친다. 지도 컨테이너를 `overflow:clip`으로 바꾸고 app/viewport scroll offset과 실제 canvas 원점을 검사했다.
+- 가상 키보드로 보이는 높이가 줄 때 기존 순간 이동 방지 로직이 오히려 즉시 중앙으로 이동시켰다. viewport 변화에서는 필요한 경우에만 가장 가까운 보이는 경계까지 보정하고 나머지는 부드럽게 중앙으로 이동한다.
+- typing 시점 이동 중 지도를 잡아도 카메라가 계속 움직여 100ms 동안 약 31px 더 이동했고, 첫 10px 드래그가 약 22px 이동했다. 잡는 순간 표시 위치를 멈추고 드래그의 시작 오프셋을 보존한 뒤 놓을 때 중심으로 돌아오도록 고쳤다. 회귀에서 잡고 있는 동안 0.01px 이내 고정, 첫 드래그 정확히 10px를 확인했다.
+- IME가 관성을 중단한 뒤 fractional 이동량 때문에 커서가 중심으로 복귀하지 않는 경우를 발견했다. 입력·도움말·연결 상태 등 중단 경계에서 남은 이동량을 정리한다.
+- 첫 입력의 일반 RAF와 카메라 RAF가 같은 프레임에 지도를 두 번 그릴 수 있었다. 그리기를 합친 뒤 실제 23프레임에서 23회, 프레임당 최대 한 번을 확인했다.
+
+키보드 전환 검사는 Chromium의 `visualViewport` 크기·offset을 모의 변경했다. 폰트·zoom이 유지되고, 중간 프레임에서도 Canvas 글·native 조합·커서가 같은 세계 주소에 붙는지 확인했다. 실제 OS 키보드 창·Safari·Firefox 검증은 아니다. 비선형 공간 문맥을 가로지르는 다중 행 조합 미리보기와 아주 빽빽한 모바일 화면의 성능은 남은 실험이다. 제품 헌법은 변경하지 않았다.
+
+## 표준 입력 범위와 Sarasa CJK monospace — 이전 검증
 
 | 실행 | 결과 | 확인한 범위 |
 | --- | --- | --- |

@@ -16,11 +16,15 @@ const settle = page => page.waitForFunction(() => window.textworld.inspect().pen
 const cell = (app, x, y) => app.world.getCell(x, y)?.text || '';
 
 async function centered(page) {
+  await page.waitForFunction(() => {
+    const s = window.textworld.inspect();
+    return !s.motionActive && !s.cameraActive;
+  });
   const s = await state(page);
   for (const [axis, span, extent] of [['x', s.viewport.cols, s.world.width], ['y', s.viewport.rows, s.world.height]]) {
     const delta = s.camera[axis] + span / 2 - s.cursor[axis] - .5;
     const wrapped = ((delta + extent / 2) % extent + extent) % extent - extent / 2;
-    assert.ok(Math.abs(wrapped) < 1e-6, `${axis}: writing cursor left screen center`);
+    assert.ok(Math.abs(wrapped) < 1e-6, `${axis}: settled writing cursor must return to screen center`);
   }
 }
 async function at(page, x, y) {

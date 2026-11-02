@@ -17,18 +17,95 @@ const textAt = (app, x, y = 8) => app.world.getCell(x, y)?.text || '';
 const cellAt = (app, x, y = 8) => ({ ...app.world.getCell(x, y) });
 
 async function centered(page) {
+  await page.waitForFunction(() => {
+    const s = window.textworld.inspect(); return !s.cameraActive && !s.motionActive;
+  });
   const s = await state(page);
   for (const [axis, span, extent] of [['x', s.viewport.cols, s.world.width], ['y', s.viewport.rows, s.world.height]]) {
     const distance = s.camera[axis] + span / 2 - s.cursor[axis] - .5;
     const wrapped = ((distance + extent / 2) % extent + extent) % extent - extent / 2;
     assert.ok(Math.abs(wrapped) < 1e-6, `${axis} cursor must remain at the map center`);
   }
+  const surface = await page.evaluate(() => {
+    const r = document.getElementById('field').getBoundingClientRect();
+    return { x: r.x, y: r.y, ancestors: ['app', 'viewport'].map(id => { const el = document.getElementById(id); return [id, el.scrollLeft, el.scrollTop]; }) };
+  });
+  assert.equal(surface.x, 0); assert.equal(surface.y, 0);
+  assert.ok(surface.ancestors.every(([, left, top]) => left === 0 && top === 0), `native caret must not scroll map ancestors: ${JSON.stringify(surface)}`);
 }
 
 async function observed(observer, x, y, text, version) {
   await observer.waitForFunction(({ x, y, text, version }) => window.textworld.inspect().cells.some(
     cell => cell.x === x && cell.y === y && cell.text === text && cell.version === version,
   ), { x, y, text, version });
+}
+
+async function nativeDraft(page, text, start, anchor) {
+  await paint(page);
+  const geometry = await page.evaluate(({ text, start, anchor }) => {
+    const host = document.getElementById('input'), style = getComputedStyle(host);
+    const hostBox = host.getBoundingClientRect(), mapBox = document.getElementById('field').getBoundingClientRect();
+    const cursorBox = document.getElementById('cursor').getBoundingClientRect();
+    const s = window.textworld.inspect(), column = mapBox.width / s.viewport.cols, row = mapBox.height / s.viewport.rows;
+    function nativeRange(from, to) {
+      const result = document.createRange(), walker = document.createTreeWalker(host, NodeFilter.SHOW_TEXT);
+      let node, offset = 0, found = false;
+      while ((node = walker.nextNode())) {
+        const end = offset + node.length;
+        if (!found && from <= end) { result.setStart(node, from - offset); found = true; }
+        if (found && to <= end) { result.setEnd(node, to - offset); return result; }
+        offset = end;
+      }
+      throw new Error('Native draft range is absent from its editing host');
+    }
+    const range = nativeRange(start, start + text.length), rect = range.getBoundingClientRect();
+    const measure = document.createElement('canvas').getContext('2d');
+    measure.font = `${style.fontSize} ${style.fontFamily}`; measure.textBaseline = 'middle';
+    const pathData = style.clipPath.match(/^path\(["'](.+)["']\)$/)?.[1];
+    const path = pathData ? new Path2D(pathData) : null;
+    const centerVisible = r => path ? measure.isPointInPath(path, r.x + r.width / 2 - hostBox.x, r.y + r.height / 2 - hostBox.y) : false;
+    const candidateRects = [...range.getClientRects()].filter(r => r.width > .01);
+    const outsideRects = [];
+    if (start > 0) outsideRects.push(...nativeRange(0, start).getClientRects());
+    if (start + text.length < host.textContent.length) outsideRects.push(...nativeRange(start + text.length, host.textContent.length).getClientRects());
+    const delta = (value, extent) => ((value + extent / 2) % extent + extent) % extent - extent / 2;
+    const cursorCenter = { x: cursorBox.x + cursorBox.width / 2, y: cursorBox.y + cursorBox.height / 2 };
+    const worldScreen = (axis, span, extent, scale, origin) => {
+      const distance = s.cursor[axis] + .5 - s.camera[axis];
+      return origin + (distance + Math.round((span / 2 - distance) / extent) * extent) * scale;
+    };
+    return {
+      nativeText: range.toString(), active: document.activeElement === host, opacity: style.opacity, font: `${style.fontSize} ${style.fontFamily}`,
+      rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+      target: {
+        x: cursorCenter.x - column / 2 + delta(anchor.x - s.cursor.x, s.world.width) * column,
+        y: cursorCenter.y + 1 + delta(anchor.y - s.cursor.y, s.world.height) * row - measure.measureText('한').fontBoundingBoxAscent,
+        cellTop: cursorCenter.y - row / 2 + delta(anchor.y - s.cursor.y, s.world.height) * row,
+        width: measure.measureText(text).width,
+      },
+      cursorCenter, cameraActive: s.cameraActive,
+      expectedCursorCenter: { x: worldScreen('x', s.viewport.cols, s.world.width, column, mapBox.x), y: worldScreen('y', s.viewport.rows, s.world.height, row, mapBox.y) },
+      clipPath: style.clipPath, candidateVisible: candidateRects.map(centerVisible),
+      contextVisible: outsideRects.filter(r => r.width > .01).map(centerVisible),
+      canvasDrafts: window.mapPaints.filter(p => p.color === '#287054' && /Textworld Sarasa/.test(p.font)),
+      uncommittedCanvasGlyphs: window.lastMapPaints.filter(p => /Textworld Sarasa/.test(p.font)
+        && !(s.localCells || s.cells).some(cell => cell.text === p.text)),
+      nativePreview: host.hasAttribute('data-native-preview'),
+    };
+  }, { text, start, anchor });
+  assert.equal(geometry.nativeText, text); assert.equal(geometry.active, true); assert.equal(geometry.opacity, '1');
+  assert.equal(geometry.nativePreview, true);
+  for (const axis of ['x', 'y']) assert.ok(Math.abs(geometry.cursorCenter[axis] - geometry.expectedCursorCenter[axis]) < .05,
+    `native cursor must follow its actual world position during camera movement: ${JSON.stringify(geometry)}`);
+  assert.match(geometry.font, /^18px .*Textworld Sarasa/);
+  for (const metric of ['x', 'y', 'width']) assert.ok(Math.abs(geometry.rect[metric] - geometry.target[metric]) < .05,
+    `native draft ${metric}: ${JSON.stringify(geometry)}`);
+  assert.ok(geometry.candidateVisible.length > 0 && geometry.candidateVisible.every(Boolean), 'the actual native candidate must remain inside its visible clip');
+  assert.ok(geometry.contextVisible.every(visible => !visible), 'retained native prefix/suffix must not leak into the map');
+  assert.deepEqual(geometry.canvasDrafts, [], 'Canvas must not duplicate the native composition glyphs');
+  assert.deepEqual(geometry.uncommittedCanvasGlyphs, [], 'uncommitted glyphs must be rendered exclusively by the native editing host');
+  await centered(page);
+  return geometry;
 }
 
 async function scenario(name, run, { mobile = false, x = 10, y = 8, seed = [] } = {}) {
@@ -40,11 +117,17 @@ async function scenario(name, run, { mobile = false, x = 10, y = 8, seed = [] } 
     : { viewport: { width: 1200, height: 900 } });
   const observerContext = await browser.newContext({ viewport: { width: 1200, height: 900 } });
   await context.addInitScript(() => {
-    window.mapPaints = [];
+    window.mapPaints = []; window.lastMapPaints = [];
+    const clear = CanvasRenderingContext2D.prototype.clearRect;
+    CanvasRenderingContext2D.prototype.clearRect = function (...args) {
+      if (this.canvas.id === 'field') window.lastMapPaints = [];
+      return clear.apply(this, args);
+    };
     const original = CanvasRenderingContext2D.prototype.fillText;
     CanvasRenderingContext2D.prototype.fillText = function (...args) {
       if (this.canvas.id === 'field') {
-        window.mapPaints.push({ text: String(args[0]), x: args[1], y: args[2], color: this.fillStyle, font: this.font, argumentCount: args.length });
+        const glyph = { text: String(args[0]), x: args[1], y: args[2], color: this.fillStyle, font: this.font, argumentCount: args.length };
+        window.mapPaints.push(glyph); window.lastMapPaints.push(glyph);
         if (window.mapPaints.length > 4000) window.mapPaints.splice(0, 2000);
       }
       return original.apply(this, args);
@@ -67,7 +150,8 @@ async function scenario(name, run, { mobile = false, x = 10, y = 8, seed = [] } 
     assert.equal(await page.evaluate(() => document.activeElement.id), 'input');
     const cdp = await context.newCDPSession(page);
     await run({ app, page, observer, context, cdp, actorMessages, observerMessages });
-    await settle(page); await centered(page);
+    await settle(page); await centered(page); await paint(page);
+    assert.equal(await page.locator('#input').evaluate(el => getComputedStyle(el).opacity), '0', 'the retained native context is hidden after composition');
     assert.deepEqual(errors, []);
     passed.push(name); console.log(`PASS ${name}`);
   } catch (error) {
@@ -80,9 +164,11 @@ try {
     const seq = app.world.seq;
     await compose(cdp, 'nihao'); await paint(page);
     assert.equal((await state(page)).preedit, 'nihao'); assert.equal(app.world.seq, seq);
+    await nativeDraft(page, 'nihao', 0, { x: 10, y: 8 });
     assert.equal((await state(observer)).cells.length, 0);
     await compose(cdp, '你好'); await paint(page);
     assert.equal((await state(page)).preedit, '你好'); assert.equal(app.world.seq, seq);
+    await nativeDraft(page, '你好', 0, { x: 10, y: 8 });
     assert.equal(observerMessages.filter(message => message.type === 'cells').length, 0);
     await commit(cdp, page, '你好');
     assert.equal(app.world.seq, seq + 1);
@@ -99,6 +185,7 @@ try {
     await compose(cdp, '하', { replacementStart: 0, replacementEnd: 1 });
     await compose(cdp, '한'); await paint(page);
     assert.equal(app.world.seq, provisional); assert.equal(textAt(app, 10), 'ㅎ');
+    await nativeDraft(page, '한', 0, { x: 10, y: 8 });
     await commit(cdp, page, '한');
     assert.equal(app.world.seq, provisional + 1); assert.equal(textAt(app, 10), '한');
     assert.equal(cellAt(app, 10).width, 2); assert.equal(cellAt(app, 11).leadX, 10);
@@ -116,6 +203,7 @@ try {
     await compose(cdp, 'にほん', { replacementStart: 3, replacementEnd: 6 });
     await compose(cdp, '日本'); await paint(page);
     assert.equal(app.world.seq, seq); assert.equal(textAt(app, 20), '語');
+    await nativeDraft(page, '日本', 3, { x: 16, y: 8 });
     await commit(cdp, page, '日本');
     assert.equal(app.world.seq, seq + 1);
     assert.deepEqual(cellAt(app, 10), prefix); assert.deepEqual(cellAt(app, 22), suffix);
@@ -139,15 +227,7 @@ try {
     await page.evaluate(() => { window.mapPaints = []; });
     await compose(cdp, '大阪', { replacementStart: 0, replacementEnd: 2 }); await paint(page);
     assert.equal(app.world.seq, seq); assert.equal((await state(page)).preedit, '大阪');
-    const preview = await page.evaluate(() => {
-      const r = document.getElementById('field').getBoundingClientRect();
-      return { glyphs: window.mapPaints.filter(p => p.color === '#287054' && ['大', '阪'].includes(p.text)), width: r.width, height: r.height };
-    });
-    assert.ok(preview.glyphs.length >= 2, 'both uncommitted candidate glyphs must be painted');
-    for (const glyph of preview.glyphs) {
-      assert.equal(glyph.y, preview.height / 2 + 1 - 26, 'earlier-row candidate must be painted one row above the center');
-      assert.equal(glyph.x, preview.width / 2 + (10 - 16) * 9 + 4.5 + (glyph.text === '阪' ? 18 : 0));
-    }
+    await nativeDraft(page, '大阪', 0, { x: 10, y: 8 });
     await commit(cdp, page, '大阪'); assert.equal(app.world.seq, seq + 1);
     assert.equal(textAt(app, 10, 8), '大'); assert.equal(textAt(app, 12, 8), '阪');
     assert.deepEqual(Array.from({ length: 6 }, (_, index) => cellAt(app, 10 + index, 9)), laterRow);
@@ -160,6 +240,7 @@ try {
     const phrase = '日本語の長い文章を変換し三十二文字を超えても途中で切れず正しい候補が一度だけ共有されます';
     assert.ok(phrase.length > 32); const seq = app.world.seq;
     await compose(cdp, phrase); await paint(page); assert.equal(app.world.seq, seq);
+    await nativeDraft(page, phrase, 0, { x: 10, y: 8 });
     await commit(cdp, page, phrase); assert.equal(app.world.seq, seq + 1);
     for (const [index, glyph] of [...phrase].entries()) assert.equal(textAt(app, 10 + 2 * index), glyph);
     assert.equal(await page.locator('#input').textContent(), phrase);
@@ -194,7 +275,7 @@ try {
     { x: 25, y: 35, text: '한 칸 9px  /  두 칸 18px' },
   ];
   async function checkFontAndGeometry(page) {
-    await paint(page);
+    await centered(page); await paint(page);
     const metrics = await page.evaluate(() => {
       const s = window.textworld.inspect(), canvas = document.getElementById('field'), input = document.getElementById('input');
       const box = canvas.getBoundingClientRect(), inputBox = input.getBoundingClientRect();
@@ -229,19 +310,41 @@ try {
     }));
     assert.ok(controls.every(control => control.inside && control.hit && !control.coversCenter), JSON.stringify(controls));
   }
-  await scenario('Desktop renders native 9/18px Sarasa advances on a centered full-screen 9×26 grid', async ({ app, page, cdp }) => {
+  await scenario('Desktop renders native 9/18px Sarasa advances on a centered full-screen 9×26 grid', async ({ app, page, observer, cdp }) => {
     await checkFontAndGeometry(page); await reachableControls(page);
     await page.screenshot({ path: 'artifacts/standard-cjk-desktop.png' });
     const seq = app.world.seq;
     await compose(cdp, '日本語を入力しています'); await paint(page);
     assert.equal(app.world.seq, seq); assert.equal((await state(page)).preedit, '日本語を入力しています');
+    const draftGeometry = await nativeDraft(page, '日本語を入力しています', 0, { x: 40, y: 30 });
     await page.screenshot({ path: 'artifacts/standard-cjk-composition.png' });
-    await compose(cdp, ''); assert.equal(app.world.seq, seq);
+    await commit(cdp, page, '日本語を入力しています'); await paint(page);
+    assert.equal(app.world.seq, seq + 1); await observed(observer, 48, 30, '入', seq + 1);
+    const committedGeometry = await page.evaluate(() => {
+      const glyph = window.lastMapPaints.find(p => p.text === '入');
+      if (!glyph) throw new Error('The committed candidate was not drawn by the world renderer');
+      const context = document.createElement('canvas').getContext('2d'); context.font = glyph.font; context.textBaseline = 'middle';
+      const s = window.textworld.inspect(), mapBox = document.getElementById('field').getBoundingClientRect();
+      const row = mapBox.height / s.viewport.rows, distance = 30 - s.camera.y;
+      const cellTop = (distance + Math.round((s.viewport.rows / 2 - distance) / s.world.height) * s.world.height) * row;
+      return { glyphY: glyph.y, top: glyph.y - context.measureText('入').fontBoundingBoxAscent, cellTop, row };
+    });
+    assert.ok(Math.abs(committedGeometry.glyphY - (committedGeometry.cellTop + committedGeometry.row / 2 + 1)) < .05);
+    assert.ok(Math.abs((committedGeometry.top - committedGeometry.cellTop) - (draftGeometry.rect.y - draftGeometry.target.cellTop)) < .05,
+      'native-to-world handoff must preserve the glyph baseline relative to its cell during camera movement');
+    await centered(page); await paint(page);
+    await page.screenshot({ path: 'artifacts/standard-cjk-committed.png' });
   }, { x: 40, y: 30, seed: sample });
 
-  await scenario('Mobile map and reduced-height help preserve usable controls, natural spacing and centered input', async ({ page }) => {
+  await scenario('Mobile map and reduced-height help preserve usable controls, natural spacing and centered input', async ({ app, page, cdp }) => {
     await checkFontAndGeometry(page); await reachableControls(page);
     await page.screenshot({ path: 'artifacts/standard-cjk-mobile.png' });
+    const seq = app.world.seq;
+    await compose(cdp, '한'.repeat(40)); await nativeDraft(page, '한'.repeat(40), 0, { x: 40, y: 30 });
+    assert.equal(app.world.seq, seq);
+    await compose(cdp, '한글 입력'); await nativeDraft(page, '한글 입력', 0, { x: 40, y: 30 });
+    await page.screenshot({ path: 'artifacts/standard-cjk-composition-mobile.png' });
+    await compose(cdp, ''); await paint(page); assert.equal(app.world.seq, seq);
     await page.locator('#help-toggle').click();
     assert.equal(await page.locator('#help').evaluate(el => el.open), true);
     assert.match(await page.locator('#help').textContent(), /영문은 한 칸, 한글·한자는 두 칸/);
@@ -256,7 +359,7 @@ try {
     await page.locator('#help-close').click();
   }, { x: 40, y: 30, mobile: true, seed: sample });
 
-  await writeFile('artifacts/standard-cjk-results.json', JSON.stringify({ passed: passed.length, failed, measurements, coverage: 'Chromium native CDP composition and actual app/WebSocket/canvas; physical OS keyboards and candidate windows remain unverified' }, null, 2));
+  await writeFile('artifacts/standard-cjk-results.json', JSON.stringify({ passed: passed.length, failed, measurements, coverage: 'Chromium native CDP composition, native DOM range placement/clipping, committed Canvas handoff and actual app/WebSocket; physical OS keyboards and candidate windows remain unverified' }, null, 2));
   console.log(JSON.stringify({ passed: passed.length, failed: failed.length, coverage: 'native Chromium composition, 2 independent contexts, font metrics, desktop/mobile layout; no physical OS keyboard claim' }));
   if (failed.length) process.exitCode = 1;
 } finally { await browser.close(); }

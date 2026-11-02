@@ -12,7 +12,9 @@
     "test:writing": "node tests/writing-interactions.mjs",
     "test:ime": "node tests/standard-input.mjs",
     "test:motion": "node tests/motion-browser.mjs",
-    "test:cjk": "node tests/cjk-browser.mjs"
+    "test:cjk": "node tests/cjk-browser.mjs",
+    "test:typing": "node tests/typing-latency.mjs",
+    "test:viewport": "node tests/viewport-motion.mjs"
   },
   "engines": {
     "node": ">=24"

@@ -11,7 +11,10 @@ const url = `http://127.0.0.1:${port}/#x=64&y=32`, checks = [], errors = [];
 const state = page => page.evaluate(() => window.textworld.inspect());
 const check = label => { checks.push(label); console.log(`PASS ${label}`); };
 const wrap = (n, extent) => ((n % extent) + extent) % extent;
-const settled = page => page.waitForFunction(() => window.textworld.inspect().motionActive === false);
+const settled = page => page.waitForFunction(() => {
+  const s = window.textworld.inspect();
+  return !s.motionActive && !s.cameraActive;
+});
 async function ready(page) {
   page.on('pageerror', error => errors.push(error.message));
   page.setDefaultTimeout(5000); await page.goto(url);
@@ -19,10 +22,37 @@ async function ready(page) {
   await page.evaluate(() => document.fonts.ready);
 }
 async function centered(page) {
+  await settled(page);
   const s = await state(page);
   for (const [axis, extent, span] of [['x', s.world.width, s.viewport.cols], ['y', s.world.height, s.viewport.rows]]) {
     const error = wrap(s.camera[axis] + span / 2 - s.cursor[axis] - .5 + extent / 2, extent) - extent / 2;
-    assert.ok(Math.abs(error) < 1e-6, `${axis}: moving cursor must stay at screen center`);
+    assert.ok(Math.abs(error) < 1e-6,
+      `${axis}: settled cursor must return to screen center; offset=${error} cells, cursor=${JSON.stringify(s.cursor)}, camera=${JSON.stringify(s.camera)}`);
+  }
+}
+async function attachedCursor(page) {
+  // During easing the caret may leave the centre, but must still mark the
+  // actual world address and remain inside the visible map in the same frame.
+  const geometry = await page.evaluate(() => {
+    const s = window.textworld.inspect();
+    const field = document.getElementById('field').getBoundingClientRect();
+    const cursor = document.getElementById('cursor').getBoundingClientRect();
+    return { state: s,
+      field: { x: field.x, y: field.y, width: field.width, height: field.height },
+      cursor: { x: cursor.x, y: cursor.y, width: cursor.width, height: cursor.height },
+    };
+  });
+  const { state: s, field, cursor } = geometry;
+  assert.ok(cursor.width > 0 && cursor.height > 0, 'the actual writing cursor must be visible');
+  for (const [axis, dimension, extent, span] of [
+    ['x', 'width', s.world.width, s.viewport.cols], ['y', 'height', s.world.height, s.viewport.rows],
+  ]) {
+    const cellPixels = field[dimension] / span;
+    const displayedCell = s.camera[axis] + (cursor[axis] + cursor[dimension] / 2 - field[axis]) / cellPixels - .5;
+    const error = wrap(displayedCell - s.cursor[axis] + extent / 2, extent) - extent / 2;
+    assert.ok(Math.abs(error * cellPixels) < .1, `${axis}: moving cursor detached from its world cell by ${error * cellPixels}px`);
+    assert.ok(cursor[axis] >= field[axis] - 1 && cursor[axis] + cursor[dimension] <= field[axis] + field[dimension] + 1,
+      `${axis}: moving cursor must stay inside the visible map`);
   }
 }
 async function location(page, x = 64, y = 32) {
@@ -31,7 +61,7 @@ async function location(page, x = 64, y = 32) {
     location.hash = `x=${x}&y=${y}`;
   }, { x, y });
   await page.waitForFunction(({ x, y }) => {
-    const s = window.textworld.inspect(); return s.cursor.x === x && s.cursor.y === y && !s.motionActive;
+    const s = window.textworld.inspect(); return s.cursor.x === x && s.cursor.y === y && !s.motionActive && !s.cameraActive;
   }, { x, y });
 }
 async function mouseFlick(page) {
@@ -76,13 +106,14 @@ try {
   await a.waitForFunction(before => {
     const s = window.textworld.inspect(); return s.cursor.x !== before.x && s.cursor.y !== before.y;
   }, released);
-  await centered(a); await settled(a);
+  await attachedCursor(a); await settled(a); await centered(a);
   const final = (await state(a)).cursor;
   await b.waitForFunction(({ actor, final }) => window.textworld.inspect().peers.some(peer => peer.id === actor && peer.x === final.x && peer.y === final.y), { actor, final });
   await stable(a);
-  check('diagonal mouse flick continues, settles, stays centered and sends its final presence');
+  check('diagonal mouse flick keeps its cursor attached to the visible world cell, settles at center and sends final presence');
 
   await location(a); await mouseFlick(a); await a.keyboard.type('K');
+  await attachedCursor(a);
   await a.waitForFunction(() => window.textworld.inspect().pending === 0);
   assert.equal((await state(a)).motionActive, false);
   await stable(a);
@@ -91,6 +122,7 @@ try {
   await location(a); await mouseFlick(a);
   const ime = await first.newCDPSession(a);
   await ime.send('Input.imeSetComposition', { text: 'ㅎ', selectionStart: 1, selectionEnd: 1 });
+  await attachedCursor(a);
   assert.equal((await state(a)).motionActive, false); await stable(a);
   await ime.send('Input.insertText', { text: '한' });
   await a.waitForFunction(() => window.textworld.inspect().pending === 0);
@@ -106,6 +138,7 @@ try {
   // Three decreasing deltas represent the tail already produced by an OS.
   for (const weight of [.5, .3, .2]) {
     await a.mouse.wheel(dimensions.x * 10 * weight, dimensions.y * 4 * weight);
+    await attachedCursor(a);
     await a.waitForTimeout(20);
   }
   await settled(a);

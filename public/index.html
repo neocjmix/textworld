@@ -13,8 +13,9 @@
   <main id="app" aria-label="Textworld 공유 지도">
     <div id="viewport">
       <canvas id="field" aria-label="공유 글자 지도. 드래그하거나 스크롤하면 중앙 커서가 이동합니다. 지도를 탭하고 중앙 칸에 입력하세요."></canvas>
-      <div id="input" contenteditable="false" role="textbox" aria-multiline="true" aria-disabled="true" tabindex="0" inputmode="text" enterkeyhint="enter" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="지도 중앙 칸에 바로 입력" aria-describedby="map-instructions"></div>
-      <p id="map-instructions" class="sr-only">지도를 움직이면 화면 중심의 커서 위치가 바뀝니다. 지도를 탭하면 키보드를 열어 중앙 칸에 입력합니다. 방향키로 이동하고, Enter로 글을 시작한 열의 다음 행에 갑니다. 입력은 기존 글자를 덮어씁니다.</p>
+      <div id="input" contenteditable="false" role="textbox" aria-multiline="true" aria-disabled="true" tabindex="0" inputmode="text" enterkeyhint="enter" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="지도 커서 위치에 바로 입력" aria-describedby="map-instructions"></div>
+      <div id="cursor" aria-hidden="true" hidden></div>
+      <p id="map-instructions" class="sr-only">지도를 움직이면 입력 위치가 바뀝니다. 커서는 중심부를 따라가며 움직임이 끝나면 중심에 놓입니다. 지도를 탭하면 키보드를 열어 커서 위치에 입력합니다. 방향키로 이동하고, Enter로 글을 시작한 열의 다음 행에 갑니다. 입력은 기존 글자를 덮어씁니다.</p>
     </div>
 
     <div class="top-controls">
@@ -28,7 +29,7 @@
       </nav>
     </div>
 
-    <div class="position surface" aria-label="지도 중심 좌표"><span class="position-marker" aria-hidden="true"></span><output id="coordinates" aria-label="현재 커서 좌표">—, —</output></div>
+    <div class="position surface" aria-label="입력 위치 좌표"><span class="position-marker" aria-hidden="true"></span><output id="coordinates" aria-label="현재 커서 좌표">—, —</output></div>
 
     <div class="navigation-controls" role="group" aria-label="지도 조작">
       <button id="gps" class="icon-button surface" aria-label="내 GPS 위치로 이동" title="내 GPS 위치로 이동"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3.5M12 18.5V22M2 12h3.5M18.5 12H22"/></svg></button>
@@ -43,9 +44,9 @@
 
     <dialog id="help" class="surface" aria-labelledby="help-title">
       <div class="help-heading"><h1 id="help-title">지도를 움직이고,<br>그 자리에 쓰세요.</h1><button id="help-close" class="icon-button" aria-label="사용법 닫기" title="닫기">×</button></div>
-      <div class="help-step"><span class="step-number">01</span><div><h2>가운데가 내 자리</h2><p>드래그하거나 가로·세로로 스크롤해 위치를 고르세요. 드래그를 놓으면 서서히 멈춥니다. 커서는 항상 화면 중심에 있습니다.</p></div></div>
+      <div class="help-step"><span class="step-number">01</span><div><h2>가운데를 따라오는 내 자리</h2><p>드래그하거나 가로·세로로 스크롤해 위치를 고르세요. 드래그를 놓으면 서서히 멈춥니다. 움직이는 동안 커서는 중심에서 조금 벗어날 수 있고, 멈추면 중심으로 돌아옵니다.</p></div></div>
       <div class="help-step"><span class="step-number">02</span><div><h2>지도에 바로 입력</h2><p>지도를 탭하면 키보드가 열립니다. 컴퓨터에서는 바로 타이핑하세요. 영문은 한 칸, 한글·한자는 두 칸 너비로 씁니다. Enter는 이번 글쓰기를 시작한 열의 다음 행으로 갑니다.</p></div></div>
-      <div class="help-step"><span class="step-number">03</span><div><h2>같은 칸을 함께</h2><p>다른 색 커서는 지금 함께 있는 사람입니다. 입력은 기존 글자를 덮어쓰고, 글을 쓰면 지도가 움직이며 다음 칸이 중심에 옵니다.</p></div></div>
+      <div class="help-step"><span class="step-number">03</span><div><h2>같은 칸을 함께</h2><p>다른 색 커서는 지금 함께 있는 사람입니다. 입력은 기존 글자를 덮어쓰고, 글을 쓰면 지도가 부드럽게 따라옵니다.</p></div></div>
       <dl class="keyboard-guide">
         <dt><kbd>← ↑ ↓ →</kbd></dt><dd>이동</dd>
         <dt><kbd>Enter</kbd></dt><dd>다음 줄 시작</dd>

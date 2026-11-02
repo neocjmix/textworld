@@ -31,17 +31,17 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
   left: var(--app-left, 0px);
   width: var(--app-width, 100vw);
   height: var(--app-height, 100dvh);
-  overflow: hidden;
+  overflow: clip;
   isolation: isolate;
 }
-#viewport { position: absolute; inset: 0; overflow: hidden; }
+#viewport { position: absolute; inset: 0; overflow: clip; }
 #field { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
 #field:active { cursor: grabbing; }
 #input {
   position: absolute;
   z-index: 1;
-  left: 50%;
-  top: 50%;
+  left: var(--cursor-x, 50%);
+  top: var(--cursor-y, 50%);
   width: var(--cell-width);
   height: var(--cell-height);
   min-width: 1px;
@@ -55,7 +55,7 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
   overflow: hidden;
   resize: none;
   pointer-events: none;
-  opacity: .01; /* Native composition highlights must not cover the canvas preview. */
+  opacity: 0;
   background: transparent;
   color: transparent;
   caret-color: transparent;
@@ -67,6 +67,31 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
   letter-spacing: 0;
 }
 #input::selection { color: transparent; background: transparent; }
+#input[data-native-preview] {
+  left: 0;
+  top: 0;
+  width: max-content;
+  height: auto;
+  overflow: visible;
+  opacity: 1;
+  background: #f8f8f2;
+  color: #314137;
+  -webkit-text-fill-color: #314137;
+}
+#input[data-native-preview]::selection { color: #314137; background: #d9e6d7; }
+#cursor {
+  position: absolute;
+  z-index: 1;
+  left: var(--cursor-x, 50%);
+  top: var(--cursor-y, 50%);
+  transform: translate(-50%, -50%);
+  width: calc(var(--cell-width) - 2px);
+  height: calc(var(--cell-height) - 2px);
+  border: 2px solid #287054;
+  background: #2870541a;
+  pointer-events: none;
+}
+#cursor::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: #287054; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 .surface { background: #fbfcf7f5; border: 1px solid #d9dfd4; box-shadow: 0 2px 8px #243b330b, 0 12px 28px #243b3305; }

@@ -27,6 +27,9 @@ const observe = page => page.on('pageerror', error => errors.push(error.message)
 const wrap = (value, size) => ((value % size) + size) % size;
 
 async function centered(page) {
+  await page.waitForFunction(() => {
+    const s = window.textworld.inspect(); return !s.cameraActive && !s.motionActive;
+  });
   const snapshot = await state(page);
   for (const [axis, extent, span] of [
     ['x', snapshot.world.width, snapshot.viewport.cols],
@@ -39,14 +42,23 @@ async function centered(page) {
   }
   const geometry = await page.evaluate(() => {
     const field = document.getElementById('field').getBoundingClientRect();
-    const input = document.getElementById('input').getBoundingClientRect();
+    const host = document.getElementById('input'), input = host.getBoundingClientRect();
+    const cursor = document.getElementById('cursor').getBoundingClientRect();
     return {
       fieldX: field.x + field.width / 2, fieldY: field.y + field.height / 2,
       inputX: input.x + input.width / 2, inputY: input.y + input.height / 2,
+      cursorX: cursor.x + cursor.width / 2, cursorY: cursor.y + cursor.height / 2,
+      nativePreview: host.hasAttribute('data-native-preview'),
     };
   });
-  assert.ok(Math.abs(geometry.fieldX - geometry.inputX) <= 1, 'native input anchor must share cursor x');
-  assert.ok(Math.abs(geometry.fieldY - geometry.inputY) <= 1, 'native input anchor must share cursor y');
+  assert.ok(Math.abs(geometry.fieldX - geometry.cursorX) <= 1, 'visible cursor must stay at viewport center x');
+  assert.ok(Math.abs(geometry.fieldY - geometry.cursorY) <= 1, 'visible cursor must stay at viewport center y');
+  // During composition the host exposes only its edited range at that range's
+  // world address; its whole buffer bounding box is not the spatial cursor.
+  if (!geometry.nativePreview) {
+    assert.ok(Math.abs(geometry.fieldX - geometry.inputX) <= 1, 'inactive native input anchor must share cursor x');
+    assert.ok(Math.abs(geometry.fieldY - geometry.inputY) <= 1, 'inactive native input anchor must share cursor y');
+  }
 }
 
 async function fullscreen(page) {

@@ -3,17 +3,25 @@ import { WritingSession } from '/shared/writing.js';
 import { NativeProjection } from '/shared/native-projection.js';
 import { createPanMotion } from './inertia.js';
 import { createNativeInput } from './native-input.js';
+import { projectLocalCells } from './local-world.js';
+import { createNativeSurface } from './native-surface.js';
+import { createCameraMotion } from './camera-motion.js';
 
 const $ = id => document.getElementById(id);
 const app = $('app');
 const canvas = $('field');
 const ctx = canvas.getContext('2d');
 const input = $('input');
+const nativeSurface = createNativeSurface(input);
 const baseCell = { width: 9, height: 26 };
 const mapFont = '"Textworld Sarasa"';
+const glyphWidths = new Map();
 let fontReady = false;
 let world = null, selfId = null, cells = new Map(), peers = [];
+let localCells = new Map();
 let cursor = { x: 0, y: 0 }, camera = { x: 0, y: 0 };
+let cameraAnchor = null, cameraEpoch = null;
+let viewportOrigin = { x: 0, y: 0 };
 const writing = new WritingSession(cursor);
 const nativeProjection = new NativeProjection(cursor);
 let nativeTrailBase = [];
@@ -26,7 +34,16 @@ let preeditRange = null;
 let panRemainder = { x: 0, y: 0 };
 const pointers = new Map();
 let drag = null, pinch = null;
-const motion = createPanMotion({ pan, reducedMotion: () => matchMedia('(prefers-reduced-motion: reduce)').matches });
+let dragCameraOffset = null;
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const cameraMotion = createCameraMotion({ reducedMotion, onUpdate(position) {
+  camera = position;
+  updateCursorSurface();
+  // Camera, native surface and shared text must move in the same frame.
+  if (frame) { cancelAnimationFrame(frame); frame = null; }
+  draw();
+} });
+const motion = createPanMotion({ pan, reducedMotion, onRest: () => center() });
 
 const dimensions = () => ({ width: baseCell.width * zoom, height: baseCell.height * zoom });
 const visible = () => {
@@ -46,22 +63,84 @@ function send(message) {
   return true;
 }
 function schedule() {
-  if (frame) return;
+  if (frame || cameraMotion.active) return;
   frame = requestAnimationFrame(() => { frame = null; draw(); });
 }
-// A single invariant governs navigation, writing, zoom and keyboard resizing:
-// the active cell's centre is always the visible map's centre.
-function center() {
-  if (!world) return;
-  const v = visible();
-  camera = { x: cursor.x + .5 - v.cols / 2, y: cursor.y + .5 - v.rows / 2 };
-  $('coordinates').textContent = `${cursor.x}, ${cursor.y}`;
+function refreshLocalCells() {
+  localCells = world ? projectLocalCells(cells, pending.values(), world) : cells;
   schedule();
+}
+function submit(operation) {
+  const message = { ...operation, layout: 2, id: `${selfId}:${++id}`, epoch: world.epoch };
+  if (!send(message)) return false;
+  pending.set(message.id, message);
+  refreshLocalCells();
+  return true;
+}
+const shortest = (distance, extent) => wrap(distance + extent / 2, extent) - extent / 2;
+function center({ immediate = false, residual = false, direct = false, timeConstant = 80, viewportChange = false } = {}) {
+  if (!world) return;
+  const v = visible(), d = dimensions();
+  if (!cameraAnchor || cameraEpoch !== world.epoch) {
+    cameraAnchor = { ...cursor }; cameraEpoch = world.epoch; immediate = true;
+  } else {
+    cameraAnchor.x += shortest(cursor.x - wrap(cameraAnchor.x, world.width), world.width);
+    cameraAnchor.y += shortest(cursor.y - wrap(cameraAnchor.y, world.height), world.height);
+  }
+  const target = { x: cameraAnchor.x + .5 - v.cols / 2 + (residual ? panRemainder.x : 0),
+    y: cameraAnchor.y + .5 - v.rows / 2 + (residual ? panRemainder.y : 0) };
+  if (direct && dragCameraOffset) { target.x += dragCameraOffset.x; target.y += dragCameraOffset.y; }
+  // Large teleports must not leave the actual writing position off-screen.
+  const px = (cameraAnchor.x + .5 - camera.x) * d.width;
+  const py = (cameraAnchor.y + .5 - camera.y) * d.height;
+  if (viewportChange && !immediate) {
+    // When a keyboard covers the old cursor, move only as far as necessary to
+    // keep that cell visible. The remaining trip to the centre stays animated.
+    const clamp = (value, span, margin) => Math.max(margin, Math.min(span - margin, value));
+    const shiftX = px - clamp(px, size.width, d.width / 2);
+    const shiftY = py - clamp(py, size.height, d.height / 2);
+    if (shiftX || shiftY) cameraMotion.jump({ x: camera.x + shiftX / d.width, y: camera.y + shiftY / d.height });
+  } else if (px < d.width || px > size.width - d.width || py < d.height || py > size.height - d.height) immediate = true;
+  cameraMotion.setTarget(target, { immediate, scale: { x: d.width, y: d.height }, timeConstant });
+  if (cameraMotion.active && frame) { cancelAnimationFrame(frame); frame = null; }
+  $('coordinates').textContent = `${cursor.x}, ${cursor.y}`;
+  updateCursorSurface();
+}
+function updateCursorSurface() {
+  if (!cameraAnchor) return;
+  const d = dimensions();
+  app.style.setProperty('--cursor-x', `${(cameraAnchor.x + .5 - camera.x) * d.width}px`);
+  app.style.setProperty('--cursor-y', `${(cameraAnchor.y + .5 - camera.y) * d.height}px`);
+  updateNativeSurface();
+}
+function updateNativeSurface() {
+  if (!world || !preedit || !preeditRange) { nativeSurface.hide(); return; }
+  const d = dimensions();
+  let anchor;
+  try { anchor = nativeProjection.rangePoint(preeditRange.start, preeditRange.end); }
+  catch { nativeSurface.hide(); return; }
+  nativeSurface.show({ start: preeditRange.start, end: preeditRange.start + preedit.length,
+    x: (cameraAnchor.x + shortest(anchor.x - cursor.x, world.width) - camera.x) * d.width,
+    y: (cameraAnchor.y + shortest(anchor.y - cursor.y, world.height) - camera.y) * d.height,
+    cellHeight: d.height, fontSize: 18 * zoom });
 }
 function cancelMove() {
   clearTimeout(moveTimer);
   moveTimer = null;
   queuedMove = null;
+}
+function stopPan() {
+  const displaced = motion.active || panRemainder.x || panRemainder.y;
+  motion.cancel(); panRemainder = { x: 0, y: 0 };
+  if (displaced) center();
+}
+function grabCamera() {
+  cameraMotion.cancel();
+  const v = visible();
+  dragCameraOffset = cameraAnchor ? {
+    x: camera.x - (cameraAnchor.x + .5 - v.cols / 2 + panRemainder.x),
+    y: camera.y - (cameraAnchor.y + .5 - v.rows / 2 + panRemainder.y),
+  } : { x: 0, y: 0 };
 }
 function queueMove() {
   queuedMove = { type: 'move', ...cursor, epoch: world.epoch };
@@ -81,7 +160,7 @@ function cancelComposition() {
   preedit = ''; preeditRange = null;
   schedule();
 }
-function move(x, y, { manual = true, resetPan = true, newOrigin = true, caret = false, preserveMotion = false } = {}) {
+function move(x, y, { manual = true, resetPan = true, newOrigin = true, caret = false, preserveMotion = false, cameraImmediate = false, panView = false } = {}) {
   if (!world) return;
   if (!preserveMotion) motion.cancel();
   const next = { x: wrap(x, world.width), y: wrap(y, world.height) };
@@ -94,11 +173,12 @@ function move(x, y, { manual = true, resetPan = true, newOrigin = true, caret = 
   if (!applyingNativeEdit) resetNativeProjection();
   if (manual) navigationRevision++;
   if (resetPan) panRemainder = { x: 0, y: 0 };
-  center();
+  center({ immediate: cameraImmediate, residual: panView, direct: panView && cameraImmediate, timeConstant: panView ? 50 : 80 });
   queueMove();
 }
 function pan(dx, dy) {
   if (!world) return;
+  if (composing || nativeInput?.text) cancelComposition();
   const d = dimensions();
   panRemainder.x += dx / d.width;
   panRemainder.y += dy / d.height;
@@ -106,10 +186,11 @@ function pan(dx, dy) {
   // Preserve a complete supplied cell step without losing it to float noise.
   const step = value => Math.trunc(value + Math.sign(value) * 1e-9);
   const x = step(panRemainder.x), y = step(panRemainder.y);
-  if (!x && !y) return;
+  const direct = !!drag?.moved && pointers.size === 1;
+  if (!x && !y) { center({ immediate: direct, residual: true, direct, timeConstant: 50 }); return; }
   panRemainder.x -= x;
   panRemainder.y -= y;
-  move(cursor.x + x, cursor.y + y, { resetPan: false, preserveMotion: true });
+  move(cursor.x + x, cursor.y + y, { resetPan: false, preserveMotion: true, cameraImmediate: direct, panView: true });
 }
 function setZoom(value) {
   motion.cancel();
@@ -117,11 +198,13 @@ function setZoom(value) {
   const d = dimensions();
   app.style.setProperty('--cell-width', `${d.width}px`);
   app.style.setProperty('--cell-height', `${d.height}px`);
+  input.style.fontSize = `${18 * zoom}px`;
+  input.style.lineHeight = `${d.height}px`;
   $('zoom-level').textContent = `${Math.round(zoom * 100)}%`;
   $('zoom-out').disabled = zoom <= .6;
   $('zoom-in').disabled = zoom >= 2;
   panRemainder = { x: 0, y: 0 };
-  center();
+  center({ immediate: true });
 }
 function paintCursor(peer, x, y, d) {
   const own = peer.id === selfId, color = own ? '#287054' : peer.color || '#b17640';
@@ -141,17 +224,21 @@ function paintCursor(peer, x, y, d) {
     ctx.fillText(label, x + 4, y - 4);
   }
 }
-function paintText(text, x, y, d, preview = false, columns = 1) {
-  ctx.fillStyle = preview ? '#287054' : '#314137';
+function paintText(text, x, y, d, columns, fonts) {
   // Sarasa Fixed has genuine 1:2 advances; do not squeeze proportional glyphs.
   // Old one-column records retain their footprint at a smaller point size.
-  const scale = Math.min(1, columns / graphemeWidth(text));
-  ctx.font = `${18 * zoom * scale}px ${mapFont}`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  let width = columns;
+  if (columns === 1) {
+    width = glyphWidths.get(text);
+    if (width === undefined) {
+      width = graphemeWidth(text);
+      if (glyphWidths.size >= 4096) glyphWidths.delete(glyphWidths.keys().next().value);
+      glyphWidths.set(text, width);
+    }
+  }
+  const font = width > columns ? fonts.compact : fonts.normal;
+  if (fonts.current !== font) { ctx.font = font; fonts.current = font; }
   ctx.fillText(text, x + d.width * columns / 2, y + d.height / 2 + 1);
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
 }
 function draw() {
   ctx.clearRect(0, 0, size.width, size.height);
@@ -172,6 +259,10 @@ function draw() {
     ctx.moveTo(0, py + .5); ctx.lineTo(size.width, py + .5);
   }
   ctx.stroke();
+  ctx.fillStyle = '#314137';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const fonts = { normal: `${18 * zoom}px ${mapFont}`, compact: `${9 * zoom}px ${mapFont}`, current: null };
   for (let y = startY; y <= camera.y + v.rows; y++) {
     // Include a lead just off-screen when its second column is visible.
     for (let x = startX - 1; x <= camera.x + v.cols; x++) {
@@ -183,10 +274,12 @@ function draw() {
         if (wy === 0) { ctx.moveTo(px, py); ctx.lineTo(px + d.width, py); }
         ctx.stroke(); ctx.setLineDash([]);
       }
-      const cell = cells.get(cellKey(wx, wy));
-      if (cell?.text) paintText(cell.text, px, py, d, false, cell.width || 1);
+      const cell = localCells.get(cellKey(wx, wy));
+      if (cell?.text) paintText(cell.text, px, py, d, cell.width || 1, fonts);
     }
   }
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
   for (const peer of peers) {
     if (peer.id === selfId) continue;
     for (let y = startY; y <= camera.y + v.rows; y++) {
@@ -196,25 +289,7 @@ function draw() {
       }
     }
   }
-  const cx = (size.width - d.width) / 2, cy = (size.height - d.height) / 2;
-  if (preedit) {
-    // Native IME owns composition; only the local preview is painted here.
-    let anchor = cursor;
-    try { if (preeditRange) anchor = nativeProjection.rangePoint(preeditRange.start, preeditRange.end); } catch {}
-    const delta = (value, extent) => value > extent / 2 ? value - extent : value;
-    let offset = delta(wrap(anchor.x - cursor.x, world.width), world.width);
-    const py = cy + delta(wrap(anchor.y - cursor.y, world.height), world.height) * d.height;
-    for (const glyph of graphemes(preedit)) {
-      const columns = graphemeWidth(glyph), px = cx + offset * d.width;
-      ctx.fillStyle = '#f8f8f2';
-      ctx.fillRect(px + 1, py + 1, d.width * columns - 2, d.height - 2);
-      paintText(glyph, px, py, d, true, columns);
-      ctx.fillStyle = '#287054';
-      ctx.fillRect(px + 1, py + d.height - 3, d.width * columns - 2, 1);
-      offset += columns;
-    }
-  }
-  paintCursor({ id: selfId }, cx, cy, d);
+  // Native composition and the actual cursor share the camera's transform.
 }
 function resizeCanvas() {
   motion.cancel();
@@ -222,10 +297,13 @@ function resizeCanvas() {
   size = { width: r.width, height: r.height };
   canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  center(); schedule();
+  center({ timeConstant: 110, viewportChange: true }); draw();
 }
 function fitVisualViewport() {
   const v = window.visualViewport;
+  const origin = { x: v?.offsetLeft || 0, y: v?.offsetTop || 0 };
+  const offset = { x: origin.x - viewportOrigin.x, y: origin.y - viewportOrigin.y };
+  viewportOrigin = origin;
   app.style.setProperty('--app-width', `${v?.width || window.innerWidth}px`);
   app.style.setProperty('--app-height', `${v?.height || window.innerHeight}px`);
   app.style.setProperty('--app-top', `${v?.offsetTop || 0}px`);
@@ -234,6 +312,13 @@ function fitVisualViewport() {
   app.style.height = `${v?.height || window.innerHeight}px`;
   app.style.left = `${v?.offsetLeft || 0}px`;
   app.style.top = `${v?.offsetTop || 0}px`;
+  if (world && cameraAnchor && (offset.x || offset.y)) {
+    const d = dimensions();
+    // Keep the same world pixels on screen while the browser pans its visible
+    // viewport around the keyboard, then gently return toward its new centre.
+    cameraMotion.jump({ x: camera.x + offset.x / d.width, y: camera.y + offset.y / d.height });
+    center({ timeConstant: 110, viewportChange: true });
+  }
 }
 new ResizeObserver(resizeCanvas).observe($('viewport'));
 window.addEventListener('resize', fitVisualViewport);
@@ -249,7 +334,7 @@ function resetNativeProjection() {
   nativeTrailBase = writing.trail.slice();
 }
 function write(text) {
-  motion.cancel();
+  stopPan();
   if (!connected || !world || socket.readyState !== WebSocket.OPEN) { notice('연결 후 다시 입력해 주세요.'); return false; }
   text = text.replace(/\r\n?/g, '\n');
   if (!text) return true;
@@ -264,27 +349,24 @@ function write(text) {
     return true;
   }
   cancelMove(); lastSentPosition = null;
-  const opId = `${selfId}:${++id}`;
-  if (send({ type: 'write', layout: 2, id: opId, epoch: world.epoch, ...cursor, text, lineStartX: writing.lineStartX })) {
+  if (submit({ type: 'write', ...cursor, text, lineStartX: writing.lineStartX })) {
     writing.accept(plan);
-    pending.set(opId, text); cursor = plan.cursor; navigationRevision++;
+    cursor = plan.cursor; navigationRevision++;
     panRemainder = { x: 0, y: 0 }; center();
     return true;
   }
   return false;
 }
 function erase(backward) {
-  motion.cancel();
+  stopPan();
   if (!connected || !world || socket.readyState !== WebSocket.OPEN) return;
   if (backward) {
-    const action = writing.backspace(cursor, world, cells);
+    const action = writing.backspace(cursor, world, localCells);
     move(action.cursor.x, action.cursor.y, { newOrigin: false });
     if (!action.erase) return;
   }
   cancelMove(); lastSentPosition = null;
-  const opId = `${selfId}:${++id}`;
-  pending.set(opId, '');
-  send({ type: 'erase', layout: 2, id: opId, epoch: world.epoch, ...cursor });
+  submit({ type: 'erase', ...cursor });
 }
 function unsupportedInput(type) {
   const message = type === 'selection'
@@ -306,7 +388,7 @@ function resetComposition() {
 }
 nativeInput = createNativeInput(input, {
   onEdit(edit) {
-    motion.cancel();
+    stopPan();
     if (!connected || !world || socket.readyState !== WebSocket.OPEN) return false;
     let plan;
     try { plan = nativeProjection.plan(edit, cursor, world, { lineStartX: writing.lineStartX }); }
@@ -320,10 +402,8 @@ nativeInput = createNativeInput(input, {
       cancelMove(); lastSentPosition = null;
       const mutatesCells = plan.changed && (plan.clear.length > 0 || plan.steps.some(step => step.kind === 'write'));
       if (mutatesCells) {
-        const opId = `${selfId}:${++id}`;
-        if (!send({ type: 'write', layout: 2, id: opId, epoch: world.epoch,
+        if (!submit({ type: 'write',
           x: plan.x, y: plan.y, text: plan.text, clear: plan.clear, lineStartX: writing.lineStartX })) return false;
-        pending.set(opId, plan.text);
       }
       nativeProjection.accept(plan);
       writing.trail = [...(plan.connectsToBase ? nativeTrailBase : []), ...plan.historyToCursor].slice(-4096);
@@ -334,8 +414,8 @@ nativeInput = createNativeInput(input, {
       return true;
     } finally { applyingNativeEdit = false; }
   },
-  onPreedit(text, range) { preedit = text; preeditRange = range; schedule(); },
-  onCompositionChange(value) { composing = value; if (value) motion.cancel(); schedule(); },
+  onPreedit(text, range) { preedit = text; preeditRange = range; updateNativeSurface(); },
+  onCompositionChange(value) { composing = value; if (value) stopPan(); },
   onCommand(type) {
     if (type === 'insertLineBreak' || type === 'insertParagraph') write('\n');
     else erase(type === 'deleteContentBackward');
@@ -346,7 +426,7 @@ nativeInput = createNativeInput(input, {
   onInvalidated() { notice('위치가 바뀌어 조합을 취소했습니다. 중심 칸에 다시 입력해 주세요.'); },
 });
 input.addEventListener('keydown', event => {
-  motion.cancel();
+  stopPan();
   if (nativeInput.composing || event.isComposing) return;
   if (!world) return;
   if (event.shiftKey && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Delete'].includes(event.key)) {
@@ -376,6 +456,7 @@ function distance() {
 canvas.addEventListener('pointerdown', event => {
   if (!world) return;
   motion.begin();
+  grabCamera();
   // Keep touch's compatibility mousedown from blurring the native input after pointerup.
   event.preventDefault();
   pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -407,7 +488,11 @@ function endPointer(event, cancelled = false) {
     const [key, p] = [...pointers.entries()][0];
     drag = { id: key, x: p.x, y: p.y, startX: p.x, startY: p.y, moved: true };
     motion.begin();
-  } else if (!pointers.size) { drag = null; pinch = null; }
+    grabCamera();
+  } else if (!pointers.size) {
+    drag = null; pinch = null; dragCameraOffset = null;
+    if (!motion.active) center();
+  }
 }
 canvas.addEventListener('pointerup', event => endPointer(event));
 canvas.addEventListener('pointercancel', event => endPointer(event, true));
@@ -425,7 +510,7 @@ function restorePointerTyping(event) {
 $('zoom-out').onclick = event => { setZoom(zoom - .2); restorePointerTyping(event); };
 $('zoom-in').onclick = event => { setZoom(zoom + .2); restorePointerTyping(event); };
 $('help-toggle').onclick = () => {
-  motion.cancel();
+  stopPan();
   cancelComposition(); input.blur();
   $('help').showModal(); $('help-toggle').setAttribute('aria-expanded', 'true');
 };
@@ -435,7 +520,7 @@ $('help').addEventListener('close', () => {
   if (isDesktop()) focusInput();
 });
 async function locate(initial = false) {
-  motion.cancel();
+  stopPan();
   if (!world) return;
   const request = ++gpsRequest, revision = navigationRevision;
   if (!navigator.geolocation) { notice('GPS를 사용할 수 없어 함께 만나는 자리에서 시작합니다.'); return; }
@@ -443,7 +528,7 @@ async function locate(initial = false) {
   navigator.geolocation.getCurrentPosition(result => {
     if (request !== gpsRequest || (initial && revision !== navigationRevision)) return;
     const point = gpsToCell(result.coords.latitude, result.coords.longitude, world);
-    move(point.x, point.y, { manual: false });
+    move(point.x, point.y, { manual: false, cameraImmediate: true });
     notice('GPS에 해당하는 위치입니다. 중심 칸에 바로 입력하세요.');
   }, () => {
     if (request === gpsRequest && !initial) notice('GPS 위치를 얻지 못했습니다. 지도에서 이동해 주세요.');
@@ -451,7 +536,7 @@ async function locate(initial = false) {
 }
 $('gps').onclick = event => { locate(); restorePointerTyping(event); };
 $('share').onclick = async event => {
-  motion.cancel();
+  stopPan();
   if (!world) return;
   const url = new URL(location.href); url.hash = new URLSearchParams(cursor).toString();
   try { await navigator.clipboard.writeText(url.href); notice('이 위치의 링크를 복사했습니다.'); }
@@ -459,7 +544,7 @@ $('share').onclick = async event => {
   restorePointerTyping(event);
 };
 function connection(value) {
-  if (!value) motion.cancel();
+  if (!value) stopPan();
   connected = value;
   const editable = value ? 'true' : 'false';
   if (input.contentEditable !== editable) input.contentEditable = editable;
@@ -471,7 +556,7 @@ function goToHash() {
   const params = new URLSearchParams(location.hash.slice(1));
   const x = Number(params.get('x')), y = Number(params.get('y'));
   if (world && params.has('x') && params.has('y') && Number.isSafeInteger(x) && Number.isSafeInteger(y)) {
-    move(x, y); return true;
+    move(x, y, { cameraImmediate: true }); return true;
   }
   return false;
 }
@@ -491,11 +576,13 @@ function connect() {
         && writing.lineStartX < message.world.width && writing.trail.every(stableStep);
       const keepWriting = keepNativeContext || (!firstSnapshot && !wasConnected && oldEpoch === message.world.epoch && pending.size === 0);
       cancelMove(); lastSentPosition = null; world = message.world; selfId = message.selfId;
+      $('cursor').hidden = false;
       cells = new Map(message.cells.filter(c => c.text || c.width === 0).map(c => [cellKey(c.x, c.y), c]));
       peers = message.peers;
       const me = peers.find(p => p.id === selfId);
       cursor = me ? { x: me.x, y: me.y } : { x: 0, y: 0 };
       if (pending.size) { notice('세계를 갱신했습니다. 전송 중이던 글자를 확인해 주세요.'); pending.clear(); }
+      refreshLocalCells();
       // Empty-edge resize can keep the same place and known text context.
       // Recovery snapshots and uncertain writes still invalidate native ranges.
       if (!keepNativeContext) resetComposition();
@@ -518,11 +605,15 @@ function connect() {
       for (const c of message.cells) {
         if (c.text || c.width === 0) cells.set(cellKey(c.x, c.y), c); else cells.delete(cellKey(c.x, c.y));
       }
-      schedule();
+      if (message.author === selfId) pending.delete(message.id);
+      refreshLocalCells();
     } else if (message.type === 'presence') { peers = message.peers; schedule(); }
-    else if (message.type === 'ack') pending.delete(message.id);
+    else if (message.type === 'ack') {
+      if (pending.delete(message.id)) refreshLocalCells();
+    }
     else if (message.type === 'error') {
       pending.delete(message.id);
+      refreshLocalCells();
       if (message.code !== 'STALE_EPOCH') send({ type: 'sync' });
       notice(`입력 미반영: ${message.message}`);
     }
@@ -532,12 +623,12 @@ function connect() {
     cancelMove(); connection(false); resetComposition(); schedule();
     notice(pending.size ? '연결이 끊겼습니다. 전송 중이던 글자는 다시 연결한 뒤 확인해 주세요.' : '다시 연결하고 있습니다.');
     if (pending.size) writing.reset(cursor);
-    pending.clear(); clearTimeout(reconnectTimer); reconnectTimer = setTimeout(connect, 1000);
+    pending.clear(); refreshLocalCells(); clearTimeout(reconnectTimer); reconnectTimer = setTimeout(connect, 1000);
   };
   socket.onerror = () => socket.close();
 }
 window.addEventListener('hashchange', goToHash);
-document.addEventListener('visibilitychange', () => { if (document.hidden) motion.cancel(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { motion.cancel(); center({ immediate: true }); } });
 setZoom(1);
 notice('글꼴을 불러오고 있습니다.');
 document.fonts.load(`18px ${mapFont}`, '한글日本語中文iWM').then(faces => {
@@ -549,4 +640,4 @@ document.fonts.load(`18px ${mapFont}`, '한글日本語中文iWM').then(faces =>
   notice('지도 글꼴을 불러오지 못했습니다. 페이지를 새로고침해 주세요.');
 });
 // Read-only browser diagnostics for verifying spatial invariants.
-window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), peers: structuredClone(peers), cells: [...cells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, fontReady }) };
+window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), peers: structuredClone(peers), cells: [...cells.values()], localCells: [...localCells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, cameraActive: cameraMotion.active, fontReady }) };

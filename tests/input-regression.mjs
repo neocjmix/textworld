@@ -33,11 +33,15 @@ async function scenario(name, run) {
       return state?.connected && state.peers[0]?.x === 7 && state.peers[0]?.y === 8;
     });
     await run({ app, page });
+    await page.waitForFunction(() => {
+      const state = window.textworld.inspect();
+      return !state.motionActive && !state.cameraActive;
+    });
     const state = await page.evaluate(() => window.textworld.inspect());
     for (const [axis, extent, span] of [['x', state.world.width, state.viewport.cols], ['y', state.world.height, state.viewport.rows]]) {
       const distance = state.camera[axis] + span / 2 - state.cursor[axis] - 0.5;
       const wrapped = ((distance + extent / 2) % extent + extent) % extent - extent / 2;
-      assert.ok(Math.abs(wrapped) < 1e-6, `${axis} native input cursor must remain centered`);
+      assert.ok(Math.abs(wrapped) < 1e-6, `${axis} native input cursor must return to center after motion settles`);
     }
     results.push(name);
     console.log(`PASS ${name}`);
@@ -250,12 +254,13 @@ try {
   });
 
   await scenario('A density snapshot with an uncertain write still cancels composition', async ({ app, page }) => {
-    // Hold only acknowledgements: the browser really has an outstanding edit
-    // while the server has accepted it. This exercises the uncertain-result boundary.
+    // Hold both acceptance notifications: a cells broadcast now confirms a
+    // local edit before its ack. The server accepts it, but the browser cannot
+    // know the result yet when the density snapshot arrives.
     for (const socket of app.wss.clients) {
       const send = socket.send.bind(socket);
       socket.send = (data, ...args) => {
-        if (JSON.parse(String(data)).type !== 'ack') send(data, ...args);
+        if (!['ack', 'cells'].includes(JSON.parse(String(data)).type)) send(data, ...args);
       };
     }
     const cdp = await nativeSession(page);

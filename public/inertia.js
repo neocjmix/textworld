@@ -2,6 +2,7 @@
 // torus wrapping and presence; no camera or writing state lives here.
 export function createPanMotion({
   pan,
+  onRest = () => {},
   reducedMotion = () => false,
   now = () => performance.now(),
   requestFrame = callback => requestAnimationFrame(callback),
@@ -53,6 +54,7 @@ export function createPanMotion({
       if (dx || dy) pan(dx, dy);
     }
     if (mode) schedule();
+    else onRest();
   }
   function begin() {
     cancel(); dragging = true; position = { x: 0, y: 0 };
@@ -73,14 +75,14 @@ export function createPanMotion({
     if (!dragging) return;
     dragging = false;
     const time = now(), first = samples[0], last = samples.at(-1);
-    if (reducedMotion() || !first || !last || time - last.time > dragWindow) { samples = []; return; }
+    if (reducedMotion() || !first || !last || time - last.time > dragWindow) { samples = []; onRest(); return; }
     const elapsed = last.time - first.time;
-    if (elapsed < 8) { samples = []; return; }
+    if (elapsed < 8) { samples = []; onRest(); return; }
     vx = (last.x - first.x) / elapsed;
     vy = (last.y - first.y) / elapsed;
     samples = [];
     const speed = Math.hypot(vx, vy);
-    if (speed < startSpeed) return;
+    if (speed < startSpeed) { onRest(); return; }
     if (speed > maxSpeed) { vx *= maxSpeed / speed; vy *= maxSpeed / speed; }
     mode = 'fling'; started = lastFrame = time; schedule();
   }
@@ -90,7 +92,7 @@ export function createPanMotion({
     if (reducedMotion()) {
       // Preserve supplied distance even if the preference changes mid-stream.
       const x = pendingX + dx, y = pendingY + dy;
-      cancel(); pan(x, y); return;
+      cancel(); pan(x, y); onRest(); return;
     }
     pendingX += dx; pendingY += dy;
     if (mode !== 'wheel') { mode = 'wheel'; lastFrame = now(); }
