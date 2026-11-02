@@ -63,6 +63,18 @@ async function finishWithCompanionInput(page, text = '한') {
   await page.waitForTimeout(100);
 }
 
+async function densitySnapshot(app, page, { moveTo, width = 64, height = 32 } = {}) {
+  const state = await page.evaluate(() => window.textworld.inspect());
+  const peers = state.peers.map(peer => ({ ...peer }));
+  if (moveTo) Object.assign(peers[0], moveTo);
+  const resize = app.world.resize(width, height, peers);
+  for (const socket of app.wss.clients) socket.send(JSON.stringify({
+    type: 'snapshot', ...app.world.snapshot(), selfId: peers[0].id, peers,
+    reason: 'density-resize', resize,
+  }));
+  await page.waitForFunction(epoch => window.textworld.inspect().world.epoch === epoch, app.world.epoch);
+}
+
 try {
   await scenario('composition commits exactly once despite companion input', async ({ app, page }) => {
     await beginComposition(page);
@@ -135,7 +147,96 @@ try {
     assert.equal(app.world.getCell(8, 8).text, '');
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 8, y: 8 });
   });
-  console.log(JSON.stringify({ passed: results.length, coverage: 'synthetic Chromium IME event ordering and retained-context deletion', results }));
+
+  await scenario('A density resize at unchanged coordinates retains native Korean replacement context', async ({ app, page }) => {
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.insertText', { text: 'ㅎ' });
+    await page.waitForFunction(() => window.textworld.inspect().pending === 0);
+    assert.equal(await page.locator('#input').inputValue(), 'ㅎ');
+    await densitySnapshot(app, page);
+    assert.equal(await page.locator('#input').inputValue(), 'ㅎ', 'safe density change must not erase the native replacement range');
+    await cdp.send('Input.imeSetComposition', { text: '하', selectionStart: 1, selectionEnd: 1, replacementStart: 0, replacementEnd: 1 });
+    await cdp.send('Input.insertText', { text: '한' });
+    await page.waitForFunction(() => window.textworld.inspect().pending === 0);
+    assert.equal(app.world.getCell(7, 8)?.text, '한');
+    assert.equal(app.world.getCell(9, 8)?.text || '', '');
+    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 9, y: 8 });
+  });
+
+  await scenario('An active Korean composition survives a density resize that preserves its addresses', async ({ app, page }) => {
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.insertText', { text: 'ㅎ' });
+    await page.waitForFunction(() => window.textworld.inspect().pending === 0);
+    await cdp.send('Input.imeSetComposition', { text: '하', selectionStart: 1, selectionEnd: 1, replacementStart: 0, replacementEnd: 1 });
+    const seq = app.world.seq;
+    await densitySnapshot(app, page);
+    assert.equal(await page.locator('#input').inputValue(), '하');
+    assert.equal(await page.evaluate(() => window.textworld.inspect().preedit), '하');
+    assert.equal(app.world.seq, seq + 1, 'only the resize has been committed');
+    await cdp.send('Input.imeSetComposition', { text: '한', selectionStart: 1, selectionEnd: 1 });
+    await cdp.send('Input.insertText', { text: '한' });
+    await page.waitForFunction(() => window.textworld.inspect().pending === 0);
+    assert.equal(app.world.getCell(7, 8)?.text, '한');
+    assert.equal(app.world.getCell(9, 8)?.text || '', '');
+    assert.equal(await page.evaluate(() => window.textworld.inspect().composing), false);
+  });
+
+  await scenario('A density snapshot with an uncertain write still cancels composition', async ({ app, page }) => {
+    // Hold only acknowledgements: the browser really has an outstanding edit
+    // while the server has accepted it. This exercises the uncertain-result boundary.
+    for (const socket of app.wss.clients) {
+      const send = socket.send.bind(socket);
+      socket.send = (data, ...args) => {
+        if (JSON.parse(String(data)).type !== 'ack') send(data, ...args);
+      };
+    }
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.insertText', { text: 'A' });
+    await page.waitForFunction(() => window.textworld.inspect().pending === 1);
+    await cdp.send('Input.imeSetComposition', { text: '한', selectionStart: 1, selectionEnd: 1 });
+    await densitySnapshot(app, page);
+    const seq = app.world.seq;
+    assert.equal(await page.locator('#input').inputValue(), '');
+    // Reset has ended Chromium's native range. A new CDP insertText would be
+    // a fresh user insertion, so explicitly deliver the old range's late events.
+    await finishWithCompanionInput(page);
+    assert.equal(app.world.seq, seq, 'late composition must not become an edit after uncertain recovery');
+    assert.equal(app.world.getCell(7, 8)?.text, 'A');
+    assert.equal(app.world.getCell(8, 8)?.text || '', '');
+  });
+
+  await scenario('A density snapshot that changes the cursor cancels the old composition range', async ({ app, page }) => {
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.imeSetComposition', { text: '한', selectionStart: 1, selectionEnd: 1 });
+    await densitySnapshot(app, page, { moveTo: { x: 20, y: 12 } });
+    const seq = app.world.seq;
+    await finishWithCompanionInput(page);
+    assert.equal(app.world.seq, seq);
+    assert.equal(app.world.snapshot().cells.length, 0);
+    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 20, y: 12 });
+  });
+
+  await scenario('An expansion that breaks a wrapped writing step cancels its native replacement range', async ({ app, page }) => {
+    await page.evaluate(() => { location.hash = 'x=126&y=8'; });
+    await page.waitForFunction(() => window.textworld.inspect().cursor.x === 126);
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.insertText', { text: 'ㅎ' });
+    await page.waitForFunction(() => window.textworld.inspect().pending === 0);
+    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 0, y: 8 });
+    await cdp.send('Input.imeSetComposition', { text: '하', selectionStart: 1, selectionEnd: 1, replacementStart: 0, replacementEnd: 1 });
+    // All old coordinates still exist, but 126 + two columns no longer reaches
+    // 0 after expansion. Address preservation alone cannot preserve this range.
+    await densitySnapshot(app, page, { width: 256, height: 128 });
+    const seq = app.world.seq;
+    assert.equal(await page.locator('#input').inputValue(), '');
+    assert.equal(await page.evaluate(() => window.textworld.inspect().composing), false);
+    await finishWithCompanionInput(page);
+    assert.equal(app.world.seq, seq);
+    assert.equal(app.world.getCell(126, 8)?.text, 'ㅎ');
+    assert.equal(app.world.getCell(0, 8)?.text || '', '');
+    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 0, y: 8 });
+  });
+  console.log(JSON.stringify({ passed: results.length, coverage: 'native Chromium Korean ranges, density-resize snapshots, explicit late-event variants and retained-context deletion', results }));
 } finally {
   await browser.close();
 }

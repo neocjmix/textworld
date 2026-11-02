@@ -24,10 +24,15 @@ async function centered(page) {
   }
 }
 async function at(page, x, y) {
-  await page.waitForFunction(({ x, y }) => {
-    const cursor = window.textworld.inspect().cursor;
-    return cursor.x === x && cursor.y === y;
-  }, { x, y });
+  try {
+    await page.waitForFunction(({ x, y }) => {
+      const cursor = window.textworld.inspect().cursor;
+      return cursor.x === x && cursor.y === y;
+    }, { x, y });
+  } catch (error) {
+    const s = await state(page);
+    throw new Error(`Expected cursor ${x},${y}; received ${s.cursor.x},${s.cursor.y}; pending=${s.pending}; notice=${await page.locator('#notice').textContent()}`, { cause: error });
+  }
   assert.deepEqual((await state(page)).cursor, { x, y });
   await centered(page);
 }

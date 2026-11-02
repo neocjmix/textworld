@@ -181,7 +181,9 @@ export class World {
     Object.assign(this, next);
     for (const [key, cell] of this.cells) if (cell.x >= width || cell.y >= height) this.cells.delete(key);
     this.lastResize = this.now();
-    return { changed: true, reason: 'density', ...this.metadata() };
+    // This policy only adds/removes empty edge bands. If a future topology
+    // remaps addresses, it must not advertise this input-context guarantee.
+    return { changed: true, reason: 'density', preservesAddresses: true, ...this.metadata() };
   }
   adapt(peers = [], { cooldown = 30000 } = {}) {
     const occupied = [...this.cells.values()].filter(occupiedCell).length;

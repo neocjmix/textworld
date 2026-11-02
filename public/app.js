@@ -454,14 +454,25 @@ function connect() {
     const message = JSON.parse(event.data);
     if (message.type === 'snapshot') {
       const wasConnected = connected, previousCursor = { ...cursor }, oldEpoch = world?.epoch;
-      const keepWriting = !firstSnapshot && !wasConnected && oldEpoch === message.world.epoch && pending.size === 0;
+      const nextMe = message.peers.find(peer => peer.id === message.selfId);
+      const fits = point => point.x >= 0 && point.x < message.world.width && point.y >= 0 && point.y < message.world.height;
+      const stableStep = step => fits(step.from) && fits(step.to) && (step.kind === 'return'
+        ? wrap(step.from.y + 1, message.world.height) === step.to.y
+        : wrap(step.from.x + wrap(step.to.x - step.from.x, world.width), message.world.width) === step.to.x);
+      const keepNativeContext = wasConnected && message.reason === 'density-resize' && message.resize?.preservesAddresses === true
+        && pending.size === 0 && selfId === message.selfId && nextMe?.x === previousCursor.x && nextMe?.y === previousCursor.y
+        && writing.lineStartX < message.world.width && writing.trail.every(stableStep);
+      const keepWriting = keepNativeContext || (!firstSnapshot && !wasConnected && oldEpoch === message.world.epoch && pending.size === 0);
       cancelMove(); lastSentPosition = null; world = message.world; selfId = message.selfId;
       cells = new Map(message.cells.filter(c => c.text || c.width === 0).map(c => [cellKey(c.x, c.y), c]));
       peers = message.peers;
       const me = peers.find(p => p.id === selfId);
       cursor = me ? { x: me.x, y: me.y } : { x: 0, y: 0 };
       if (pending.size) { notice('세계를 갱신했습니다. 전송 중이던 글자를 확인해 주세요.'); pending.clear(); }
-      resetComposition(); connection(true);
+      // Empty-edge resize can keep the same place and known text context.
+      // Recovery snapshots and uncertain writes still invalidate native ranges.
+      if (!keepNativeContext) resetComposition();
+      connection(true);
       if (!keepWriting) writing.reset(cursor);
       if (firstSnapshot) {
         firstSnapshot = false;
