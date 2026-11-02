@@ -150,3 +150,25 @@ test('old clients receive an update instruction before incompatible writes can m
   const ack = await old.next(message => message.type === 'ack' && message.id === 'new-width');
   assert.deepEqual(ack.cursor, { x: 14, y: 3 });
 });
+
+test('two writers see each other’s distinct durable colors by version without author metadata', async t => {
+  const { app, url } = await fixture(t);
+  const a = await joined(url), b = await joined(url);
+  const aColor = a.state.peers.find(peer => peer.id === a.state.selfId).color;
+  const bColor = b.state.peers.find(peer => peer.id === b.state.selfId).color;
+  assert.notEqual(aColor, bColor);
+  await a.locate(10, 10); await b.locate(11, 10);
+  a.send({ type: 'write', id: 'a-color', epoch: 1, x: 10, y: 10, text: 'A' });
+  const aView = await b.next(message => hasCell(message, 10, 10, 'A'));
+  assert.equal(aView.observation.colors[app.world.getCell(10, 10).version], aColor);
+  b.send({ type: 'write', id: 'b-color', epoch: 1, x: 11, y: 10, text: 'B' });
+  const bView = await a.next(message => hasCell(message, 11, 10, 'B'));
+  assert.equal(bView.observation.colors[app.world.getCell(11, 10).version], bColor);
+  assert.ok(!('author' in bView.observation.cells.find(cell => cell.text === 'B')));
+  a.socket.close(); b.socket.close();
+  const c = await joined(url);
+  await c.locate(10, 10);
+  const snapshot = await c.sync();
+  assert.equal(snapshot.colors[app.world.getCell(10, 10).version], aColor);
+  assert.equal(snapshot.colors[app.world.getCell(11, 10).version], bColor);
+});

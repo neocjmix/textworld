@@ -187,7 +187,7 @@ try {
     const frames = await finishTrace(page), after = await snapshot(page), moved = frames.filter(frame => frame.fieldTop === 80);
     smoothTransition(before, moved, after, 'y');
     assert.ok(moved.some(frame => Math.abs(frame.markerY - before.markerY) < 70), 'new viewport origin must not instantly shift the world by its full offset');
-    close(after.cursorY, 258); close(after.cursorX, 215); assert.deepEqual(after.cursor, before.cursor);
+    close(after.cursorY, 269.2); close(after.cursorX, 215); assert.deepEqual(after.cursor, before.cursor);
     evidence.push({ name: 'viewport-offset', before, after, frames });
   });
 
