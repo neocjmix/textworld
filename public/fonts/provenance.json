@@ -1,0 +1,12 @@
+{
+  "version": "1.0.43",
+  "source": "https://github.com/be5invis/Sarasa-Gothic/releases/download/v1.0.43/SarasaFixedK-TTF-Unhinted-1.0.43.7z",
+  "archiveSha256": "b9cbe6aafbc4e4cd5387d97dc2b905920b36a0c461e1ac94caf4ba69e48bac5d",
+  "sourceTtfSha256": "9006ccccc5867eb519c9c5f78fc7629e7a8019c2009bb5a45c1722c6938fa3f6",
+  "woff2Sha256": "d6fe195614ff2e94c6d8bc9e05c39782b8fe0caf06f090116fc900ef39861f77",
+  "woff2Bytes": 5315944,
+  "glyphs": 54195,
+  "cmapCharacters": 51228,
+  "unitsPerEm": 1000,
+  "conversion": "FontTools 4.61.1 WOFF2 container conversion; no subsetting or outline/metric changes"
+}

@@ -1,5 +1,33 @@
 # 실행 검증 — 2026-11-02
 
+## 표준 입력 범위와 Sarasa CJK monospace — 최신
+
+| 실행 | 결과 | 확인한 범위 |
+| --- | --- | --- |
+| `npm test` | 72/72 통과 | 기존 세계·폭·관성 단위 검사, UTF-16 범위의 공간 투영, 원자적 clear/write와 두 WebSocket 관찰자 |
+| `npm run test:browser` | 25/25 통과 | 전체 화면 지도·중심 커서·두 클라이언트·GPS·모바일·재접속 |
+| `npm run test:input` | 12/12 통과 | 조합 취소·주소 보존 resize, 동일 좌표 탐색 뒤 입력, 숨은 caret만 이동시키는 탐색 명령 차단 |
+| `npm run test:writing` | 20/20 통과 | 실제 Enter·clipboard 붙여넣기·CJK 범위 치환·Backspace·Delete·주변 셀 보존 |
+| `npm run test:ime` | 14/14 통과 | 실제 Chromium target range, 한·일·중 조합, UTF-16, 명시적 이벤트 순서 변형, 범위/수명주기 누락 거절 |
+| `npm run test:motion` | 10/10 통과 | 드래그 관성·wheel 총량·중단 조건·원격 presence·reduced-motion |
+| `npm run test:cjk` | 9/9 통과 | 실제 앱의 언어별 조합·재변환, 32자 초과 조합, 두 클라이언트 원자적 수신, 이전 행 미리보기, 폰트·모바일 화면 |
+
+총 **162개** 자동 검사를 실제 실행했다. `node --check public/app.js`, `git diff --check`도 통과했다. 제품 헌법은 변경하지 않았다. 이전 구현의 검증 기록은 아래에 역사로 남긴다.
+
+이번 검증에서 찾고 고친 실패:
+
+- Chromium 154의 `contenteditable="plaintext-only"`는 `beforeinput.getTargetRanges()`가 비어 있었다. `contenteditable="true"`와 명시적 plain-text 정책을 선택했다. Blink 소스에서도 이 조건을 확인했다.
+- 붙여넣은 줄바꿈을 Backspace로 되돌릴 때 빈 write가 전송되어 세계 버전이 증가했다. 문자 변경 없이 presence만 이동하도록 고쳤다.
+- 현재 주소로 다시 탐색하면 공간 문맥만 비우고 native DOM을 남겨 다음 입력이 거절됐다. 두 문맥의 초기화 경계를 일치시켰다.
+- Ctrl·Alt·Meta 탐색과 PageUp/Down이 숨은 caret만 움직일 수 있었다. 조합 중 후보 탐색은 그대로 두고, 조합 밖의 미정의 탐색은 안내와 함께 차단한다.
+- 여러 행 붙여넣기 후 이전 행을 재변환하면 미리보기를 현재 행에 그렸다. 실제 범위의 x/y 주소에 그리도록 수정하고 canvas 좌표·확정 결과·다음 행 보존을 검사했다.
+
+Sarasa Fixed K Regular 1.0.43은 실제 18px 렌더링에서 `i/W/M/é/Ω/—/ｶ`가 9px, `한/글/中/文/あ/ア/Ａ`가 18px였다. 지도는 9×26px 기본 격자를 사용한다. 글자를 `fillText` 최대 폭으로 압축하지 않는다. 데스크톱·모바일·조합·도움말 스크린샷을 저장하고 직접 열어 확인했다. 글꼴 파일·문자 범위·라이선스 근거는 [CJK_FONT.md](research/CJK_FONT.md)에 있다.
+
+**검증의 한계:** 브라우저 실행은 Chromium이고, IME는 실제 Chromium CDP 입력과 명시적인 표준 이벤트 순서 변형으로 검사했다. 실제 한국어·일본어·중국어 OS 키보드와 후보창, iOS/Android, Safari/Firefox를 직접 실행한 결과는 아니다. motion 테스트는 앞선 두 실행에서 타이밍 실패가 있었고 최종 단독 실행은 10/10 통과했다. 원인을 해결했다고 주장하지 않으며 실패 시 포인터 시간 기록을 남기도록 했다.
+
+**다음 실험:** 실제 Windows/macOS/iOS/Android의 한국어 연속 음절, 일본어 후보 재변환, 중국어 후보 선택·삭제를 동일한 입력 과제로 비교한다. 5.07MiB 폰트의 느린 모바일 첫 로딩과 국가별 한자 자형도 함께 관찰한다. 출처를 비교한 조사 기록은 [표준·벤더](research/IME_STANDARDS.md), [한국·일본·중국 개발자 사례](research/IME_LOCAL_PRACTICE.md)에 있다. 공개 서비스의 배포 후 검증은 [DEPLOYMENT.md](DEPLOYMENT.md)에 따로 기록한다.
+
 ## 한글 조합·CJK 표시 폭·관성 탐색
 
 | 실행 | 결과 | 확인한 범위 |

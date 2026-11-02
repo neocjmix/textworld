@@ -1,5 +1,5 @@
-// Browser event-order regressions. These synthetic events do not substitute for
-// a real Korean IME or Android/iOS keyboard acceptance test.
+// Native Chromium edit ranges plus explicit late-event regressions. CDP and
+// synthetic boundary cases do not replace real OS keyboard acceptance tests.
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createTextworld } from '../server/index.js';
@@ -10,6 +10,16 @@ const browser = await chromium.launch({
   args: ['--no-sandbox'],
 });
 const results = [];
+const sessions = new WeakMap();
+
+async function nativeSession(page) {
+  if (!sessions.has(page)) sessions.set(page, await page.context().newCDPSession(page));
+  return sessions.get(page);
+}
+
+async function nativeText(page) {
+  return page.locator('#input').textContent();
+}
 
 async function scenario(name, run) {
   const app = createTextworld({ storagePath: ':memory:' });
@@ -37,30 +47,70 @@ async function scenario(name, run) {
   }
 }
 
-async function beginComposition(page, text = '한') {
-  await page.evaluate(text => {
+async function beginComposition(page, text = '한', replacement = {}) {
+  await page.evaluate(({ text, replacement }) => {
     const input = document.getElementById('input');
     input.focus();
-    input.dispatchEvent(new CompositionEvent('compositionstart', { data: '' }));
-    input.value = text;
-    input.dispatchEvent(new InputEvent('input', {
-      data: text, inputType: 'insertCompositionText', isComposing: true,
-    }));
-  }, text);
+    const selection = getSelection();
+    const before = document.createRange();
+    before.selectNodeContents(input);
+    before.setEnd(selection.anchorNode, selection.anchorOffset);
+    const start = replacement.replacementStart ?? before.toString().length;
+    window.regressionCompositionRange = { start, end: start + text.length };
+  }, { text, replacement });
+  await (await nativeSession(page)).send('Input.imeSetComposition', {
+    text, selectionStart: text.length, selectionEnd: text.length, ...replacement,
+  });
 }
 
-async function finishWithCompanionInput(page, text = '한') {
-  // One task reflects the browser order compositionend → final input. The
-  // companion event deliberately restores value, detecting duplicate replay.
+async function finishComposition(page, text = '한') {
+  await (await nativeSession(page)).send('Input.insertText', { text });
+  await page.waitForFunction(() => window.textworld.inspect().pending === 0);
+}
+
+async function finishInvalidatedComposition(page, text = '한') {
+  // Navigation invalidates the world mapping while the IME still owns this DOM
+  // range. Deliver its late replacement/end explicitly. A fresh CDP insertText
+  // after the range has ended would represent a legitimate new user insertion.
   await page.evaluate(text => {
     const input = document.getElementById('input');
-    input.dispatchEvent(new CompositionEvent('compositionend', { data: text }));
-    input.value = text;
+    const { start, end } = window.regressionCompositionRange;
+    const pointAt = offset => {
+      const walker = document.createTreeWalker(input, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode())) {
+        if (offset <= node.length) return { node, offset };
+        offset -= node.length;
+      }
+      if (offset === 0) return { node: input, offset: input.childNodes.length };
+      throw new Error('The invalidated native composition range was rewritten');
+    };
+    const first = pointAt(start), last = pointAt(end);
+    const target = new StaticRange({
+      startContainer: first.node, startOffset: first.offset,
+      endContainer: last.node, endOffset: last.offset,
+    });
+    input.dispatchEvent(new InputEvent('beforeinput', {
+      data: text, inputType: 'insertCompositionText', isComposing: true,
+      bubbles: true, cancelable: false, targetRanges: [target],
+    }));
+    const range = document.createRange();
+    range.setStart(first.node, first.offset);
+    range.setEnd(last.node, last.offset);
+    range.deleteContents();
+    const inserted = document.createTextNode(text);
+    range.insertNode(inserted);
+    getSelection().setBaseAndExtent(inserted, text.length, inserted, text.length);
     input.dispatchEvent(new InputEvent('input', {
-      data: text, inputType: 'insertFromComposition', isComposing: false,
+      data: text, inputType: 'insertCompositionText', isComposing: true, bubbles: true,
+    }));
+    input.dispatchEvent(new CompositionEvent('compositionend', { data: text }));
+    // A final result notification carries no new target range or DOM change.
+    input.dispatchEvent(new InputEvent('input', {
+      data: text, inputType: 'insertText', isComposing: false, bubbles: true,
     }));
   }, text);
-  await page.waitForTimeout(100);
+  await page.waitForFunction(() => !window.textworld.inspect().composing && window.textworld.inspect().pending === 0);
 }
 
 async function densitySnapshot(app, page, { moveTo, width = 64, height = 32 } = {}) {
@@ -76,25 +126,31 @@ async function densitySnapshot(app, page, { moveTo, width = 64, height = 32 } = 
 }
 
 try {
-  await scenario('composition commits exactly once despite companion input', async ({ app, page }) => {
+  await scenario('native composition commits exactly once despite a repeated final result', async ({ app, page }) => {
     await beginComposition(page);
     assert.equal(app.world.snapshot().cells.length, 0, 'uncommitted composition must stay local');
-    await finishWithCompanionInput(page);
+    await finishComposition(page);
+    await page.evaluate(() => document.getElementById('input').dispatchEvent(new InputEvent('input', {
+      data: '한', inputType: 'insertText', isComposing: false, bubbles: true,
+    })));
+    await page.waitForFunction(() => window.textworld.inspect().pending === 0);
     assert.equal(app.world.seq, 1);
     assert.deepEqual(app.world.snapshot().cells.filter(cell => cell.text).map(({ x, y, text }) => ({ x, y, text })),
       [{ x: 7, y: 8, text: '한' }]);
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 9, y: 8 });
   });
 
-  await scenario('snapshot cancels stale composition and suppresses companion input', async ({ app, page }) => {
+  await scenario('snapshot invalidates stale composition without rewriting its native DOM', async ({ app, page }) => {
     await beginComposition(page);
     const { peers } = await page.evaluate(() => window.textworld.inspect());
     for (const socket of app.wss.clients) socket.send(JSON.stringify({
       type: 'snapshot', ...app.world.snapshot(), selfId: peers[0].id, peers,
       reason: 'regression-sync',
     }));
-    await page.waitForFunction(() => document.getElementById('input').value === '');
-    await finishWithCompanionInput(page);
+    await page.waitForFunction(() => window.textworld.inspect().preedit === '');
+    assert.equal(await nativeText(page), '한', 'the native IME owns its DOM until compositionend');
+    await finishInvalidatedComposition(page);
+    assert.equal(await nativeText(page), '');
     assert.equal(app.world.seq, 0, 'stale completion must not become a new write');
     assert.equal(app.world.snapshot().cells.length, 0);
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 7, y: 8 });
@@ -104,7 +160,8 @@ try {
     await beginComposition(page);
     await page.evaluate(() => { location.hash = 'x=20&y=12'; });
     await page.waitForFunction(() => window.textworld.inspect().cursor.x === 20);
-    await finishWithCompanionInput(page);
+    assert.equal(await nativeText(page), '한');
+    await finishInvalidatedComposition(page);
     assert.equal(app.world.snapshot().cells.length, 0);
     assert.equal(app.world.seq, 0);
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 20, y: 12 });
@@ -123,59 +180,70 @@ try {
       new CompositionEvent('compositionupdate', { data: '하' }),
     ));
     assert.equal(await page.evaluate(() => window.textworld.inspect().preedit), '', 'cancelled preedit must not reappear');
-    await finishWithCompanionInput(page);
+    assert.equal(await nativeText(page), '한');
+    await finishInvalidatedComposition(page);
     assert.equal(app.world.snapshot().cells.length, 0);
     assert.equal(app.world.seq, 0);
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 9, y: 8 });
   });
 
-  await scenario('retained native context does not duplicate a beforeinput deletion', async ({ app, page }) => {
-    await page.mouse.click(400, 300);
+  await scenario('native beforeinput deletion commits once and retains the surrounding context', async ({ app, page }) => {
+    await page.locator('#input').focus();
     assert.equal(await page.evaluate(() => document.activeElement?.id), 'input');
     await page.keyboard.insertText('AB');
     await page.waitForFunction(() => window.textworld.inspect().cells.length === 2 && window.textworld.inspect().pending === 0);
-    assert.equal(await page.locator('#input').inputValue(), 'AB', 'native text context must survive normal commits for Korean replacement');
-    const accepted = await page.evaluate(() => document.getElementById('input').dispatchEvent(
-      new InputEvent('beforeinput', {
-        inputType: 'deleteContentBackward', bubbles: true, cancelable: true,
-      }),
-    ));
-    assert.equal(accepted, false, 'default deletion must be prevented to avoid a second input event');
+    assert.equal(await nativeText(page), 'AB', 'native text context must survive normal commits for Korean replacement');
+    await page.evaluate(() => {
+      window.regressionDeletionEvents = [];
+      const input = document.getElementById('input');
+      for (const type of ['beforeinput', 'input']) input.addEventListener(type, event => {
+        if (event.inputType !== 'deleteContentBackward') return;
+        const range = event.getTargetRanges()[0];
+        window.regressionDeletionEvents.push({
+          type, text: input.textContent,
+          range: range ? [range.startOffset, range.endOffset] : null,
+        });
+      });
+    });
+    await page.keyboard.press('Backspace');
     await page.waitForFunction(() => window.textworld.inspect().cells.length === 1 && window.textworld.inspect().pending === 0);
     assert.equal(app.world.seq, 2);
     assert.equal(app.world.getCell(7, 8).text, 'A');
     assert.equal(app.world.getCell(8, 8).text, '');
+    assert.equal(await nativeText(page), 'A');
+    assert.deepEqual(await page.evaluate(() => window.regressionDeletionEvents), [
+      { type: 'beforeinput', text: 'AB', range: [1, 2] },
+      { type: 'input', text: 'A', range: null },
+    ]);
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 8, y: 8 });
   });
 
   await scenario('A density resize at unchanged coordinates retains native Korean replacement context', async ({ app, page }) => {
-    const cdp = await page.context().newCDPSession(page);
+    const cdp = await nativeSession(page);
     await cdp.send('Input.insertText', { text: 'ㅎ' });
     await page.waitForFunction(() => window.textworld.inspect().pending === 0);
-    assert.equal(await page.locator('#input').inputValue(), 'ㅎ');
+    assert.equal(await nativeText(page), 'ㅎ');
     await densitySnapshot(app, page);
-    assert.equal(await page.locator('#input').inputValue(), 'ㅎ', 'safe density change must not erase the native replacement range');
-    await cdp.send('Input.imeSetComposition', { text: '하', selectionStart: 1, selectionEnd: 1, replacementStart: 0, replacementEnd: 1 });
-    await cdp.send('Input.insertText', { text: '한' });
-    await page.waitForFunction(() => window.textworld.inspect().pending === 0);
+    assert.equal(await nativeText(page), 'ㅎ', 'safe density change must not erase the native replacement range');
+    await beginComposition(page, '하', { replacementStart: 0, replacementEnd: 1 });
+    await finishComposition(page);
     assert.equal(app.world.getCell(7, 8)?.text, '한');
     assert.equal(app.world.getCell(9, 8)?.text || '', '');
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 9, y: 8 });
   });
 
   await scenario('An active Korean composition survives a density resize that preserves its addresses', async ({ app, page }) => {
-    const cdp = await page.context().newCDPSession(page);
+    const cdp = await nativeSession(page);
     await cdp.send('Input.insertText', { text: 'ㅎ' });
     await page.waitForFunction(() => window.textworld.inspect().pending === 0);
-    await cdp.send('Input.imeSetComposition', { text: '하', selectionStart: 1, selectionEnd: 1, replacementStart: 0, replacementEnd: 1 });
+    await beginComposition(page, '하', { replacementStart: 0, replacementEnd: 1 });
     const seq = app.world.seq;
     await densitySnapshot(app, page);
-    assert.equal(await page.locator('#input').inputValue(), '하');
+    assert.equal(await nativeText(page), '하');
     assert.equal(await page.evaluate(() => window.textworld.inspect().preedit), '하');
     assert.equal(app.world.seq, seq + 1, 'only the resize has been committed');
     await cdp.send('Input.imeSetComposition', { text: '한', selectionStart: 1, selectionEnd: 1 });
-    await cdp.send('Input.insertText', { text: '한' });
-    await page.waitForFunction(() => window.textworld.inspect().pending === 0);
+    await finishComposition(page);
     assert.equal(app.world.getCell(7, 8)?.text, '한');
     assert.equal(app.world.getCell(9, 8)?.text || '', '');
     assert.equal(await page.evaluate(() => window.textworld.inspect().composing), false);
@@ -190,27 +258,26 @@ try {
         if (JSON.parse(String(data)).type !== 'ack') send(data, ...args);
       };
     }
-    const cdp = await page.context().newCDPSession(page);
+    const cdp = await nativeSession(page);
     await cdp.send('Input.insertText', { text: 'A' });
     await page.waitForFunction(() => window.textworld.inspect().pending === 1);
-    await cdp.send('Input.imeSetComposition', { text: '한', selectionStart: 1, selectionEnd: 1 });
+    await beginComposition(page);
     await densitySnapshot(app, page);
     const seq = app.world.seq;
-    assert.equal(await page.locator('#input').inputValue(), '');
-    // Reset has ended Chromium's native range. A new CDP insertText would be
-    // a fresh user insertion, so explicitly deliver the old range's late events.
-    await finishWithCompanionInput(page);
+    assert.equal(await nativeText(page), 'A한', 'uncertain recovery must preserve active native DOM until its end');
+    assert.equal(await page.evaluate(() => window.textworld.inspect().preedit), '');
+    await finishInvalidatedComposition(page);
     assert.equal(app.world.seq, seq, 'late composition must not become an edit after uncertain recovery');
     assert.equal(app.world.getCell(7, 8)?.text, 'A');
     assert.equal(app.world.getCell(8, 8)?.text || '', '');
   });
 
   await scenario('A density snapshot that changes the cursor cancels the old composition range', async ({ app, page }) => {
-    const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Input.imeSetComposition', { text: '한', selectionStart: 1, selectionEnd: 1 });
+    await beginComposition(page);
     await densitySnapshot(app, page, { moveTo: { x: 20, y: 12 } });
     const seq = app.world.seq;
-    await finishWithCompanionInput(page);
+    assert.equal(await nativeText(page), '한');
+    await finishInvalidatedComposition(page);
     assert.equal(app.world.seq, seq);
     assert.equal(app.world.snapshot().cells.length, 0);
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 20, y: 12 });
@@ -219,24 +286,63 @@ try {
   await scenario('An expansion that breaks a wrapped writing step cancels its native replacement range', async ({ app, page }) => {
     await page.evaluate(() => { location.hash = 'x=126&y=8'; });
     await page.waitForFunction(() => window.textworld.inspect().cursor.x === 126);
-    const cdp = await page.context().newCDPSession(page);
+    const cdp = await nativeSession(page);
     await cdp.send('Input.insertText', { text: 'ㅎ' });
     await page.waitForFunction(() => window.textworld.inspect().pending === 0);
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 0, y: 8 });
-    await cdp.send('Input.imeSetComposition', { text: '하', selectionStart: 1, selectionEnd: 1, replacementStart: 0, replacementEnd: 1 });
+    await beginComposition(page, '하', { replacementStart: 0, replacementEnd: 1 });
     // All old coordinates still exist, but 126 + two columns no longer reaches
     // 0 after expansion. Address preservation alone cannot preserve this range.
     await densitySnapshot(app, page, { width: 256, height: 128 });
     const seq = app.world.seq;
-    assert.equal(await page.locator('#input').inputValue(), '');
-    assert.equal(await page.evaluate(() => window.textworld.inspect().composing), false);
-    await finishWithCompanionInput(page);
+    assert.equal(await nativeText(page), '하', 'a broken world path must not rewrite the active native range');
+    assert.equal(await page.evaluate(() => window.textworld.inspect().preedit), '');
+    await finishInvalidatedComposition(page);
     assert.equal(app.world.seq, seq);
     assert.equal(app.world.getCell(126, 8)?.text, 'ㅎ');
     assert.equal(app.world.getCell(0, 8)?.text || '', '');
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 0, y: 8 });
   });
-  console.log(JSON.stringify({ passed: results.length, coverage: 'native Chromium Korean ranges, density-resize snapshots, explicit late-event variants and retained-context deletion', results }));
+  await scenario('Selecting the current world address resets both native context and its spatial mapping', async ({ app, page }) => {
+    await page.keyboard.insertText('ABC');
+    await page.waitForFunction(() => window.textworld.inspect().pending === 0);
+    assert.equal(await nativeText(page), 'ABC');
+    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 10, y: 8 });
+    await page.evaluate(() => new Promise(resolve => {
+      addEventListener('hashchange', () => requestAnimationFrame(resolve), { once: true });
+      location.hash = 'x=10&y=8';
+    }));
+    assert.equal(await nativeText(page), '', 'same-address navigation must reset the DOM and ledger together');
+    await page.keyboard.insertText('D');
+    await page.waitForFunction(() => window.textworld.inspect().pending === 0);
+    assert.equal(app.world.getCell(10, 8)?.text, 'D');
+    assert.equal(app.world.getCell(9, 8)?.text, 'C');
+    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 11, y: 8 });
+  });
+
+  await scenario('Unsupported word and page navigation cannot move a hidden native caret away from the world cursor', async ({ app, page }) => {
+    await page.keyboard.insertText('ABC');
+    await page.waitForFunction(() => window.textworld.inspect().pending === 0);
+    const seq = app.world.seq;
+    const selected = () => page.evaluate(() => {
+      const selection = getSelection(), input = document.getElementById('input');
+      const range = document.createRange(); range.selectNodeContents(input);
+      range.setEnd(selection.focusNode, selection.focusOffset);
+      return { offset: range.toString().length, cursor: window.textworld.inspect().cursor };
+    });
+    for (const key of ['Control+ArrowLeft', 'Control+ArrowRight', 'Control+ArrowUp', 'Control+ArrowDown',
+      'Control+Home', 'Control+End', 'Alt+ArrowLeft', 'Alt+ArrowRight', 'Meta+ArrowLeft', 'Meta+ArrowRight',
+      'Control+PageUp', 'Control+PageDown', 'PageUp', 'PageDown']) {
+      await page.keyboard.press(key);
+      assert.deepEqual(await selected(), { offset: 3, cursor: { x: 10, y: 8 } }, `${key} changed only the hidden caret`);
+      assert.equal(app.world.seq, seq, `${key} must not edit cells`);
+    }
+    await page.keyboard.insertText('D');
+    await page.waitForFunction(() => window.textworld.inspect().pending === 0);
+    assert.equal(app.world.getCell(10, 8)?.text, 'D');
+    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 11, y: 8 });
+  });
+  console.log(JSON.stringify({ passed: results.length, coverage: 'native Chromium Korean ranges, density-resize snapshots, explicit late-event variants, context resets and visible navigation', results }));
 } finally {
   await browser.close();
 }

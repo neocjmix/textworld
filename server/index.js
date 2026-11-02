@@ -9,7 +9,7 @@ import { wrap } from '../shared/world.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const palette = ['#ffbe75', '#79d4cd', '#c4a7ff', '#ff8fa3', '#a3d977', '#86b7ff'];
-const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' };
+const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
 
 export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || resolve(root, 'data/world.sqlite'), scavengerToken = process.env.SCAVENGER_TOKEN || '', now = Date.now } = {}) {
   const world = new World({ storagePath, now });
@@ -69,14 +69,15 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       const file = resolve(base, relative);
       if (!file.startsWith(base + sep)) return json(res, 404, { error: 'Not found' });
       const content = await readFile(file);
-      res.writeHead(200, { 'Content-Type': mime[extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'same-origin' });
+      const versionedFont = /^\/fonts\/[A-Za-z0-9._-]+-\d+\.\d+\.\d+\.woff2$/.test(decoded);
+      res.writeHead(200, { 'Content-Type': mime[extname(file)] || 'application/octet-stream', 'Cache-Control': versionedFont ? 'public, max-age=31536000, immutable' : 'no-cache', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'same-origin' });
       res.end(req.method === 'HEAD' ? undefined : content);
     } catch (error) {
       if (error.code === 'ENOENT' || error.code === 'EISDIR') return json(res, 404, { error: 'Not found' });
       json(res, error instanceof WorldError || error instanceof SyntaxError ? 400 : 500, { error: error instanceof WorldError ? error.message : 'Request failed' });
     }
   });
-  const wss = new WebSocketServer({ noServer: true, maxPayload: 16384 });
+  const wss = new WebSocketServer({ noServer: true, maxPayload: 65536 });
   server.on('upgrade', (req, socket, head) => {
     try {
       if (new URL(req.url, 'http://textworld.local').pathname !== '/ws') return socket.destroy();

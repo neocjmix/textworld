@@ -83,7 +83,7 @@ export class World {
     const previous = this.db.prepare('SELECT result FROM operations WHERE author=? AND id=?').get(author, id);
     return previous ? { ...JSON.parse(previous.result), duplicate: true } : null;
   }
-  applyWrite({ author, id, epoch, x, y, text, lineStartX }) {
+  applyWrite({ author, id, epoch, x, y, text, lineStartX, clear = [] }) {
     const previous = this.prior(author, id);
     if (previous) return previous;
     this.assertEpoch(epoch);
@@ -94,8 +94,26 @@ export class World {
     if (typeof text !== 'string' || text.length > 4096 || graphemes(text).length > 512 || /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u.test(text)) {
       throw new WorldError('BAD_TEXT', '한 번에 512자 이내의 텍스트를 입력하세요.');
     }
+    if (!Array.isArray(clear) || clear.length > 2048) {
+      throw new WorldError('BAD_CLEAR', '교체할 셀은 최대 2048개 주소여야 합니다.');
+    }
+    // A native range update is one spatial operation. Validate the entire
+    // footprint before calculating any changes, never erase then validate.
+    for (const address of clear) {
+      if (!address || typeof address !== 'object' || Array.isArray(address)) {
+        throw new WorldError('BAD_CLEAR', '교체할 셀 주소가 잘못되었습니다.');
+      }
+      this.assertPosition(address.x, address.y);
+      if (address.x < 0 || address.x >= this.width || address.y < 0 || address.y >= this.height) {
+        throw new WorldError('BAD_POSITION', '교체할 셀 주소는 현재 세계 안에 있어야 합니다.');
+      }
+    }
     const plan = writePlan(text, x, y, this, { lineStartX });
     const changes = new Map();
+    for (const address of clear) {
+      const span = this.spanAt(address.x, address.y);
+      for (const old of span.length ? span : [address]) changes.set(cellKey(old.x, old.y), { x: old.x, y: old.y, text: '' });
+    }
     for (const cell of plan.cells) {
       for (const old of this.spanAt(cell.x, cell.y)) changes.set(cellKey(old.x, old.y), { x: old.x, y: old.y, text: '' });
     }

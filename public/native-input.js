@@ -1,182 +1,180 @@
-const segmenter = new Intl.Segmenter('ko', { granularity: 'grapheme' });
-const segments = text => [...segmenter.segment(text.replace(/\r\n?/g, '\n').replace(/\t/g, '    ').normalize('NFC'))].map(part => part.segment);
 const isReturn = type => type === 'insertLineBreak' || type === 'insertParagraph';
-const isDelete = type => type === 'deleteContentBackward' || type === 'deleteContentForward';
-const isComposition = event => event.isComposing || ['insertCompositionText', 'insertFromComposition'].includes(event.inputType);
-const isInsertion = type => !type || ['insertText', 'insertFromPaste', 'insertCompositionText', 'insertFromComposition'].includes(type);
+const isCellDelete = type => type === 'deleteContentBackward' || type === 'deleteContentForward';
+const isTextEdit = type => type.startsWith('insert') || type.startsWith('delete');
 
-/** Keep the OS-owned text/range intact. The world receives only committed tail edits. */
+/**
+ * A modern contenteditable editing host, not a keyboard decoder.
+ * InputEvent target ranges describe UTF-16 edits; the browser owns composition
+ * and its DOM until completion. No keyCode, timer or language-specific rules.
+ */
 export function createNativeInput(input, {
   onEdit, onPreedit = () => {}, onCommand = () => {}, onUnsupported = () => {},
-  onCompositionChange = () => {}, onInvalidated = () => {},
+  onCompositionChange = () => {}, onInvalidated = () => {}, onReset = () => {},
 }) {
-  let baseline = input.value, session = null, cancelled = false, confirmingEnter = false, ended = null;
-  let preview = '', previewRemove = 0;
+  let committed = input.textContent, pending = null, session = null, preview = '';
 
-  function show(text = '', remove = 0) {
-    preview = text; previewRemove = remove;
-    onPreedit(text, { remove });
+  function offset(node, index) {
+    if (node !== input && !input.contains(node)) return null;
+    const range = document.createRange();
+    range.selectNodeContents(input);
+    try { range.setEnd(node, index); } catch { return null; }
+    return range.toString().length;
   }
-  function restore() {
-    input.value = baseline;
-    input.setSelectionRange(baseline.length, baseline.length);
+  function selection() {
+    const selected = document.getSelection();
+    if (!selected?.rangeCount) return { selectionStart: committed.length, selectionEnd: committed.length };
+    const range = selected.getRangeAt(0);
+    const start = offset(range.startContainer, range.startOffset), end = offset(range.endContainer, range.endOffset);
+    return { selectionStart: start ?? committed.length, selectionEnd: end ?? committed.length };
   }
-  function tailEdit(next) {
-    const before = segments(baseline), after = segments(next);
-    let common = 0;
-    while (common < before.length && common < after.length && before[common] === after[common]) common++;
-    // A retained suffix implies insertion/replacement inside a string. Spatial
-    // cells must never be shifted to imitate such a native document edit.
-    if (common < before.length && common < after.length && before.at(-1) === after.at(-1)) return null;
-    return { remove: before.length - common, text: after.slice(common).join('') };
+  function target(event) {
+    const ranges = event.getTargetRanges();
+    if (ranges.length !== 1) return null;
+    const range = ranges[0], start = offset(range.startContainer, range.startOffset), end = offset(range.endContainer, range.endOffset);
+    return start === null || end === null ? null : { start, end };
   }
-  function accept(next) {
-    const edit = tailEdit(next);
-    if (!edit) { restore(); onUnsupported('insertReplacementText'); return; }
-    if (!edit.remove && !edit.text) { baseline = next; return; }
-    if (onEdit(edit) === false) { restore(); onUnsupported('insertReplacementText'); return; }
-    baseline = next;
+  function show(text = '', range = { start: 0, end: 0, before: committed }) {
+    preview = text;
+    onPreedit(text, range);
   }
-  function begin(implicit = false) {
-    if (session) return;
-    ended = null;
-    confirmingEnter = false;
-    cancelled = false;
-    session = { before: baseline, start: input.selectionStart, end: input.selectionEnd, implicit, valid: true };
-    onCompositionChange(true);
+  function replaceDOM(text, caret = text.length) {
+    input.textContent = text;
+    // Resetting a background input context must not move focus out of help or
+    // another control. A focused editing host still receives its native caret.
+    if (document.activeElement !== input && !input.contains(document.activeElement)) return;
+    const range = document.createRange();
+    if (input.firstChild) range.setStart(input.firstChild, Math.max(0, Math.min(caret, text.length)));
+    else range.setStart(input, 0);
+    range.collapse(true);
+    const selected = document.getSelection(); selected.removeAllRanges(); selected.addRange(range);
   }
-  function update(text) {
-    if (!session?.valid) return;
-    if (session.implicit) {
-      let index = 0;
-      while (index < baseline.length && index < input.value.length && baseline[index] === input.value[index]) index++;
-      session.start = index; session.end = baseline.length;
+  function clearDOM() { committed = ''; pending = null; replaceDOM(''); }
+  function descriptor(before, after, range, inputType) {
+    if (!range) return null;
+    const { start, end } = range;
+    const length = after.length - before.length + end - start;
+    if (start < 0 || end < start || end > before.length || length < 0
+      || !after.startsWith(before.slice(0, start)) || !after.endsWith(before.slice(end))) return null;
+    return { before, start, end, text: after.slice(start, start + length), after, inputType, ...selection() };
+  }
+  function accept(edit) {
+    if (!edit || edit.before !== committed) {
+      replaceDOM(committed); onUnsupported('missingNativeRange'); return false;
     }
-    const remove = segments(session.before.slice(session.start, session.end)).length;
-    show(text ?? input.value.slice(session.start, input.selectionEnd), remove);
+    if (edit.after !== edit.before && onEdit(edit) === false) {
+      replaceDOM(committed, edit.start); onUnsupported(edit.inputType); return false;
+    }
+    committed = edit.after;
+    return true;
   }
-  function clearBuffer() {
-    baseline = ''; input.value = ''; input.setSelectionRange(0, 0);
+  function finish() {
+    const ended = session;
+    if (!ended) return;
+    session = null; pending = null;
+    onCompositionChange(false); show();
+    if (!ended.valid) { clearDOM(); onInvalidated(); return; }
+    const after = input.textContent;
+    if (after === ended.before) return;
+    accept(descriptor(ended.before, after, ended.range, 'insertCompositionText'));
   }
   function reset() {
-    const hadComposition = !!session;
-    cancelled ||= hadComposition;
-    session = null; confirmingEnter = false; ended = null; clearBuffer(); show();
-    if (hadComposition) onCompositionChange(false);
-  }
-  function cancel() {
+    pending = null; committed = ''; show(); onReset();
     if (session) {
+      // Changing the native DOM while IME owns it destroys its replacement range.
       session.valid = false;
-      cancelled = true; show();
-      // Do not blur/refocus here: that can reopen the mobile keyboard and cause
-      // synchronous compositionend. Discard the late end at its original boundary.
-      clearBuffer();
-    } else clearBuffer();
+    } else clearDOM();
   }
   function command(type) {
     if (session) return false;
-    if (isReturn(type) && confirmingEnter) { confirmingEnter = false; return true; }
-    reset();
-    onCommand(type);
-    return true;
+    reset(); onCommand(type); return true;
   }
-
+  function addCompositionRange(range, before) {
+    if (!session.range) { session.range = range; return; }
+    const old = session.range;
+    const draftEnd = before.length - (session.before.length - old.end);
+    const original = (point, end) => point <= old.start ? point
+      : point >= draftEnd ? point + old.end - draftEnd : end ? old.end : old.start;
+    session.range = { start: Math.min(old.start, original(range.start, false)), end: Math.max(old.end, original(range.end, true)) };
+  }
   input.addEventListener('compositionstart', () => {
-    // A new composition is a fresh native range, even after cancelling navigation.
-    if (session) { session = null; onCompositionChange(false); }
-    begin();
-  });
-  input.addEventListener('compositionupdate', event => {
-    if (!session && !cancelled) begin(true);
-    update(event.data);
+    if (session?.ending) finish();
+    session = { before: committed, range: null, valid: input.textContent === committed, ending: false };
+    pending = null; onCompositionChange(true);
   });
   input.addEventListener('compositionend', event => {
-    const finished = session;
-    session = null;
-    onCompositionChange(false); show();
-    if (cancelled || (finished && !finished.valid)) {
-      cancelled = true; clearBuffer(); onInvalidated(); return;
-    }
-    if (!finished) {
-      // Some engines emit an end without a start. A prior input may already
-      // have accepted the same value, in which case this is an exact no-op.
-      accept(input.value); return;
-    }
-    const next = finished.before.slice(0, finished.start) + (event.data ?? '') + finished.before.slice(finished.end);
-    accept(next);
-    ended = { text: event.data, value: next };
-    // Never clear or rewrite .value here. Native IME may still own its range,
-    // or deliver the final input in a later task. Comparing to baseline dedupes it.
+    if (!session) return;
+    session.ending = true;
+    if (!session.valid) { finish(); return; }
+    const edit = descriptor(session.before, input.textContent, session.range, 'insertCompositionText');
+    // UI Events allows the final input before or after compositionend. The DOM
+    // is authoritative; data only tells us whether that final change is here.
+    if (input.textContent === session.before && !event.data) finish();
+    else if (edit?.text === event.data) finish();
   });
   input.addEventListener('beforeinput', event => {
-    if (isComposition(event)) {
-      if (!session && ended && event.data === ended.text && input.value === ended.value) return;
-      if (!session && !cancelled && event.inputType !== 'insertFromComposition') begin(true);
+    const type = event.inputType;
+    if (session?.ending && (isReturn(type) || isCellDelete(type))) finish();
+    const before = input.textContent, range = target(event);
+    if (!session && (event.isComposing || type === 'insertCompositionText')) {
+      // The browser says this is a draft, but we did not observe its start.
+      // Never reinterpret an unknown native composition as committed text.
+      session = { before: committed, range: null, valid: false, ending: false };
+      onCompositionChange(true); onUnsupported('compositionLifecycle');
+    }
+    if (session) {
+      if (!range) session.valid = false;
+      else if (session.valid) addCompositionRange(range, before);
+      pending = { before, range, inputType: type, composition: true };
       return;
     }
-    if (session) return;
-    if (isReturn(event.inputType) || isDelete(event.inputType)) {
-      if (event.cancelable) { event.preventDefault(); command(event.inputType); }
-    } else if (!isInsertion(event.inputType)) {
-      if (event.cancelable) { event.preventDefault(); onUnsupported(event.inputType); }
-    } else {
-      // A normal native insertion starts a new input after an explicitly
-      // cancelled range; stale composition-specific events remain suppressed.
-      cancelled = false;
-      confirmingEnter = false;
+    if (isReturn(type) || (isCellDelete(type) && range && range.start === range.end)) {
+      if (event.cancelable) { event.preventDefault(); command(type); }
+      else pending = { before, range, inputType: type, command: true };
+      return;
     }
+    if (!isTextEdit(type) || type === 'insertFromDrop' || !range) {
+      if (event.cancelable) event.preventDefault();
+      pending = { before, range, inputType: type, rejected: true };
+      onUnsupported(!range ? 'missingNativeRange' : type);
+      return;
+    }
+    if (type === 'insertFromPaste' && event.cancelable) {
+      event.preventDefault();
+      const text = event.dataTransfer?.getData('text/plain') ?? event.data ?? '';
+      const after = before.slice(0, range.start) + text + before.slice(range.end);
+      replaceDOM(after, range.start + text.length);
+      accept(descriptor(before, after, range, type));
+      pending = null; return;
+    }
+    pending = { before, range, inputType: type };
   });
   input.addEventListener('input', event => {
-    // Chromium normalizes some IME inputType values (including synthetic
-    // insertFromComposition) to ''. A cancelled range stays blocked until a
-    // fresh beforeinput/keydown/compositionstart proves a new user intention.
-    if (cancelled) { clearBuffer(); return; }
-    if (!session && isComposition(event) && input.value === baseline) return;
-    if (!session && isComposition(event) && event.inputType !== 'insertFromComposition') begin(true);
+    const transaction = pending; pending = null;
+    const after = input.textContent;
     if (session) {
-      if (session.implicit && !event.isComposing && ['insertText', 'insertFromComposition'].includes(event.inputType)) {
-        const valid = session.valid;
-        session = null; onCompositionChange(false); show();
-        if (valid) accept(input.value);
-        return;
+      if (!transaction || !descriptor(transaction.before, after, transaction.range, event.inputType)) session.valid = false;
+      if (session.ending) { finish(); return; }
+      if (session.valid) {
+        const edit = descriptor(session.before, after, session.range, 'insertCompositionText');
+        if (edit) show(edit.text, { start: edit.start, end: edit.end, before: edit.before });
+        else session.valid = false;
       }
-      if (session.valid) update(event.data);
       return;
     }
-    if (isReturn(event.inputType) || isDelete(event.inputType)) {
-      command(event.inputType); return;
+    if (!transaction) {
+      if (after !== committed) { replaceDOM(committed); onUnsupported('missingNativeRange'); }
+      return;
     }
-    if (!isInsertion(event.inputType)) { restore(); onUnsupported(event.inputType); return; }
-    if (input.selectionEnd !== input.value.length || input.selectionStart !== input.selectionEnd) {
-      restore(); onUnsupported('selection'); return;
-    }
-    accept(input.value);
-  });
-  input.addEventListener('paste', event => {
-    if (session) return;
-    event.preventDefault();
-    const text = event.clipboardData?.getData('text/plain') || '';
-    reset();
-    if (text) onEdit({ remove: 0, text });
+    if (transaction.command) { replaceDOM(committed); command(transaction.inputType); return; }
+    if (transaction.rejected) { replaceDOM(committed); return; }
+    accept(descriptor(transaction.before, after, transaction.range, transaction.inputType));
   });
   for (const type of ['copy', 'cut']) input.addEventListener(type, event => {
     if (session) return;
     event.preventDefault(); onUnsupported('selection');
   });
-
   return {
-    get composing() { return !!session; },
-    get preedit() { return preview; },
-    get preeditRemove() { return previewRemove; },
-    handleKeydown(event) {
-      if (session || event.isComposing || event.keyCode === 229) {
-        if (event.key === 'Enter') confirmingEnter = true;
-        return true;
-      }
-      confirmingEnter = false;
-      if (!event.ctrlKey && !event.metaKey && !event.altKey && (event.key.length === 1 || event.key === 'Process')) cancelled = false;
-      return false;
-    },
-    command, cancel, reset,
+    get composing() { return !!session; }, get preedit() { return preview; }, get text() { return committed; },
+    cancel: reset, reset, command,
   };
 }

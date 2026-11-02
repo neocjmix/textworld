@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#f6f5ef">
   <title>Textworld — 함께 쓰는 지도</title>
+  <link rel="preload" href="/fonts/sarasa-fixed-k-regular-1.0.43.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/sarasa.css">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <main id="app" aria-label="Textworld 공유 지도">
     <div id="viewport">
       <canvas id="field" aria-label="공유 글자 지도. 드래그하거나 스크롤하면 중앙 커서가 이동합니다. 지도를 탭하고 중앙 칸에 입력하세요."></canvas>
-      <textarea id="input" rows="1" wrap="off" tabindex="0" inputmode="text" enterkeyhint="enter" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="지도 중앙 칸에 바로 입력" aria-describedby="map-instructions" disabled></textarea>
+      <div id="input" contenteditable="false" role="textbox" aria-multiline="true" aria-disabled="true" tabindex="0" inputmode="text" enterkeyhint="enter" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="지도 중앙 칸에 바로 입력" aria-describedby="map-instructions"></div>
       <p id="map-instructions" class="sr-only">지도를 움직이면 화면 중심의 커서 위치가 바뀝니다. 지도를 탭하면 키보드를 열어 중앙 칸에 입력합니다. 방향키로 이동하고, Enter로 글을 시작한 열의 다음 행에 갑니다. 입력은 기존 글자를 덮어씁니다.</p>
     </div>
 

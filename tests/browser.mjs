@@ -14,7 +14,10 @@ const browser = await chromium.launch({
 });
 const errors = [], checks = [];
 const state = page => page.evaluate(() => window.textworld.inspect());
-const ready = page => page.waitForFunction(() => window.textworld?.inspect().connected);
+const ready = async page => {
+  await page.waitForFunction(() => window.textworld?.inspect().connected);
+  await page.evaluate(() => document.fonts.ready);
+};
 const settle = page => page.waitForFunction(() => window.textworld.inspect().pending === 0);
 const waitCell = (page, x, y, text) => page.waitForFunction(({ x, y, text }) =>
   window.textworld.inspect().cells.find(cell => cell.x === x && cell.y === y)?.text === text,
@@ -185,7 +188,8 @@ try {
   const beforeDisconnect = (await state(a)).cursor;
   for (const socket of app.wss.clients) socket.terminate();
   await a.waitForFunction(() => !window.textworld.inspect().connected);
-  assert.ok(await a.locator('#input').isDisabled());
+  assert.equal(await a.locator('#input').getAttribute('contenteditable'), 'false');
+  assert.equal(await a.locator('#input').getAttribute('aria-disabled'), 'true');
   await ready(a); await ready(b); await waitCell(a, 127, 63, '끝');
   assert.deepEqual((await state(a)).cursor, beforeDisconnect);
   assert.equal((await state(a)).pending, 0); await centered(a);
@@ -262,7 +266,7 @@ try {
   await denied.goto(url); await ready(denied);
   await denied.locator('#gps').click();
   await denied.waitForFunction(() => document.getElementById('notice').textContent.includes('얻지 못했습니다'));
-  assert.equal(await denied.locator('#input').isEnabled(), true); await centered(denied);
+  assert.equal(await denied.locator('#input').getAttribute('contenteditable'), 'true'); await centered(denied);
   check('denied GPS retains direct map input at fallback center');
 
   assert.deepEqual(errors, []); check('no browser runtime errors');

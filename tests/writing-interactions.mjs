@@ -1,6 +1,6 @@
 // User-intent regressions for spatial writing. Native Chromium keyboard/IME paths
-// are mixed with explicit beforeinput events for mobile event variants; these do
-// not claim physical Android/iOS keyboard coverage.
+// are mixed with explicit beforeinput contracts for mobile intents and replacement
+// ranges; these do not claim physical Android/iOS keyboard coverage.
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createTextworld } from '../server/index.js';
@@ -48,13 +48,8 @@ async function type(page, text) {
   await settle(page);
 }
 async function paste(page, text) {
-  await page.evaluate(text => {
-    const data = new DataTransfer();
-    data.setData('text/plain', text);
-    document.getElementById('input').dispatchEvent(new ClipboardEvent('paste', {
-      clipboardData: data, bubbles: true, cancelable: true,
-    }));
-  }, text);
+  await page.evaluate(text => navigator.clipboard.writeText(text), text);
+  await page.keyboard.press('Control+v');
   await settle(page);
 }
 async function beforeInput(page, inputType) {
@@ -86,11 +81,14 @@ async function scenario(name, run, { x = 10, y = 8, mobile = false, seed = [] } 
   }
   try {
     const url = `http://127.0.0.1:${port}/#x=${x}&y=${y}`;
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(url).origin });
     await page.goto(url);
     await page.waitForFunction(() => window.textworld?.inspect().connected);
+    await page.evaluate(() => document.fonts.ready);
     actorId ||= (await state(page)).peers[0].id;
     await observer.goto(url);
     await observer.waitForFunction(() => window.textworld?.inspect().connected && window.textworld.inspect().peers.length === 2);
+    await observer.evaluate(() => document.fonts.ready);
     if (mobile) await page.touchscreen.tap(160, 300); else await page.mouse.click(450, 350);
     assert.equal(await page.evaluate(() => document.activeElement.id), 'input');
     await run({ app, page, observer, context, actorId });
@@ -179,14 +177,23 @@ try {
     assert.equal(cell(app, 10, 10), '한');
   }, { mobile: true });
 
-  await scenario('Input-only newline fallback matches Return instead of starting a new margin', async ({ app, page }) => {
+  await scenario('Native Return and Shift+Return expose editing intents without starting a new margin', async ({ app, page }) => {
     await type(page, 'ABC'); const seq = app.world.seq;
     await page.evaluate(() => {
-      const input = document.getElementById('input');
-      input.value = '\n';
-      input.dispatchEvent(new InputEvent('input', { data: '\n', inputType: 'insertLineBreak', bubbles: true }));
+      window.returnIntents = [];
+      document.getElementById('input').addEventListener('beforeinput', event => {
+        if (event.inputType === 'insertParagraph' || event.inputType === 'insertLineBreak') {
+          window.returnIntents.push({ type: event.inputType, trusted: event.isTrusted });
+        }
+      });
     });
+    await page.keyboard.press('Enter');
     await at(page, 10, 9);
+    await page.keyboard.press('Shift+Enter');
+    await at(page, 10, 10);
+    assert.deepEqual(await page.evaluate(() => window.returnIntents), [
+      { type: 'insertParagraph', trusted: true }, { type: 'insertLineBreak', trusted: true },
+    ]);
     assert.equal(app.world.seq, seq, 'Navigation-only newline must not create a write transaction');
   });
 
@@ -246,8 +253,12 @@ try {
 
   await scenario('Map panning and shared-location navigation start fresh local margins', async ({ app, page }) => {
     await type(page, 'ABC');
-    const width = await page.evaluate(() => document.getElementById('field').getBoundingClientRect().width / window.textworld.inspect().viewport.cols);
-    await page.mouse.move(600, 450); await page.mouse.wheel(width * 2, 60); await at(page, 15, 10);
+    const dimensions = await page.evaluate(() => {
+      const field = document.getElementById('field').getBoundingClientRect();
+      const viewport = window.textworld.inspect().viewport;
+      return { width: field.width / viewport.cols, height: field.height / viewport.rows };
+    });
+    await page.mouse.move(600, 450); await page.mouse.wheel(dimensions.width * 2, dimensions.height * 2); await at(page, 15, 10);
     await type(page, 'XY'); await page.keyboard.press('Enter'); await at(page, 15, 11);
     await goTo(page, 30, 12); await type(page, 'QR');
     await page.keyboard.press('Enter'); await at(page, 30, 13);
@@ -273,7 +284,7 @@ try {
     // The OS owns confirmation. This key represents its composing keydown,
     // followed by Chromium's native commit path, not a second application Return.
     await page.evaluate(() => document.getElementById('input').dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 229, isComposing: true, bubbles: true, cancelable: true }),
+      new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', isComposing: true, bubbles: true, cancelable: true }),
     ));
     await at(page, 10, 8);
     await cdp.send('Input.insertText', { text: '한' }); await settle(page); await at(page, 12, 8);
@@ -285,15 +296,15 @@ try {
   await scenario('Native Korean replacement composes successive syllables without leaving jamo behind', async ({ app, page, observer, context }) => {
     const cdp = await context.newCDPSession(page);
     // Some IMEs expose an initial character before opening its replacement range.
-    // Keeping the native textarea context lets Chromium replace that same character.
+    // Keeping the native editable context lets Chromium replace that same character.
     await cdp.send('Input.insertText', { text: 'ㅎ' }); await settle(page);
-    assert.equal(await page.locator('#input').inputValue(), 'ㅎ');
+    assert.equal(await page.locator('#input').textContent(), 'ㅎ');
     for (const text of ['하', '한']) await cdp.send('Input.imeSetComposition', {
       text, selectionStart: 1, selectionEnd: 1, replacementStart: 0, replacementEnd: 1,
     });
     await cdp.send('Input.insertText', { text: '한' }); await settle(page); await at(page, 12, 8);
     assert.equal(cell(app, 10, 8), '한'); assert.equal(cell(app, 12, 8), '');
-    assert.equal(await page.locator('#input').inputValue(), '한');
+    assert.equal(await page.locator('#input').textContent(), '한');
 
     await cdp.send('Input.insertText', { text: 'ㄱ' }); await settle(page);
     for (const text of ['그', '글']) await cdp.send('Input.imeSetComposition', {
@@ -306,7 +317,7 @@ try {
       const cells = window.textworld.inspect().cells;
       return cells.some(c => c.x === 10 && c.y === 8 && c.text === '한') && cells.some(c => c.x === 12 && c.y === 8 && c.text === '글');
     });
-    assert.equal(await page.locator('#input').inputValue(), '한글');
+    assert.equal(await page.locator('#input').textContent(), '한글');
   });
 
   await scenario('Wide-glyph tails stay addressable and erase as one glyph without moving neighbors', async ({ app, page, observer }) => {
@@ -360,25 +371,38 @@ try {
     await page.keyboard.press('Enter'); await at(page, 10, 9);
   });
 
-  await scenario('Unsupported native undo, word deletion and replacement cannot silently rewrite cells', async ({ app, page }) => {
+  await scenario('Undo and range-less word deletion are rejected while a target-range replacement rewrites only its cells', async ({ app, page, observer }) => {
     await type(page, 'ABC');
     const seq = app.world.seq;
-    for (const inputType of ['historyUndo', 'historyRedo', 'deleteWordBackward', 'deleteWordForward', 'insertReplacementText']) {
+    for (const inputType of ['historyUndo', 'historyRedo', 'deleteWordBackward', 'deleteWordForward']) {
       const accepted = await page.evaluate(inputType => document.getElementById('input').dispatchEvent(
-        new InputEvent('beforeinput', { inputType, data: 'unexpected replacement', bubbles: true, cancelable: true }),
+        new InputEvent('beforeinput', { inputType, bubbles: true, cancelable: true }),
       ), inputType);
       assert.equal(accepted, false, `${inputType} must be explicitly prevented`);
       await at(page, 13, 8); assert.equal(app.world.seq, seq);
     }
-    // Some mobile engines deliver a non-cancellable input without beforeinput.
-    await page.evaluate(() => {
-      const input = document.getElementById('input'); input.value = 'old draft';
-      input.dispatchEvent(new InputEvent('input', { inputType: 'historyUndo', data: 'old draft', bubbles: true }));
+    const accepted = await page.evaluate(() => {
+      const input = document.getElementById('input');
+      const node = input.firstChild;
+      const target = new StaticRange({ startContainer: node, startOffset: 1, endContainer: node, endOffset: 2 });
+      const allowed = input.dispatchEvent(new InputEvent('beforeinput', {
+        inputType: 'insertReplacementText', data: '字', targetRanges: [target], bubbles: true, cancelable: true,
+      }));
+      if (allowed) {
+        const range = document.createRange();
+        range.setStart(node, 1); range.setEnd(node, 2); range.deleteContents();
+        const replacement = document.createTextNode('字'); range.insertNode(replacement);
+        getSelection().setBaseAndExtent(replacement, 1, replacement, 1);
+        input.dispatchEvent(new InputEvent('input', { inputType: 'insertReplacementText', data: '字', bubbles: true }));
+      }
+      return allowed;
     });
-    await at(page, 13, 8); assert.equal(app.world.seq, seq);
-    assert.notEqual(await page.locator('#input').inputValue(), 'old draft');
-    assert.ok((await page.locator('#notice').textContent()).length > 0);
-    assert.equal(cell(app, 10, 8), 'A'); assert.equal(cell(app, 12, 8), 'C');
+    assert.equal(accepted, true, 'native text replacement is a supported range edit');
+    await settle(page); await at(page, 13, 8);
+    assert.equal(await page.locator('#input').textContent(), 'A字C');
+    assert.equal(cell(app, 10, 8), 'A'); assert.equal(cell(app, 11, 8), '字');
+    assert.equal(cell(app, 13, 8), '', 'spatial replacement must not reflow C beyond its old cell');
+    await observer.waitForFunction(() => window.textworld.inspect().cells.some(c => c.x === 11 && c.y === 8 && c.text === '字'));
   });
 
   console.log(JSON.stringify({ passed: passed.length, failed: failed.length, failures: failed }));

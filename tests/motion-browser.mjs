@@ -16,6 +16,7 @@ async function ready(page) {
   page.on('pageerror', error => errors.push(error.message));
   page.setDefaultTimeout(5000); await page.goto(url);
   await page.waitForFunction(() => window.textworld?.inspect().connected);
+  await page.evaluate(() => document.fonts.ready);
 }
 async function centered(page) {
   const s = await state(page);
@@ -34,13 +35,25 @@ async function location(page, x = 64, y = 32) {
   }, { x, y });
 }
 async function mouseFlick(page) {
+  await page.evaluate(() => {
+    window.flickTrace = [];
+    const field = document.getElementById('field');
+    const record = event => {
+      window.flickTrace.push({ type: event.type, time: performance.now(), x: event.clientX, y: event.clientY });
+      if (event.type === 'pointerup') {
+        for (const type of ['pointerdown', 'pointermove', 'pointerup']) field.removeEventListener(type, record);
+      }
+    };
+    for (const type of ['pointerdown', 'pointermove', 'pointerup']) field.addEventListener(type, record);
+  });
   await page.mouse.move(600, 450); await page.mouse.down();
   for (let i = 1; i <= 5; i++) {
     await page.waitForTimeout(20);
     await page.mouse.move(600 - 18 * i, 450 - 12 * i);
   }
   await page.mouse.up();
-  assert.equal((await state(page)).motionActive, true, 'a timed flick must release with momentum');
+  const active = (await state(page)).motionActive;
+  assert.equal(active, true, `a timed flick must release with momentum; ${JSON.stringify(await page.evaluate(() => window.flickTrace))}`);
 }
 async function stable(page, duration = 200) {
   const before = (await state(page)).cursor;

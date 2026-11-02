@@ -1,5 +1,6 @@
 import { wrap, cellKey, graphemes, graphemeWidth, gpsToCell } from '/shared/world.js';
 import { WritingSession } from '/shared/writing.js';
+import { NativeProjection } from '/shared/native-projection.js';
 import { createPanMotion } from './inertia.js';
 import { createNativeInput } from './native-input.js';
 
@@ -8,16 +9,20 @@ const app = $('app');
 const canvas = $('field');
 const ctx = canvas.getContext('2d');
 const input = $('input');
-const baseCell = { width: 12, height: 30 };
+const baseCell = { width: 9, height: 26 };
+const mapFont = '"Textworld Sarasa"';
+let fontReady = false;
 let world = null, selfId = null, cells = new Map(), peers = [];
 let cursor = { x: 0, y: 0 }, camera = { x: 0, y: 0 };
 const writing = new WritingSession(cursor);
+const nativeProjection = new NativeProjection(cursor);
+let nativeTrailBase = [];
 let zoom = 1, size = { width: 1, height: 1 }, connected = false, socket;
 let firstSnapshot = true, frame, reconnectTimer, noticeTimer;
 let id = 0, pending = new Map(), navigationRevision = 0, gpsRequest = 0;
 let moveTimer, queuedMove, lastSentPosition;
 let composing = false, preedit = '', nativeInput, applyingNativeEdit = false;
-let preeditRemove = 0;
+let preeditRange = null;
 let panRemainder = { x: 0, y: 0 };
 const pointers = new Map();
 let drag = null, pinch = null;
@@ -73,17 +78,20 @@ function queueMove() {
 function cancelComposition() {
   if (applyingNativeEdit) return;
   nativeInput?.cancel();
-  preedit = ''; preeditRemove = 0;
+  preedit = ''; preeditRange = null;
   schedule();
 }
 function move(x, y, { manual = true, resetPan = true, newOrigin = true, caret = false, preserveMotion = false } = {}) {
   if (!world) return;
   if (!preserveMotion) motion.cancel();
   const next = { x: wrap(x, world.width), y: wrap(y, world.height) };
-  if (next.x !== cursor.x || next.y !== cursor.y) cancelComposition();
+  // A new navigation context resets both the native DOM and its spatial ledger,
+  // even when a hash/GPS target wraps back onto the current address.
+  cancelComposition();
   cursor = next;
   if (newOrigin) writing.reset(cursor);
   else if (caret) writing.reposition(cursor);
+  if (!applyingNativeEdit) resetNativeProjection();
   if (manual) navigationRevision++;
   if (resetPan) panRemainder = { x: 0, y: 0 };
   center();
@@ -135,10 +143,13 @@ function paintCursor(peer, x, y, d) {
 }
 function paintText(text, x, y, d, preview = false, columns = 1) {
   ctx.fillStyle = preview ? '#287054' : '#314137';
-  ctx.font = `${Math.round(17 * zoom)}px Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif`;
+  // Sarasa Fixed has genuine 1:2 advances; do not squeeze proportional glyphs.
+  // Old one-column records retain their footprint at a smaller point size.
+  const scale = Math.min(1, columns / graphemeWidth(text));
+  ctx.font = `${18 * zoom * scale}px ${mapFont}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text, x + d.width * columns / 2, y + d.height / 2 + 1, d.width * columns - 2 * zoom);
+  ctx.fillText(text, x + d.width * columns / 2, y + d.height / 2 + 1);
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
 }
@@ -188,16 +199,18 @@ function draw() {
   const cx = (size.width - d.width) / 2, cy = (size.height - d.height) / 2;
   if (preedit) {
     // Native IME owns composition; only the local preview is painted here.
-    const anchor = previousWritingStart(preeditRemove) || cursor;
-    const back = wrap(cursor.x - anchor.x, world.width);
-    let offset = -back;
+    let anchor = cursor;
+    try { if (preeditRange) anchor = nativeProjection.rangePoint(preeditRange.start, preeditRange.end); } catch {}
+    const delta = (value, extent) => value > extent / 2 ? value - extent : value;
+    let offset = delta(wrap(anchor.x - cursor.x, world.width), world.width);
+    const py = cy + delta(wrap(anchor.y - cursor.y, world.height), world.height) * d.height;
     for (const glyph of graphemes(preedit)) {
       const columns = graphemeWidth(glyph), px = cx + offset * d.width;
       ctx.fillStyle = '#f8f8f2';
-      ctx.fillRect(px + 1, cy + 1, d.width * columns - 2, d.height - 2);
-      paintText(glyph, px, cy, d, true, columns);
+      ctx.fillRect(px + 1, py + 1, d.width * columns - 2, d.height - 2);
+      paintText(glyph, px, py, d, true, columns);
       ctx.fillStyle = '#287054';
-      ctx.fillRect(px + 1, cy + d.height - 3, d.width * columns - 2, 1);
+      ctx.fillRect(px + 1, py + d.height - 3, d.width * columns - 2, 1);
       offset += columns;
     }
   }
@@ -231,14 +244,9 @@ fitVisualViewport();
 function focusInput() {
   if (connected && !$('help').open) input.focus({ preventScroll: true });
 }
-function previousWritingStart(count) {
-  let position = { ...cursor };
-  for (let index = writing.trail.length - 1; count > 0; count--, index--) {
-    const step = writing.trail[index];
-    if (!step || step.kind !== 'write' || step.to.x !== position.x || step.to.y !== position.y) return null;
-    position = step.from;
-  }
-  return position;
+function resetNativeProjection() {
+  nativeProjection.reset(cursor);
+  nativeTrailBase = writing.trail.slice();
 }
 function write(text) {
   motion.cancel();
@@ -285,40 +293,61 @@ function unsupportedInput(type) {
       ? '이 공간에는 정해진 줄 끝이 없습니다. 방향키로 위치를 고르세요.'
       : /^history/.test(type)
         ? '공유 글의 실행 취소·다시 실행은 아직 지원하지 않습니다. 칸을 골라 수정해 주세요.'
-        : '단어·범위 편집은 아직 지원하지 않습니다. 칸 단위로 수정해 주세요.';
+        : type === 'navigation'
+          ? '지도 이동은 방향키·Home 또는 스크롤을 사용해 주세요.'
+        : /^format/.test(type)
+          ? '이 지도는 글자만 입력할 수 있습니다. 서식은 지원하지 않습니다.'
+          : '입력 범위를 확인할 수 없습니다. 지도에서 자리를 다시 고른 뒤 입력해 주세요.';
   notice(message);
 }
 function resetComposition() {
   nativeInput?.reset();
-  composing = false; preedit = ''; preeditRemove = 0;
+  composing = false; preedit = ''; preeditRange = null;
 }
 nativeInput = createNativeInput(input, {
-  onEdit({ remove, text }) {
+  onEdit(edit) {
     motion.cancel();
     if (!connected || !world || socket.readyState !== WebSocket.OPEN) return false;
-    // Native range edits may only retrace this user's known writing path.
-    // Validate everything before deleting any cells; never guess a document range.
-    if (!Number.isSafeInteger(remove) || remove < 0 || remove > 32 || !previousWritingStart(remove)) return false;
-    text = text.replace(/\r\n?/g, '\n');
-    if (text.length > 4096 || /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u.test(text) || graphemes(text).length > 512) return false;
+    let plan;
+    try { plan = nativeProjection.plan(edit, cursor, world, { lineStartX: writing.lineStartX }); }
+    catch { return false; }
+    // Native UTF-16 ranges are projected once, then committed atomically.
+    // No key-code assembly, native-string normalization, or tail guessing.
+    if (plan.text.length > 4096 || /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u.test(plan.text)
+      || graphemes(plan.text).length > 512 || plan.clear.length > 2048) return false;
     applyingNativeEdit = true;
     try {
-      for (let index = 0; index < remove; index++) erase(true);
-      return write(text);
+      cancelMove(); lastSentPosition = null;
+      const mutatesCells = plan.changed && (plan.clear.length > 0 || plan.steps.some(step => step.kind === 'write'));
+      if (mutatesCells) {
+        const opId = `${selfId}:${++id}`;
+        if (!send({ type: 'write', layout: 2, id: opId, epoch: world.epoch,
+          x: plan.x, y: plan.y, text: plan.text, clear: plan.clear, lineStartX: writing.lineStartX })) return false;
+        pending.set(opId, plan.text);
+      }
+      nativeProjection.accept(plan);
+      writing.trail = [...(plan.connectsToBase ? nativeTrailBase : []), ...plan.historyToCursor].slice(-4096);
+      writing.active = true;
+      cursor = { ...plan.cursor }; navigationRevision++;
+      panRemainder = { x: 0, y: 0 }; center();
+      if (!mutatesCells || plan.writeCursor?.x !== cursor.x || plan.writeCursor?.y !== cursor.y) queueMove();
+      return true;
     } finally { applyingNativeEdit = false; }
   },
-  onPreedit(text, { remove }) { preedit = text; preeditRemove = remove; schedule(); },
+  onPreedit(text, range) { preedit = text; preeditRange = range; schedule(); },
   onCompositionChange(value) { composing = value; if (value) motion.cancel(); schedule(); },
   onCommand(type) {
     if (type === 'insertLineBreak' || type === 'insertParagraph') write('\n');
     else erase(type === 'deleteContentBackward');
+    resetNativeProjection();
   },
+  onReset: resetNativeProjection,
   onUnsupported: unsupportedInput,
   onInvalidated() { notice('위치가 바뀌어 조합을 취소했습니다. 중심 칸에 다시 입력해 주세요.'); },
 });
 input.addEventListener('keydown', event => {
   motion.cancel();
-  if (nativeInput.handleKeydown(event)) return;
+  if (nativeInput.composing || event.isComposing) return;
   if (!world) return;
   if (event.shiftKey && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Delete'].includes(event.key)) {
     event.preventDefault(); unsupportedInput('selection'); return;
@@ -326,19 +355,14 @@ input.addEventListener('keydown', event => {
   if ((event.metaKey || event.ctrlKey) && ['a', 'c', 'x', 'insert'].includes(event.key.toLowerCase())) {
     event.preventDefault(); unsupportedInput('selection'); return;
   }
-  if ((event.metaKey || event.ctrlKey) && ['z', 'y'].includes(event.key.toLowerCase())) {
-    event.preventDefault(); unsupportedInput(event.key.toLowerCase() === 'y' || event.shiftKey ? 'historyRedo' : 'historyUndo'); return;
-  }
-  if ((event.metaKey || event.ctrlKey || event.altKey) && ['Backspace', 'Delete'].includes(event.key)) {
-    event.preventDefault(); unsupportedInput('deleteWordBackward'); return;
+  if (['PageUp', 'PageDown'].includes(event.key) || ((event.metaKey || event.ctrlKey || event.altKey) && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key))) {
+    event.preventDefault(); unsupportedInput('navigation'); return;
   }
   if (event.metaKey || event.ctrlKey || event.altKey) return;
   const delta = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
   if (delta) { event.preventDefault(); move(cursor.x + delta[0], cursor.y + delta[1], { newOrigin: false, caret: true }); }
   else if (event.key === 'Home') { event.preventDefault(); move(writing.lineStartX, cursor.y, { newOrigin: false, caret: true }); }
   else if (event.key === 'End') { event.preventDefault(); unsupportedInput('lineEnd'); }
-  else if (event.key === 'Enter') { event.preventDefault(); nativeInput.command('insertLineBreak'); }
-  else if (event.key === 'Backspace' || event.key === 'Delete') { event.preventDefault(); nativeInput.command(event.key === 'Backspace' ? 'deleteContentBackward' : 'deleteContentForward'); }
   else if (event.key === 'Escape') { event.preventDefault(); cancelComposition(); input.blur(); }
 });
 document.addEventListener('keydown', event => {
@@ -436,7 +460,10 @@ $('share').onclick = async event => {
 };
 function connection(value) {
   if (!value) motion.cancel();
-  connected = value; input.disabled = !value;
+  connected = value;
+  const editable = value ? 'true' : 'false';
+  if (input.contentEditable !== editable) input.contentEditable = editable;
+  input.setAttribute('aria-disabled', String(!value));
   $('connection').textContent = value ? '실시간 연결' : '재연결 중';
   $('connection-dot').classList.toggle('online', value);
 }
@@ -474,6 +501,7 @@ function connect() {
       if (!keepNativeContext) resetComposition();
       connection(true);
       if (!keepWriting) writing.reset(cursor);
+      if (!keepNativeContext) resetNativeProjection();
       if (firstSnapshot) {
         firstSnapshot = false;
         if (!goToHash()) locate(true);
@@ -511,6 +539,14 @@ function connect() {
 window.addEventListener('hashchange', goToHash);
 document.addEventListener('visibilitychange', () => { if (document.hidden) motion.cancel(); });
 setZoom(1);
-connect();
+notice('글꼴을 불러오고 있습니다.');
+document.fonts.load(`18px ${mapFont}`, '한글日本語中文iWM').then(faces => {
+  if (!faces.length) throw new Error('Map font is unavailable');
+  fontReady = true;
+  connect();
+}).catch(() => {
+  $('connection').textContent = '글꼴 로드 실패';
+  notice('지도 글꼴을 불러오지 못했습니다. 페이지를 새로고침해 주세요.');
+});
 // Read-only browser diagnostics for verifying spatial invariants.
-window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), peers: structuredClone(peers), cells: [...cells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active }) };
+window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), peers: structuredClone(peers), cells: [...cells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, fontReady }) };
