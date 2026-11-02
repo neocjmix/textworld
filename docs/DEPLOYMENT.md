@@ -164,3 +164,5 @@ Railway의 [공개 네트워킹 기술 명세](https://docs.railway.com/networki
 구현 `3fce190c2c031c94fbdf11de43a963f2e6e0745d`, 배포 `60ef63d5-dd27-4af7-9636-cfc9615011a1`가15:26:55 UTC에SUCCESS에 도달했다. 기존 영구 볼륨의 별도 `.metrics.sqlite`에서 실제 분·시간 집계 누적과 export를 확인했고 collector failures0이었다. 관리 토큰은 Railway 환경변수에만 설정하고 비공개 로컬 파일을 통해 검증했으며 저장소에는 넣지 않았다. 토큰 없이 운영 통계를 읽을 수 없다.
 
 공개 브라우저를125초 유지해 DPR 등 집계 업로드를 확인했다. 페이지 오류0·추가 쓰기0건이었다. 세부 draw/ACK/submission 수집은 통제된 로컬 브라우저에서 별도로 검증했다. 코드 고정72scenario benchmark는 docs/measurements/scaling-baseline-2026-11-02.json에 보존했다. 운영 호스트와 로컬의 Node/CPU 한도가 다름도 기록했다.
+
+계측 보완 구현 `ed67e9b00254f4c2117b1799d7c5521b1642546f`의 배포 `0fba6641-20b4-45f5-abc7-a8e6c62a213a`는15:34:14 UTC에SUCCESS에 도달했다. 배포 전52개 집계 행이 모두 같은 bucket·period·metric·revision으로 남고 count가 감소하지 않았음을 실제 export로 검증했다. 총83행과 이전/현재 두 빌드의 Node·CPU·메모리 한도를 확인했다. client.reported.draw_ms·drawn_glyphs·viewport_cells·dpr가 운영에서 저장됐으며 failures0이었다. 원자료와 검증 근거는 비공개 artifacts/metrics-export.json, measurement-persistence-verification.json, cost-report.json에 있다. 계측은 이 배포 이후에도 분 단위로 계속 누적된다.
