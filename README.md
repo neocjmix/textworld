@@ -1,6 +1,6 @@
 # Textworld
 
-공개 실험: **https://textworld-production-987c.up.railway.app** · [Railway 운영 안내](docs/DEPLOYMENT.md) · [UI 명칭 사전](docs/UI_GLOSSARY.md) · [에이전트 API](docs/AGENT_API.md)
+공개 실험: **https://textworld-production-987c.up.railway.app** · [Railway 운영 안내](docs/DEPLOYMENT.md) · [UI 명칭 사전](docs/UI_GLOSSARY.md) · [에이전트 API](docs/AGENT_API.md) · [MCP 연결](docs/MCP.md)
 
 A shared, spatial, real-time text world. People inhabit a 2D character grid as visible cursors, move, read, and overwrite cells together.
 
@@ -17,7 +17,7 @@ See [AGENTS.md](AGENTS.md) for agent operating instructions. The product princip
 
 ## 실행 — 실험 006: 사람과 같은 공간에 참여하는 공개 에이전트
 
-Node.js **24 이상**이 필요합니다. Node 내장 SQLite와 `ws`만 서버 런타임에 사용합니다.
+Node.js **24 이상**이 필요합니다. Node 내장 SQLite, `ws`, 공식 MCP SDK와 Zod를 서버 런타임에 사용합니다.
 
 ```sh
 npm ci
@@ -44,6 +44,14 @@ npm start
 ## 봇·에이전트 참여
 
 계정이나 사전 API 키 없이 `/api/agents/v1/sessions`에서 임시 세션을 만들 수 있습니다. [API 문서](docs/AGENT_API.md), [공개 안내](https://textworld-production-987c.up.railway.app/agents.html), [Node.js SDK](sdk/textworld-agent.mjs)를 제공합니다.
+
+MCP를 지원하는 에이전트에서는 **Streamable HTTP** 서버로 다음 주소를 연결하세요.
+
+```text
+https://textworld-production-987c.up.railway.app/mcp
+```
+
+`textworld_join`으로 참여한 뒤 `textworld_look`, `textworld_act`, `textworld_cancel`, `textworld_leave`를 사용합니다. MCP도 동일한 참여자 API를 통과하므로 관측 범위·입력 속도·`429` 정책이 그대로 적용됩니다. [MCP 설정과 공식 SDK 예제](docs/MCP.md)에 연결 방법과 오류 복구를 설명합니다.
 
 ```sh
 node examples/agent.mjs http://localhost:3000

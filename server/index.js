@@ -12,6 +12,7 @@ import { LIMITS, NetworkBudgets, ParticipantPolicy, PolicyError } from './partic
 import { Observer, contains, viewRectangle, validateView } from './visibility.js';
 import { createTurnRunner } from './agent-turns.js';
 import { createAgentHTTP } from './agent-http.js';
+import { createMCPAgent } from './mcp-agent.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const palette = ['#ffbe75', '#79d4cd', '#c4a7ff', '#ff8fa3', '#a3d977', '#86b7ff'];
@@ -111,6 +112,8 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   const agentHTTP = createAgentHTTP({ world, createActor: (req, options) => {
     const actor = createActor(req, options); queueMicrotask(presence); return actor;
   }, removeActor, peers, runner, limits, subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener); } });
+  const mcp = createMCPAgent({ agentHTTP,
+    acceptRequest: req => networks.get(networkKey(req, trustProxy)).request.spend() });
   const json = (res, status, value) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)); };
   const authorized = req => {
     if (!scavengerToken) return false;
@@ -125,6 +128,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   const server = http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url, 'http://textworld.local');
+      if (await mcp.handle(req, res, url)) return;
       if (await agentHTTP.handle(req, res, url)) return;
       if (url.pathname === '/health') return json(res, 200, { ok: true, world: publicWorld(world), peers: actors.size });
       if (url.pathname.startsWith('/api/scavenger/')) {
@@ -232,7 +236,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     listen: (port = 3000, host = '0.0.0.0') => new Promise(resolve => server.listen(port, host, () => resolve(server.address()))),
     close: async () => {
       closing = true; clearInterval(heartbeat); clearInterval(adaptation);
-      agentHTTP.close(); await runner.shutdown();
+      agentHTTP.close(); await runner.shutdown(); await mcp.close();
       for (const actor of actors) removeActor(actor);
       for (const socket of clients.keys()) socket.terminate();
       await new Promise(resolve => wss.close(resolve));

@@ -136,7 +136,7 @@ export function createAgentHTTP({ world, createActor, removeActor, peers, runner
     return { ...value, waitMs };
   }
 
-  async function handle(req, res, url = new URL(req.url, 'http://textworld.local')) {
+  async function handle(req, res, url = new URL(req.url, 'http://textworld.local'), context = {}) {
     const path = url.pathname;
     if (path !== '/.well-known/textworld-agent.json' && path !== base && !path.startsWith(`${base}/`)) return false;
     let session, turn;
@@ -146,6 +146,7 @@ export function createAgentHTTP({ world, createActor, removeActor, peers, runner
         if (req.method !== 'GET') throw fail('METHOD_NOT_ALLOWED', 'GET 요청을 사용하세요.', 405);
         json(res, 200, { version: 1, access: 'public-anonymous', sessions: `${base}/sessions`,
           docs: '/agents.html', source: 'https://github.com/neocjmix/textworld/blob/main/docs/AGENT_API.md',
+          mcp: '/mcp', mcpDocs: 'https://github.com/neocjmix/textworld/blob/main/docs/MCP.md',
           actions: ['type', 'move', 'enter', 'backspace', 'delete', 'home', 'wait'],
           limits: { ...limits, http: AGENT_HTTP_LIMITS } });
         return true;
@@ -180,7 +181,7 @@ export function createAgentHTTP({ world, createActor, removeActor, peers, runner
         json(res, 200, { cancelled }); return true;
       }
       if (match[2] !== 'turn' || req.method !== 'POST') throw fail('METHOD_NOT_ALLOWED', '지원하지 않는 요청 방식입니다.', 405);
-      session.actor.policy.acceptRequest();
+      session.actor.policy.acceptRequest({ networkCharged: context.networkCharged === true });
       const request = validateTurn(await readBody(req));
       if (!sessions.has(session.actor.peer.id) || session.actor.closed) throw fail('UNAUTHORIZED', '유효한 세션 토큰이 필요합니다.', 401);
       if (session.waiter || (!request.actions.length && session.active)) {

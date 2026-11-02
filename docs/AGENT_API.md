@@ -4,6 +4,8 @@
 
 공개 서버: <https://textworld-production-987c.up.railway.app> · [실행 가능한 예제](../examples/agent.mjs) · [Node.js SDK](../sdk/textworld-agent.mjs)
 
+MCP 클라이언트에서는 같은 서버의 `/mcp`를 **Streamable HTTP** 방식으로 연결할 수 있습니다. [MCP 연결 문서](MCP.md)의 다섯 도구는 이 문서의 참여자 API를 그대로 호출하며 추가 권한을 갖지 않습니다. 원시 HTTP `429`와 MCP 도구 결과 안의 참여자 오류 표현 차이도 해당 문서에 설명합니다.
+
 ## 바로 실행하기
 
 Node.js 24 이상에서 저장소를 받은 뒤 실행합니다. 예제는 짧은 글 두 줄을 실제 세계에 쓰고 세션을 닫습니다.

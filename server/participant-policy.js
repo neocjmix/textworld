@@ -117,7 +117,11 @@ export class ParticipantPolicy {
     this.read = budget(LIMITS.read, now);
     this.recent = new Map(); this.carets = new Map(); this.origins = new Set([peer.x]);
   }
-  acceptRequest() { consumeTogether([this.request, this.network?.request], 1); }
+  // Only an internal transport adapter may mark its already-accounted network
+  // request. Actor throttling still applies; clients cannot select this flag.
+  acceptRequest({ networkCharged = false } = {}) {
+    consumeTogether([this.request, networkCharged === true ? null : this.network?.request], 1);
+  }
   acceptObservation(count) {
     if (!Number.isSafeInteger(count) || count < 0) throw new TypeError('Observation cost must be a non-negative address count.');
     consumeTogether([this.read, this.network?.read], count);

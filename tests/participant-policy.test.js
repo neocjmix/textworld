@@ -261,6 +261,26 @@ test('request budgets apply across transports and cannot be multiplied with fres
   assert.equal(third.policy.request.tokens, 160);
 });
 
+test('an internally precharged transport request skips only its network charge, never actor throttling', t => {
+  const network = new NetworkBudgets({ now: () => 0 }).get('shared-address');
+  const f = fixture(t, { network });
+  network.request.spend(1);
+  f.policy.acceptRequest({ networkCharged: true });
+  assert.equal(network.request.tokens, 319, 'the adapter and participant together count one network request');
+  assert.equal(f.policy.request.tokens, 159);
+  f.policy.acceptRequest();
+  assert.equal(network.request.tokens, 318, 'ordinary requests retain their network charge');
+  assert.equal(f.policy.request.tokens, 158);
+  network.request.spend(318);
+  assert.throws(() => f.policy.acceptRequest(), errorIs(429, 'RATE_LIMITED'));
+  assert.throws(() => f.policy.acceptRequest({ networkCharged: false }), errorIs(429, 'RATE_LIMITED'));
+  assert.throws(() => f.policy.acceptRequest({ networkCharged: 'true' }), errorIs(429, 'RATE_LIMITED'));
+  assert.equal(f.policy.request.tokens, 158, 'network rejection does not spend actor tokens');
+  for (let i = 0; i < 158; i++) f.policy.acceptRequest({ networkCharged: true });
+  assert.equal(network.request.tokens, 0);
+  assert.throws(() => f.policy.acceptRequest({ networkCharged: true }), errorIs(429, 'RATE_LIMITED'));
+});
+
 test('disconnects preserve network budgets and only inactive entries expire after ten minutes', () => {
   let time = 0;
   const networks = new NetworkBudgets({ now: () => time, idleMs: 1, maxEntries: 2 });
