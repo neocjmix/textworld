@@ -69,9 +69,9 @@ try {
     assert.equal(app.world.snapshot().cells.length, 0, 'uncommitted composition must stay local');
     await finishWithCompanionInput(page);
     assert.equal(app.world.seq, 1);
-    assert.deepEqual(app.world.snapshot().cells.map(({ x, y, text }) => ({ x, y, text })),
+    assert.deepEqual(app.world.snapshot().cells.filter(cell => cell.text).map(({ x, y, text }) => ({ x, y, text })),
       [{ x: 7, y: 8, text: '한' }]);
-    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 8, y: 8 });
+    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 9, y: 8 });
   });
 
   await scenario('snapshot cancels stale composition and suppresses companion input', async ({ app, page }) => {
@@ -117,12 +117,12 @@ try {
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 9, y: 8 });
   });
 
-  await scenario('empty-textarea beforeinput deletion erases exactly one world cell', async ({ app, page }) => {
+  await scenario('retained native context does not duplicate a beforeinput deletion', async ({ app, page }) => {
     await page.mouse.click(400, 300);
     assert.equal(await page.evaluate(() => document.activeElement?.id), 'input');
     await page.keyboard.insertText('AB');
     await page.waitForFunction(() => window.textworld.inspect().cells.length === 2 && window.textworld.inspect().pending === 0);
-    assert.equal(await page.locator('#input').inputValue(), '');
+    assert.equal(await page.locator('#input').inputValue(), 'AB', 'native text context must survive normal commits for Korean replacement');
     const accepted = await page.evaluate(() => document.getElementById('input').dispatchEvent(
       new InputEvent('beforeinput', {
         inputType: 'deleteContentBackward', bubbles: true, cancelable: true,
@@ -135,7 +135,7 @@ try {
     assert.equal(app.world.getCell(8, 8).text, '');
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 8, y: 8 });
   });
-  console.log(JSON.stringify({ passed: results.length, coverage: 'synthetic Chromium IME event ordering and empty-textarea deletion', results }));
+  console.log(JSON.stringify({ passed: results.length, coverage: 'synthetic Chromium IME event ordering and retained-context deletion', results }));
 } finally {
   await browser.close();
 }

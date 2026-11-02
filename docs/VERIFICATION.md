@@ -1,5 +1,27 @@
 # 실행 검증 — 2026-11-02
 
+## 한글 조합·CJK 표시 폭·관성 탐색
+
+| 실행 | 결과 | 확인한 범위 |
+| --- | --- | --- |
+| `npm test` | 53/53 통과 | 기존 엔진/네트워크, Unicode 폭, 두 칸 원자 변경·scavenger·DB 이전/백업, 관성 시간 계산 |
+| `npm run test:browser` | 25/25 통과 | 전체 화면 지도와 중심 커서, 두 클라이언트, GPS·줌·터치·재접속 |
+| `npm run test:input` | 5/5 통과 | 조합 취소·snapshot·탐색 뒤 늦은 입력 억제 |
+| `npm run test:writing` | 20/20 통과 | 기존 작성 의도 및 실제 native 한글 범위 치환, 두 번째 칸 삭제·덮어쓰기 |
+| `npm run test:ime` | 9/9 통과 | native Chromium 문맥 보존, 연속 음절, 누락된 isComposing, 늦은 companion, 확정 Enter |
+| `npm run test:motion` | 10/10 통과 | 실제 Chromium mouse/touch flick, 원격 presence, 입력/IME/탭/핀치/줌 등 중단, wheel 총량, reduced-motion |
+
+총 122개 자동 검사를 실제 실행했다. 별도로 난수 120개 fixture에서 혼합 문자를 한 번/나누어 썼을 때 최종 셀·폭·쌍 버전이 일치하는지 확인했다. 이 추가 실험은 자동 검사 수에 더하지 않았다.
+
+- 기존 앱에서 native `ㅎ` 입력 뒤 `replacementStart:0,replacementEnd:1`로 `하 → 한`을 확정하면 `ㅎ한`이 남는 실패를 실제 Chromium CDP로 재현했다. 수정 후 한 글자로 치환되며 다음 음절도 중복 없이 이어진다.
+- 통합 중 snapshot 뒤 늦은 완료가 다시 쓰이는 회귀를 발견했다. Chromium이 일부 inputType을 빈 값으로 전달하는 경우까지 취소 상태로 억제하고 새 정상 입력에서 해제하도록 수정했다.
+- 실제 pointerup 시각보다 RAF timestamp가 앞서는 경우 관성이 곧바로 취소되는 실패를 같은 단조 시계 사용으로 수정했다. 휠의 합계가 부동소수 오차로 마지막 한 칸에 못 미치는 실패도 수정했다.
+- `ABCDEF`, `가나다`, `ＡＢＣ`, `é1한🙂`가 각각 6개 기본 칸을 사용한다. 일반 Arial/sans-serif를 사용하며 좁은 칸 12px, 넓은 문자 24px 간격이다. 두 번째 칸 덮어쓰기와 토러스 경계 표시를 실제 열어 확인했다.
+- 시각 산출물: `artifacts/cjk-desktop.png`, `cjk-mobile.png`, `cjk-composition.png`, `cjk-seam.png`, `cjk-width-mobile.png`. 혼합 폭과 조합 밑줄, 중심 커서가 일치했다. 넓은 라틴 글자는 할당 폭에 맞춰 압축될 수 있고, 다른 사용자의 이름표가 윗행을 가리는 기존 표시 한계는 남아 있다.
+- 기존 영구 DB의 폭 컬럼 추가 전에 일관된 SQLite 백업을 만들며, 실패하면 이전을 진행하지 않는 것을 검증했다. 기존 셀의 주소·내용·버전은 유지한다. 이전 기록은 1칸 폭, 새 입력부터 새 폭이다.
+
+실제 iOS/Android 키보드는 아직 검증하지 않았다. 다음 실험은 기기별 한글 후보 확정·자동 교정과, 터치 관성 감속/정지 촉감을 확인하는 것이다. 경계에 걸친 두 칸 문자가 있는 동안 너비 변경을 보류하는 정책과 최근 32글자 치환 한도는 현재 실험의 제한이다.
+
 ## Enter와 공간 글쓰기 재설계
 
 기존 구현에서 `ABC` 뒤 Enter가 현재 열의 아래로 가는 반면, `ABC\nD` 붙여넣기는 입력 시작 열로 돌아가는 차이를 실제 실행으로 재현했다. 줄바꿈 직후 Backspace가 무관한 다음 행의 왼쪽 셀을 지우는 반례도 확인했다. 비교한 모델과 선택은 [INPUT_DESIGN.md](INPUT_DESIGN.md), 결정은 D009에 기록했다.

@@ -104,22 +104,22 @@ try {
   assert.deepEqual((await state(a)).cursor, beforeTap);
   check('map tap opens native input at center without moving to the tap point');
   await a.keyboard.insertText('안녕👨‍👩‍👧‍👦');
-  await settle(a); await waitCell(b, 64, 32, '안'); await waitCell(b, 66, 32, '👨‍👩‍👧‍👦');
-  assert.equal((await state(a)).cursor.x, 67); await centered(a);
+  await settle(a); await waitCell(b, 64, 32, '안'); await waitCell(b, 68, 32, '👨‍👩‍👧‍👦');
+  assert.equal((await state(a)).cursor.x, 70); await centered(a);
   check('Korean and emoji write directly into cells while camera follows centered cursor');
 
   await b.mouse.click(460, 350); await b.keyboard.insertText('별');
-  await settle(b); await waitCell(a, 64, 32, '별'); await waitCell(a, 65, 32, '녕');
+  await settle(b); await waitCell(a, 64, 32, '별'); await waitCell(a, 66, 32, '녕');
   await centered(b);
   check('overwrite changes only addressed cell without shifting neighbors');
   await b.keyboard.press('Backspace'); await settle(b);
   await a.waitForFunction(() => !window.textworld.inspect().cells.some(cell => cell.x === 64 && cell.y === 32));
-  await waitCell(a, 65, 32, '녕'); await centered(b);
+  await waitCell(a, 66, 32, '녕'); await centered(b);
   check('backspace clears preceding cell and keeps cursor centered');
 
   await a.mouse.click(400, 340); await a.keyboard.insertText('A\tB'); await settle(a);
-  assert.equal((await state(a)).cursor.x, 73);
-  await b.waitForFunction(() => window.textworld.inspect().peers.some(peer => peer.x === 73 && peer.y === 32));
+  assert.equal((await state(a)).cursor.x, 76);
+  await b.waitForFunction(() => window.textworld.inspect().peers.some(peer => peer.x === 76 && peer.y === 32));
   await centered(a);
   check('tab paste shares identical cursor projection with server presence');
 
@@ -132,8 +132,8 @@ try {
   await centered(a);
   await a.screenshot({ path: 'artifacts/desktop-composition.png' });
   await cdp.send('Input.insertText', { text: '한' });
-  await settle(a); await waitCell(b, 73, 32, '한');
-  assert.equal((await state(a)).cursor.x, 74); await centered(a);
+  await settle(a); await waitCell(b, 76, 32, '한');
+  assert.equal((await state(a)).cursor.x, 78); await centered(a);
   check('native Korean IME composes at center and commits final syllable exactly once');
 
   await goTo(a, 64, 32);
@@ -150,10 +150,10 @@ try {
 
   await a.mouse.move(600, 450); await a.mouse.down();
   await a.mouse.move(600 + dimensions.width * 3, 450 + dimensions.height * 2, { steps: 8 });
-  await a.mouse.up();
   await a.waitForFunction(() => window.textworld.inspect().cursor.x === 63 && window.textworld.inspect().cursor.y === 33);
   await centered(a);
   check('dragging the map moves world beneath the stationary center cursor');
+  await a.mouse.up(); // Release may coast; explicit placement below stops that motion.
 
   await goTo(a, 64, 32);
   await a.evaluate(({ width, height }) => {
@@ -177,8 +177,8 @@ try {
   check('mouse-operated map controls return desktop typing to the center cell');
 
   await goTo(a, 127, 63); await a.mouse.click(520, 370); await a.keyboard.insertText('끝처');
-  await settle(a); await waitCell(b, 127, 63, '끝'); await waitCell(b, 0, 63, '처');
-  assert.equal((await state(a)).cursor.x, 1); await centered(a);
+  await settle(a); await waitCell(b, 127, 63, '끝'); await waitCell(b, 1, 63, '처');
+  assert.equal((await state(a)).cursor.x, 3); await centered(a);
   await a.keyboard.press('ArrowDown'); assert.equal((await state(a)).cursor.y, 0); await centered(a);
   check('writing and navigation cross both toroidal seams without losing screen center');
 
@@ -224,6 +224,8 @@ try {
   await mobile.screenshot({ path: 'artifacts/mobile.png' });
   check('mobile touch drag changes cursor location with no page scrolling');
 
+  // A fresh touch halts a previous flick before checking pinch-only movement.
+  await mobile.touchscreen.tap(190, 350);
   const beforePinch = await state(mobile);
   await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 120, y: 310 }, { x: 220, y: 310 }] });
   await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 95, y: 310 }, { x: 245, y: 310 }] });

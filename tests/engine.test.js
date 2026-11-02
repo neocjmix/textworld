@@ -21,8 +21,8 @@ test('overwrite and deletion leave neighboring cell contents and versions unchan
   write('ABC', 4, 7);
   const left = { ...world.getCell(4, 7) };
   const right = { ...world.getCell(6, 7) };
-  write('한', 5, 7, 'bob');
-  assert.equal(world.getCell(5, 7).text, '한');
+  write('X', 5, 7, 'bob');
+  assert.equal(world.getCell(5, 7).text, 'X');
   assert.deepEqual(world.getCell(4, 7), left);
   assert.deepEqual(world.getCell(6, 7), right);
   world.erase({ author: 'bob', id: 'delete', epoch: world.epoch, x: 5, y: 7 });
@@ -55,28 +55,30 @@ test('a paste longer than one circumference overwrites addresses rather than cre
   assert.deepEqual(result.cursor, { x: 2, y: 2 });
 });
 
-test('Korean decomposed syllables, combining accents, flags and ZWJ emoji each occupy one cell', t => {
+test('Korean and emoji occupy two columns while combining accents remain one glyph column', t => {
   const { world, write } = fixture(t);
   const input = '한e\u0301🇰🇷👨‍👩‍👧‍👦';
   assert.deepEqual(graphemes(input), ['한', 'é', '🇰🇷', '👨‍👩‍👧‍👦']);
   const result = write(input, 10, 10);
-  assert.deepEqual(result.cells.map(c => c.text), ['한', 'é', '🇰🇷', '👨‍👩‍👧‍👦']);
-  assert.deepEqual(result.cursor, { x: 14, y: 10 });
-  assert.equal(world.snapshot().cells.length, 4);
+  assert.deepEqual(result.cells.filter(c => c.text).map(c => [c.x, c.text, c.width]), [[10, '한', 2], [12, 'é', 1], [13, '🇰🇷', 2], [15, '👨‍👩‍👧‍👦', 2]]);
+  assert.deepEqual(result.cursor, { x: 17, y: 10 });
+  assert.equal(world.snapshot().cells.length, 7);
 });
 
 test('newline resets to the write origin and CRLF never creates an extra cell', () => {
   const plan = writePlan('가나\r\n다', 5, 15, { width: 32, height: 16 });
   assert.deepEqual(plan.cells, [
-    { x: 5, y: 15, text: '가' }, { x: 6, y: 15, text: '나' }, { x: 5, y: 0, text: '다' },
+    { x: 5, y: 15, text: '가', width: 2 }, { x: 6, y: 15, text: '', width: 0, leadX: 5 },
+    { x: 7, y: 15, text: '나', width: 2 }, { x: 8, y: 15, text: '', width: 0, leadX: 7 },
+    { x: 5, y: 0, text: '다', width: 2 }, { x: 6, y: 0, text: '', width: 0, leadX: 5 },
   ]);
-  assert.deepEqual(plan.cursor, { x: 6, y: 0 });
+  assert.deepEqual(plan.cursor, { x: 7, y: 0 });
 });
 
 test('explicit line origin preserves the current insertion cell and aligns subsequent rows', t => {
   const { world, write } = fixture(t);
   write('AB', 7, 3);
-  write('옆', 6, 4, 'neighbor');
+  write('N', 6, 4, 'neighbor');
   const neighbor = { ...world.getCell(6, 4) };
   const result = world.applyWrite({
     author: 'alice', id: 'continue-lines', epoch: world.epoch,
@@ -196,7 +198,7 @@ test('server ordering converges same-cell overwrites and a retried earlier opera
 
 test('growth keeps cell identity and provenance while rejecting stale-epoch writes', t => {
   const { world, write } = fixture(t);
-  write('가', 63, 31);
+  write('A', 63, 31);
   const before = { ...world.getCell(63, 31) };
   const oldEpoch = world.epoch;
   assert.equal(world.resize(128, 64).changed, true);
@@ -285,7 +287,7 @@ test('durable restart restores text, deletion, topology, operation order, dedupl
   let world = new World({ storagePath, width: 64, height: 32, now: () => 1234 });
   const operation = { author: 'alice', id: 'persistent-input', epoch: 1, x: 4, y: 5, text: '한글' };
   world.applyWrite(operation);
-  world.erase({ author: 'bob', id: 'persistent-delete', epoch: 1, x: 5, y: 5 });
+  world.erase({ author: 'bob', id: 'persistent-delete', epoch: 1, x: 6, y: 5 });
   world.resize(128, 64);
   const metadata = world.metadata();
   world.close();
@@ -293,8 +295,10 @@ test('durable restart restores text, deletion, topology, operation order, dedupl
   t.after(() => world.close());
   assert.deepEqual(world.metadata(), metadata);
   assert.equal(world.getCell(4, 5).text, '한');
-  assert.equal(world.getCell(5, 5).text, '');
-  assert.equal(world.snapshot().cells.length, 1);
+  assert.equal(world.getCell(5, 5).width, 0);
+  assert.equal(world.getCell(6, 5).text, '');
+  assert.equal(world.getCell(7, 5).text, '');
+  assert.equal(world.snapshot().cells.length, 2);
   assert.equal(world.applyWrite(operation).duplicate, true);
   assert.equal(world.seq, metadata.seq);
   assert.equal(world.evidence()[0].author, 'alice');

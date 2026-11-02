@@ -26,7 +26,7 @@ export class WritingSession {
     if (this.trail.length > 4096) this.trail.splice(0, this.trail.length - 4096);
   }
 
-  backspace(cursor, world) {
+  backspace(cursor, world, cells = new Map()) {
     const last = this.trail.at(-1);
     if (last && last.to.x === cursor.x && last.to.y === cursor.y) {
       this.trail.pop();
@@ -34,6 +34,8 @@ export class WritingSession {
     }
     // Outside the known typing path, Backspace addresses the cell on the left.
     const previous = { x: wrap(cursor.x - 1, world.width), y: cursor.y };
+    const cell = cells.get(`${previous.x},${previous.y}`);
+    if (cell?.width === 0) previous.x = cell.leadX;
     this.reposition(previous);
     return { cursor: previous, erase: true };
   }

@@ -1,7 +1,8 @@
 import { DatabaseSync } from 'node:sqlite';
-import { mkdirSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
+import { closeSync, fsyncSync, mkdirSync, openSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { cellKey, graphemes, wrap, writePlan } from '../shared/world.js';
+import { cellKey, cellSpan, occupiedCell, graphemes, wrap, writePlan } from '../shared/world.js';
 
 export class WorldError extends Error {
   constructor(code, message) { super(message); this.code = code; }
@@ -23,16 +24,52 @@ export class World {
       CREATE INDEX IF NOT EXISTS history_cell ON history(x,y);
       CREATE INDEX IF NOT EXISTS history_group ON history(author,groupId);
       CREATE INDEX IF NOT EXISTS cells_group ON cells(author,groupId);`);
-    this.now = now;
+    // Existing cells retain their exact addresses and one-column footprint.
+    // Retyping upgrades their width; migration never overwrites a neighbour.
     const saved = this.db.prepare("SELECT value FROM meta WHERE key='world'").get();
+    const columnsByTable = new Map(['cells', 'history'].map(table => [table,
+      new Set(this.db.prepare(`PRAGMA table_info(${table})`).all().map(column => column.name)),
+    ]));
+    const needsMigration = [...columnsByTable.values()].some(columns => !columns.has('width') || !columns.has('leadX'));
+    this.migrationBackupPath = null;
+    if (storagePath !== ':memory:' && saved && needsMigration) {
+      // VACUUM INTO captures the complete committed WAL state. A unique path
+      // preserves any failed/previous backup; SQLite also refuses overwrites.
+      const backupPath = `${storagePath}.pre-width-v2-${Date.now()}-${randomUUID()}.sqlite`;
+      try {
+        this.db.prepare('VACUUM INTO ?').run(backupPath);
+        // SQLite VACUUM INTO does not fsync its output before returning.
+        // Persist the backup before changing the only live database schema.
+        const backupFile = openSync(backupPath, 'r');
+        try { fsyncSync(backupFile); } finally { closeSync(backupFile); }
+        if (process.platform !== 'win32') {
+          const backupDirectory = openSync(dirname(backupPath), 'r');
+          try { fsyncSync(backupDirectory); } finally { closeSync(backupDirectory); }
+        }
+        this.migrationBackupPath = backupPath;
+        console.info(`Saved pre-width migration backup: ${backupPath}`);
+      } catch (error) {
+        this.db.close();
+        throw new Error('Width migration backup failed; schema was not changed.', { cause: error });
+      }
+    }
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      for (const [table, columns] of columnsByTable) {
+        if (!columns.has('width')) this.db.exec(`ALTER TABLE ${table} ADD COLUMN width INTEGER NOT NULL DEFAULT 1`);
+        if (!columns.has('leadX')) this.db.exec(`ALTER TABLE ${table} ADD COLUMN leadX INTEGER`);
+      }
+      this.db.exec('COMMIT');
+    } catch (error) { this.db.exec('ROLLBACK'); this.db.close(); throw error; }
+    this.now = now;
     const meta = saved ? JSON.parse(saved.value) : { width, height, epoch: 1, seq: 0 };
     Object.assign(this, meta);
-    this.cells = new Map(this.db.prepare('SELECT x,y,text,version,author,updatedAt,groupId AS "group" FROM cells').all().map(cell => [cellKey(cell.x, cell.y), cell]));
+    this.cells = new Map(this.db.prepare('SELECT x,y,text,width,leadX,version,author,updatedAt,groupId AS "group" FROM cells').all().map(cell => [cellKey(cell.x, cell.y), cell]));
     this.lastResize = this.now();
     this.saveMeta();
   }
-  metadata() { return { width: this.width, height: this.height, epoch: this.epoch, seq: this.seq }; }
-  snapshot() { return { world: this.metadata(), seq: this.seq, cells: [...this.cells.values()].filter(cell => cell.text !== '') }; }
+  metadata() { return { width: this.width, height: this.height, epoch: this.epoch, seq: this.seq, textLayout: 2 }; }
+  snapshot() { return { world: this.metadata(), seq: this.seq, cells: [...this.cells.values()].filter(occupiedCell) }; }
   getCell(x, y) { return this.cells.get(cellKey(wrap(x, this.width), wrap(y, this.height))); }
   saveMeta() { this.db.prepare("INSERT OR REPLACE INTO meta (key,value) VALUES ('world',?)").run(JSON.stringify(this.metadata())); }
   assertEpoch(epoch) {
@@ -58,28 +95,36 @@ export class World {
       throw new WorldError('BAD_TEXT', '한 번에 512자 이내의 텍스트를 입력하세요.');
     }
     const plan = writePlan(text, x, y, this, { lineStartX });
-    return this.commit(plan.cells, { author, id, cursor: plan.cursor, reason: 'write' });
+    const changes = new Map();
+    for (const cell of plan.cells) {
+      for (const old of this.spanAt(cell.x, cell.y)) changes.set(cellKey(old.x, old.y), { x: old.x, y: old.y, text: '' });
+    }
+    for (const cell of plan.cells) changes.set(cellKey(cell.x, cell.y), cell);
+    return this.commit([...changes.values()], { author, id, cursor: plan.cursor, reason: 'write' });
   }
+  spanAt(x, y) { return cellSpan((a, b) => this.getCell(a, b), x, y, this); }
   erase({ author, id, epoch, x, y }) {
     const previous = this.prior(author, id);
     if (previous) return previous;
     this.assertEpoch(epoch);
     this.assertPosition(x, y);
     x = wrap(x, this.width); y = wrap(y, this.height);
-    return this.commit([{ x, y, text: '' }], { author, id, cursor: { x, y }, reason: 'erase' });
+    const span = this.spanAt(x, y);
+    const changes = (span.length ? span : [{ x, y }]).map(cell => ({ x: cell.x, y: cell.y, text: '' }));
+    return this.commit(changes, { author, id, cursor: { x, y }, reason: 'erase' });
   }
   commit(changes, { author, id, cursor, reason }) {
     const seq = this.seq + 1;
     const updatedAt = this.now();
-    const cells = changes.map(cell => ({ ...cell, version: seq, author, updatedAt, group: id }));
+    const cells = changes.map(cell => ({ ...cell, width: cell.width ?? 1, leadX: cell.leadX ?? null, version: seq, author, updatedAt, group: id }));
     const result = { seq, epoch: this.epoch, cells, cursor, id, author };
     this.db.exec('BEGIN IMMEDIATE');
     try {
-      const upsert = this.db.prepare('INSERT OR REPLACE INTO cells VALUES (?,?,?,?,?,?,?)');
-      const history = this.db.prepare('INSERT INTO history VALUES (?,?,?,?,?,?,?,?)');
+      const upsert = this.db.prepare('INSERT OR REPLACE INTO cells (x,y,text,version,author,updatedAt,groupId,width,leadX) VALUES (?,?,?,?,?,?,?,?,?)');
+      const history = this.db.prepare('INSERT INTO history (seq,x,y,text,author,updatedAt,groupId,reason,width,leadX) VALUES (?,?,?,?,?,?,?,?,?,?)');
       for (const cell of cells) {
-        upsert.run(cell.x, cell.y, cell.text, seq, author, updatedAt, id);
-        history.run(seq, cell.x, cell.y, cell.text, author, updatedAt, id, reason);
+        upsert.run(cell.x, cell.y, cell.text, seq, author, updatedAt, id, cell.width, cell.leadX);
+        history.run(seq, cell.x, cell.y, cell.text, author, updatedAt, id, reason, cell.width, cell.leadX);
       }
       this.db.prepare('INSERT INTO operations VALUES (?,?,?)').run(author, id, JSON.stringify(result));
       this.db.prepare("INSERT OR REPLACE INTO meta (key,value) VALUES ('world',?)").run(JSON.stringify({ ...this.metadata(), seq }));
@@ -90,10 +135,10 @@ export class World {
     return result;
   }
   evidence({ before = this.now(), limit = 500 } = {}) {
-    return this.db.prepare(`SELECT c.x,c.y,c.text,c.version,c.author,c.updatedAt,c.groupId AS "group",
+    return this.db.prepare(`SELECT c.x,c.y,c.text,c.width,c.leadX,c.version,c.author,c.updatedAt,c.groupId AS "group",
       (SELECT count(*) FROM history h WHERE h.x=c.x AND h.y=c.y) AS revisions,
       (SELECT count(*) FROM history h WHERE h.author=c.author AND h.groupId=c.groupId) AS originalGroupCells,
-      (SELECT count(*) FROM cells g WHERE g.groupId=c.groupId AND g.author=c.author AND g.text!='') AS survivingGroupCells
+      (SELECT count(*) FROM cells g WHERE g.groupId=c.groupId AND g.author=c.author AND (g.text!='' OR g.width=0)) AS survivingGroupCells
       FROM cells c WHERE c.text!='' AND c.updatedAt<=? ORDER BY c.updatedAt LIMIT ?`).all(before, Math.min(500, Math.max(1, limit)));
   }
   conditionalDelete({ id, epoch, candidates }) {
@@ -107,7 +152,11 @@ export class World {
       this.assertPosition(candidate.x, candidate.y);
       const key = cellKey(candidate.x, candidate.y);
       const current = this.cells.get(key);
-      if (current?.text && current.version === candidate.version) changes.set(key, { x: current.x, y: current.y, text: '' });
+      if (current?.text && current.version === candidate.version) {
+        const span = this.spanAt(current.x, current.y);
+        if (current.width === 2 && (span.length !== 2 || span.some(cell => cell.version !== candidate.version || cell.author !== current.author || cell.group !== current.group))) continue;
+        for (const cell of span) changes.set(cellKey(cell.x, cell.y), { x: cell.x, y: cell.y, text: '' });
+      }
     }
     return this.commit([...changes.values()], { author, id, reason: 'scavenge', cursor: null });
   }
@@ -116,14 +165,17 @@ export class World {
       throw new WorldError('BAD_EXTENT', '세계 크기가 실험 범위를 벗어났습니다.');
     }
     if (width === this.width && height === this.height) return { changed: false, reason: 'unchanged' };
-    if ([...this.cells.values()].some(c => c.text && (c.x >= width || c.y >= height)) || peers.some(p => p.x >= width || p.y >= height)) {
+    if (width !== this.width && [...this.cells.values()].some(c => c.width === 2 && c.x === this.width - 1)) {
+      return { changed: false, reason: 'wide-boundary' };
+    }
+    if ([...this.cells.values()].some(c => occupiedCell(c) && (c.x >= width || c.y >= height)) || peers.some(p => p.x >= width || p.y >= height)) {
       return { changed: false, reason: 'occupied-boundary' };
     }
     const next = { width, height, epoch: this.epoch + 1, seq: this.seq + 1 };
     this.db.exec('BEGIN IMMEDIATE');
     try {
       this.db.prepare("INSERT OR REPLACE INTO meta (key,value) VALUES ('world',?)").run(JSON.stringify(next));
-      this.db.prepare("DELETE FROM cells WHERE text='' AND (x>=? OR y>=?)").run(width, height);
+      this.db.prepare("DELETE FROM cells WHERE text='' AND width!=0 AND (x>=? OR y>=?)").run(width, height);
       this.db.exec('COMMIT');
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
     Object.assign(this, next);
@@ -132,7 +184,7 @@ export class World {
     return { changed: true, reason: 'density', ...this.metadata() };
   }
   adapt(peers = [], { cooldown = 30000 } = {}) {
-    const occupied = [...this.cells.values()].filter(cell => cell.text).length;
+    const occupied = [...this.cells.values()].filter(occupiedCell).length;
     const density = Math.max(occupied, peers.length * 96) / (this.width * this.height);
     if (this.now() - this.lastResize < cooldown) return { changed: false, reason: 'cooldown', density };
     if (density > 0.25 && this.width < 1024 && this.height < 512) return { ...this.resize(Math.min(1024, this.width * 2), Math.min(512, this.height * 2), peers), density };

@@ -9,7 +9,9 @@
     "test:browser": "node tests/browser.mjs",
     "experiment": "node experiments/topology.mjs",
     "test:input": "node tests/input-regression.mjs",
-    "test:writing": "node tests/writing-interactions.mjs"
+    "test:writing": "node tests/writing-interactions.mjs",
+    "test:ime": "node tests/ime-native.mjs",
+    "test:motion": "node tests/motion-browser.mjs"
   },
   "engines": {
     "node": ">=24"

@@ -23,7 +23,7 @@ function connect(url) {
     const waiter = { predicate, resolve, timer: setTimeout(() => reject(new Error('Timed out waiting for protocol message')), 2000) };
     waiters.push(waiter);
   });
-  return { socket, messages, next, send: value => socket.send(JSON.stringify(value)) };
+  return { socket, messages, next, send: value => socket.send(JSON.stringify({ layout: 2, ...value })) };
 }
 
 test('independent sockets converge on overwrites, presence, stale epochs and reconnect snapshots', async t => {
@@ -170,13 +170,13 @@ test('standalone scavenger process removes aged cells while retaining current te
     timeout: 5000,
   });
   const first = await execute();
-  assert.equal(JSON.parse(first.stdout).deleted, 4);
+  assert.equal(JSON.parse(first.stdout).deleted, 8);
   assert.equal(first.stderr, '');
   assert.ok(!first.stdout.includes(token));
   assert.equal(app.world.getCell(3, 4).text, '');
   assert.equal(app.world.getCell(3, 5).text, '새');
   const removal = await observer.next(m => m.type === 'cells' && m.author === 'scavenger');
-  assert.equal(removal.cells.length, 4);
+  assert.equal(removal.cells.length, 8);
   assert.ok(removal.cells.every(cell => cell.text === ''));
   const second = await execute();
   assert.equal(second.stdout.trim(), 'No expired cells.');
@@ -211,4 +211,19 @@ test('explicit writing origin reaches both sockets while legacy write messages r
   assert.deepEqual(legacy.cells.map(({ x, y, text }) => ({ x, y, text })), [
     { x: 20, y: 3, text: 'E' }, { x: 20, y: 4, text: 'F' },
   ]);
+});
+
+test('old clients receive an update instruction before incompatible writes can mutate cells', async t => {
+  const app = createTextworld({ storagePath: ':memory:' }); t.after(() => app.close());
+  const address = await app.listen(0, '127.0.0.1');
+  const old = connect(`ws://127.0.0.1:${address.port}/ws`);
+  const snapshot = await old.next(m => m.type === 'snapshot');
+  assert.equal(snapshot.world.textLayout, 2);
+  old.send({ layout: undefined, type: 'write', id: 'old-width', epoch: 1, x: 10, y: 3, text: '한글' });
+  const error = await old.next(m => m.type === 'error' && m.id === 'old-width');
+  assert.equal(error.code, 'CLIENT_UPDATE_REQUIRED'); assert.match(error.message, /새로고침/);
+  assert.equal(app.world.seq, 0); assert.equal(app.world.snapshot().cells.length, 0);
+  old.send({ type: 'write', id: 'new-width', epoch: 1, x: 10, y: 3, text: '한글' });
+  const ack = await old.next(m => m.type === 'ack' && m.id === 'new-width');
+  assert.deepEqual(ack.cursor, { x: 14, y: 3 });
 });

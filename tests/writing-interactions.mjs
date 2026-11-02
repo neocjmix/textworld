@@ -170,7 +170,7 @@ try {
     assert.equal(await beforeInput(page, 'insertLineBreak'), false);
     await at(page, 10, 10);
     assert.equal(app.world.seq, seq);
-    await type(page, '한'); await at(page, 11, 10);
+    await type(page, '한'); await at(page, 12, 10);
     assert.equal(cell(app, 10, 10), '한');
   }, { mobile: true });
 
@@ -241,7 +241,8 @@ try {
 
   await scenario('Map panning and shared-location navigation start fresh local margins', async ({ app, page }) => {
     await type(page, 'ABC');
-    await page.mouse.move(600, 450); await page.mouse.wheel(48, 60); await at(page, 15, 10);
+    const width = await page.evaluate(() => document.getElementById('field').getBoundingClientRect().width / window.textworld.inspect().viewport.cols);
+    await page.mouse.move(600, 450); await page.mouse.wheel(width * 2, 60); await at(page, 15, 10);
     await type(page, 'XY'); await page.keyboard.press('Enter'); await at(page, 15, 11);
     await goTo(page, 30, 12); await type(page, 'QR');
     await page.keyboard.press('Enter'); await at(page, 30, 13);
@@ -249,15 +250,15 @@ try {
   });
 
   await scenario('Return across toroidal seams retains the spatial margin and grapheme cells', async ({ app, page }) => {
-    await type(page, '한👨‍👩‍👧‍👦'); await at(page, 0, 63);
+    await type(page, '한👨‍👩‍👧‍👦'); await at(page, 2, 63);
     await page.keyboard.press('Enter'); await at(page, 126, 0);
-    await type(page, '끝'); await at(page, 127, 0);
-    assert.equal(cell(app, 126, 63), '한'); assert.equal(cell(app, 127, 63), '👨‍👩‍👧‍👦');
+    await type(page, '끝'); await at(page, 0, 0);
+    assert.equal(cell(app, 126, 63), '한'); assert.equal(cell(app, 0, 63), '👨‍👩‍👧‍👦');
     assert.equal(cell(app, 126, 0), '끝');
     await page.keyboard.press('Backspace'); await settle(page); await at(page, 126, 0);
-    await page.keyboard.press('Backspace'); await at(page, 0, 63);
-    await page.keyboard.press('Backspace'); await settle(page); await at(page, 127, 63);
-    assert.equal(cell(app, 127, 63), ''); assert.equal(cell(app, 126, 63), '한');
+    await page.keyboard.press('Backspace'); await at(page, 2, 63);
+    await page.keyboard.press('Backspace'); await settle(page); await at(page, 0, 63);
+    assert.equal(cell(app, 0, 63), ''); assert.equal(cell(app, 126, 63), '한');
   }, { x: 126, y: 63 });
 
   await scenario('IME confirmation Enter does not also return; the next Enter does', async ({ app, page, context }) => {
@@ -270,10 +271,53 @@ try {
       new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 229, isComposing: true, bubbles: true, cancelable: true }),
     ));
     await at(page, 10, 8);
-    await cdp.send('Input.insertText', { text: '한' }); await settle(page); await at(page, 11, 8);
+    await cdp.send('Input.insertText', { text: '한' }); await settle(page); await at(page, 12, 8);
     assert.equal(app.world.seq, 1); assert.equal(cell(app, 10, 8), '한');
     await page.keyboard.press('Enter'); await at(page, 10, 9);
     assert.equal(app.world.seq, 1);
+  });
+
+  await scenario('Native Korean replacement composes successive syllables without leaving jamo behind', async ({ app, page, observer, context }) => {
+    const cdp = await context.newCDPSession(page);
+    // Some IMEs expose an initial character before opening its replacement range.
+    // Keeping the native textarea context lets Chromium replace that same character.
+    await cdp.send('Input.insertText', { text: 'ㅎ' }); await settle(page);
+    assert.equal(await page.locator('#input').inputValue(), 'ㅎ');
+    for (const text of ['하', '한']) await cdp.send('Input.imeSetComposition', {
+      text, selectionStart: 1, selectionEnd: 1, replacementStart: 0, replacementEnd: 1,
+    });
+    await cdp.send('Input.insertText', { text: '한' }); await settle(page); await at(page, 12, 8);
+    assert.equal(cell(app, 10, 8), '한'); assert.equal(cell(app, 12, 8), '');
+    assert.equal(await page.locator('#input').inputValue(), '한');
+
+    await cdp.send('Input.insertText', { text: 'ㄱ' }); await settle(page);
+    for (const text of ['그', '글']) await cdp.send('Input.imeSetComposition', {
+      text, selectionStart: 1, selectionEnd: 1, replacementStart: 1, replacementEnd: 2,
+    });
+    await cdp.send('Input.insertText', { text: '글' }); await settle(page); await at(page, 14, 8);
+    const glyphs = app.world.snapshot().cells.filter(c => c.text).map(({ x, y, text }) => ({ x, y, text }));
+    assert.deepEqual(glyphs.sort((a, b) => a.x - b.x), [{ x: 10, y: 8, text: '한' }, { x: 12, y: 8, text: '글' }]);
+    await observer.waitForFunction(() => {
+      const cells = window.textworld.inspect().cells;
+      return cells.some(c => c.x === 10 && c.y === 8 && c.text === '한') && cells.some(c => c.x === 12 && c.y === 8 && c.text === '글');
+    });
+    assert.equal(await page.locator('#input').inputValue(), '한글');
+  });
+
+  await scenario('Wide-glyph tails stay addressable and erase as one glyph without moving neighbors', async ({ app, page, observer }) => {
+    await type(page, 'A한B'); await at(page, 14, 8);
+    const tail = (await state(page)).cells.find(c => c.x === 12 && c.y === 8);
+    assert.equal(tail?.width, 0); assert.equal(tail?.leadX, 11);
+    await page.keyboard.press('ArrowLeft'); await at(page, 13, 8);
+    await page.keyboard.press('Backspace'); await settle(page); await at(page, 11, 8);
+    assert.equal(cell(app, 10, 8), 'A'); assert.equal(cell(app, 11, 8), ''); assert.equal(cell(app, 13, 8), 'B');
+    await type(page, '字'); await at(page, 13, 8);
+    await goTo(page, 12, 8); await type(page, 'Z'); await at(page, 13, 8);
+    assert.equal(cell(app, 11, 8), ''); assert.equal(cell(app, 12, 8), 'Z'); assert.equal(cell(app, 13, 8), 'B');
+    await goTo(page, 11, 8); await type(page, '한'); await at(page, 13, 8);
+    await goTo(page, 12, 8); await page.keyboard.press('Delete'); await settle(page); await at(page, 12, 8);
+    assert.equal(cell(app, 11, 8), ''); assert.equal(cell(app, 12, 8), ''); assert.equal(cell(app, 13, 8), 'B');
+    await observer.waitForFunction(() => !window.textworld.inspect().cells.some(c => c.y === 8 && (c.x === 11 || c.x === 12)));
   });
 
   await scenario('Delete keeps the cursor, clears one cell, and leaves the local margin intact', async ({ app, page }) => {
@@ -327,7 +371,7 @@ try {
       input.dispatchEvent(new InputEvent('input', { inputType: 'historyUndo', data: 'old draft', bubbles: true }));
     });
     await at(page, 13, 8); assert.equal(app.world.seq, seq);
-    assert.equal(await page.locator('#input').inputValue(), '');
+    assert.notEqual(await page.locator('#input').inputValue(), 'old draft');
     assert.ok((await page.locator('#notice').textContent()).length > 0);
     assert.equal(cell(app, 10, 8), 'A'); assert.equal(cell(app, 12, 8), 'C');
   });

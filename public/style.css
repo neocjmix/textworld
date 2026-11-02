@@ -5,7 +5,7 @@
   --muted: #728174;
   --line: #d8dfd4;
   --accent: #287054;
-  --cell-width: 24px;
+  --cell-width: 12px;
   --cell-height: 30px;
   --edge: 22px;
   font-family: Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
@@ -60,7 +60,7 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
   color: transparent;
   caret-color: transparent;
   -webkit-text-fill-color: transparent;
-  font: 16px/1 ui-monospace, "Apple SD Gothic Neo", monospace;
+  font: 16px/1 Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 }
 #input::selection { color: transparent; background: transparent; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

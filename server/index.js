@@ -115,6 +115,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
           peer.x = wrap(message.x, world.width); peer.y = wrap(message.y, world.height);
           presence();
         } else if (message.type === 'write' || message.type === 'erase') {
+          if (message.layout !== 2) throw new WorldError('CLIENT_UPDATE_REQUIRED', '입력 방식이 업데이트되었습니다. 페이지를 새로고침해 주세요.');
           const operation = { ...message, author: peer.id };
           const result = message.type === 'write' ? world.applyWrite(operation) : world.erase(operation);
           if (!result.duplicate) {

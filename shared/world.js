@@ -1,8 +1,24 @@
+import { graphemeWidth } from './width.js';
+export { graphemeWidth } from './width.js';
+
 /** Cell addresses are integer coordinates in the current topology epoch. */
 export const wrap = (n, size) => ((n % size) + size) % size;
 export const cellKey = (x, y) => `${x},${y}`;
 const segmenter = new Intl.Segmenter('ko', { granularity: 'grapheme' });
 export const graphemes = text => [...segmenter.segment(text.normalize('NFC'))].map(part => part.segment);
+export const occupiedCell = cell => !!cell && (cell.text !== '' || cell.width === 0);
+
+/** Resolve a complete glyph without trusting a detached/stale continuation. */
+export function cellSpan(getCell, x, y, world) {
+  const cell = getCell(wrap(x, world.width), wrap(y, world.height));
+  if (!cell) return [];
+  const head = cell.width === 0 ? getCell(cell.leadX, cell.y) : cell;
+  if (head?.width === 2) {
+    const tail = getCell(wrap(head.x + 1, world.width), head.y);
+    if (tail?.width === 0 && tail.leadX === head.x && tail.version === head.version) return [head, tail];
+  }
+  return [cell];
+}
 
 /** Equal-area cylindrical projection; precise coordinates stay in the browser. */
 export function gpsToCell(latitude, longitude, { width, height }) {
@@ -30,8 +46,20 @@ export function writePlan(text, x, y, world, { lineStartX = x } = {}) {
       steps.push({ kind: 'return', from, to: { x, y } });
       continue;
     }
-    cells.set(cellKey(x, y), { x, y, text: char });
-    x = wrap(x + 1, world.width);
+    const width = graphemeWidth(char);
+    // A long paste may meet its own earlier wide glyph after a torus wrap.
+    // Clear that entire local glyph before placing the final occupant.
+    for (let offset = 0; offset < width; offset++) {
+      for (const old of cellSpan((a, b) => cells.get(cellKey(a, b)), x + offset, y, world)) {
+        cells.set(cellKey(old.x, old.y), { x: old.x, y: old.y, text: '', width: 1, leadX: null });
+      }
+    }
+    cells.set(cellKey(x, y), width === 2 ? { x, y, text: char, width: 2 } : { x, y, text: char });
+    if (width === 2) {
+      const tailX = wrap(x + 1, world.width);
+      cells.set(cellKey(tailX, y), { x: tailX, y, text: '', width: 0, leadX: x });
+    }
+    x = wrap(x + width, world.width);
     steps.push({ kind: 'write', from, to: { x, y } });
   }
   return { cells: [...cells.values()], cursor: { x, y }, steps };
