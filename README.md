@@ -1,6 +1,6 @@
 # Textworld
 
-공개 실험: **https://textworld-production-987c.up.railway.app** · [Railway 운영 안내](docs/DEPLOYMENT.md)
+공개 실험: **https://textworld-production-987c.up.railway.app** · [Railway 운영 안내](docs/DEPLOYMENT.md) · [UI 명칭 사전](docs/UI_GLOSSARY.md)
 
 A shared, spatial, real-time text world. People inhabit a 2D character grid as visible cursors, move, read, and overwrite cells together.
 
