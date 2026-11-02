@@ -282,6 +282,16 @@ function draw() {
   if (!world) return;
   const d = dimensions(), v = visible();
   const startX = Math.floor(camera.x), startY = Math.floor(camera.y);
+  // A square dot pattern in map pixels, anchored to the moving world rather
+  // than the viewport. Text cells themselves remain 9 × 26 at 100% zoom.
+  const dotSpacing = 26 * zoom, dotSize = Math.max(1, 1.3 * zoom);
+  const originX = camera.x * d.width, originY = camera.y * d.height;
+  ctx.fillStyle = '#d3d9ce';
+  for (let y = Math.floor(originY / dotSpacing) * dotSpacing; y <= originY + size.height; y += dotSpacing) {
+    for (let x = Math.floor(originX / dotSpacing) * dotSpacing; x <= originX + size.width; x += dotSpacing) {
+      ctx.fillRect(x - originX - dotSize / 2, y - originY - dotSize / 2, dotSize, dotSize);
+    }
+  }
   ctx.fillStyle = '#314137';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
