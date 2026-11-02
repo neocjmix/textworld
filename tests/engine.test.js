@@ -196,32 +196,16 @@ test('server ordering converges same-cell overwrites and a retried earlier opera
   assert.equal(world.getCell(3, 4).text, 'B');
 });
 
-test('growth keeps cell identity and provenance while rejecting stale-epoch writes', t => {
-  const { world, write } = fixture(t);
-  write('A', 63, 31);
-  const before = { ...world.getCell(63, 31) };
-  const oldEpoch = world.epoch;
-  assert.equal(world.resize(128, 64).changed, true);
-  assert.deepEqual(world.getCell(63, 31), before);
-  assert.equal(world.epoch, oldEpoch + 1);
-  assert.throws(() => world.applyWrite({
-    author: 'alice', id: 'late', epoch: oldEpoch, x: 63, y: 31, text: 'X',
-  }), { code: 'STALE_EPOCH' });
-  assert.deepEqual(world.getCell(63, 31), before);
+test('growth remaps addresses, retains surviving provenance and rejects stale writes', t => {
+  const { world, write } = fixture(t);write('A',63,31);const oldEpoch=world.epoch;
+  const result=world.resize(128,64,[],{seed:42});assert.equal(result.changed,true);assert.equal(result.preservesAddresses,false);
+  const cell=world.snapshot().cells.find(c=>c.text==='A');assert.ok(cell);assert.equal(cell.author,'alice');assert.equal(cell.version,1);
+  assert.throws(()=>world.applyWrite({author:'alice',id:'late',epoch:oldEpoch,x:63,y:31,text:'X'}),{code:'STALE_EPOCH'});
 });
-
-test('shrink never aliases occupied cells or removes a present cursor', t => {
-  const { world, write } = fixture(t, { width: 128, height: 64 });
-  write('A', 1, 1);
-  write('B', 65, 1);
-  assert.deepEqual(world.resize(64, 32), { changed: false, reason: 'occupied-boundary' });
-  assert.equal(world.getCell(1, 1).text, 'A');
-  assert.equal(world.getCell(65, 1).text, 'B');
-  world.erase({ author: 'alice', id: 'remove-edge', epoch: world.epoch, x: 65, y: 1 });
-  assert.deepEqual(world.resize(64, 32, [{ x: 80, y: 1 }]), { changed: false, reason: 'occupied-boundary' });
-  assert.equal(world.resize(64, 32, [{ x: 1, y: 1 }]).changed, true);
-  assert.equal(world.snapshot().cells.length, 1);
-  assert.equal(world.getCell(1, 1).text, 'A');
+test('shrink proceeds with occupied cells and relocates cursors into valid bounds', t => {
+  const {world,write}=fixture(t,{width:128,height:64});write('A',1,1);write('B',65,1);const peers=[{x:80,y:40}];
+  assert.equal(world.resize(64,32,peers,{seed:42}).changed,true);assert.ok(peers[0].x<64&&peers[0].y<32);
+  for(const c of world.cells.values())assert.ok(c.x<64&&c.y<32);
 });
 
 test('density adaptation grows, contracts and honors cooldown hysteresis', t => {
@@ -289,16 +273,13 @@ test('durable restart restores text, deletion, topology, operation order, dedupl
   world.applyWrite(operation);
   world.erase({ author: 'bob', id: 'persistent-delete', epoch: 1, x: 6, y: 5 });
   world.resize(128, 64);
-  const metadata = world.metadata();
+  const metadata = world.metadata(), relocatedCells=world.snapshot().cells;
   world.close();
   world = new World({ storagePath, width: 32, height: 16 });
   t.after(() => world.close());
   assert.deepEqual(world.metadata(), metadata);
-  assert.equal(world.getCell(4, 5).text, '한');
-  assert.equal(world.getCell(5, 5).width, 0);
-  assert.equal(world.getCell(6, 5).text, '');
-  assert.equal(world.getCell(7, 5).text, '');
-  assert.equal(world.snapshot().cells.length, 2);
+  assert.deepEqual(world.snapshot().cells.map(c=>({...c})),relocatedCells);
+  assert.ok(world.snapshot().cells.every(c=>c.text!=='글'));
   assert.equal(world.applyWrite(operation).duplicate, true);
   assert.equal(world.seq, metadata.seq);
   assert.equal(world.evidence()[0].author, 'alice');

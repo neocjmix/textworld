@@ -1,5 +1,6 @@
+import { remesh } from './topology.js';
 import { DatabaseSync } from 'node:sqlite';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, randomInt } from 'node:crypto';
 import { closeSync, fsyncSync, mkdirSync, openSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { cellKey, cellSpan, occupiedCell, graphemes, wrap, writePlan } from '../shared/world.js';
@@ -199,37 +200,38 @@ export class World {
     }
     return this.commit([...changes.values()], { author, id, reason: 'scavenge', cursor: null });
   }
-  resize(width, height, peers = []) {
+  resize(width, height, peers = [], { seed = randomInt(0, 4294967296) } = {}) {
     if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width < 32 || height < 16 || width > 1024 || height > 512) {
       throw new WorldError('BAD_EXTENT', '세계 크기가 실험 범위를 벗어났습니다.');
     }
     if (width === this.width && height === this.height) return { changed: false, reason: 'unchanged' };
-    if (width !== this.width && [...this.cells.values()].some(c => c.width === 2 && c.x === this.width - 1)) {
-      return { changed: false, reason: 'wide-boundary' };
-    }
-    if ([...this.cells.values()].some(c => occupiedCell(c) && (c.x >= width || c.y >= height)) || peers.some(p => p.x >= width || p.y >= height)) {
-      return { changed: false, reason: 'occupied-boundary' };
-    }
+    if(!Number.isSafeInteger(seed)||seed<0||seed>4294967295)throw new WorldError('BAD_SEED','Invalid topology seed.');
+    const from = { width: this.width, height: this.height };
+    const plan = remesh(this.cells, from, { width, height }, seed);
     const next = { width, height, epoch: this.epoch + 1, seq: this.seq + 1 };
+    const relocated = peers.map(peer => plan.cursor(peer));
     this.db.exec('BEGIN IMMEDIATE');
     try {
+      this.db.exec(`CREATE TABLE IF NOT EXISTS topology_events (seq INTEGER PRIMARY KEY, fromWidth INTEGER, fromHeight INTEGER, toWidth INTEGER, toHeight INTEGER, seed INTEGER, summary TEXT)`);
+      this.db.prepare('INSERT INTO topology_events VALUES (?,?,?,?,?,?,?)').run(next.seq, from.width, from.height, width, height, seed, JSON.stringify(plan.summary));
+      this.db.exec('DELETE FROM cells');
+      const insert = this.db.prepare('INSERT INTO cells (x,y,text,version,author,updatedAt,groupId,width,leadX) VALUES (?,?,?,?,?,?,?,?,?)');
+      for (const cell of plan.cells.values()) insert.run(cell.x, cell.y, cell.text, cell.version, cell.author, 0, cell.group, cell.width, cell.leadX);
       this.db.prepare("INSERT OR REPLACE INTO meta (key,value) VALUES ('world',?)").run(JSON.stringify(next));
-      this.db.prepare("DELETE FROM cells WHERE text='' AND width!=0 AND (x>=? OR y>=?)").run(width, height);
       this.db.exec('COMMIT');
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+    this.cells = plan.cells;
     Object.assign(this, next);
-    for (const [key, cell] of this.cells) if (cell.x >= width || cell.y >= height) this.cells.delete(key);
+    peers.forEach((peer, index) => Object.assign(peer, relocated[index]));
     this.lastResize = this.now();
-    // This policy only adds/removes empty edge bands. If a future topology
-    // remaps addresses, it must not advertise this input-context guarantee.
-    return { changed: true, reason: 'density', preservesAddresses: true, ...this.metadata() };
+    return { changed: true, reason: 'density', preservesAddresses: false, from, ...this.metadata(), ...plan.summary };
   }
   adapt(peers = [], { cooldown = 30000 } = {}) {
     const occupied = [...this.cells.values()].filter(occupiedCell).length;
     const density = Math.max(occupied, peers.length * 96) / (this.width * this.height);
     if (this.now() - this.lastResize < cooldown) return { changed: false, reason: 'cooldown', density };
-    if (density > 0.25 && this.width < 1024 && this.height < 512) return { ...this.resize(Math.min(1024, this.width * 2), Math.min(512, this.height * 2), peers), density };
-    if (density < 0.04 && this.width > 32 && this.height > 16) return { ...this.resize(Math.max(32, Math.floor(this.width / 2)), Math.max(16, Math.floor(this.height / 2)), peers), density };
+    if (density > 0.25 && (this.width < 1024 || this.height < 512)) return { ...this.resize(Math.min(1024, this.width * 2), Math.min(512, this.height * 2), peers), density };
+    if (density < 0.04 && (this.width > 32 || this.height > 16)) return { ...this.resize(Math.max(32, Math.floor(this.width / 2)), Math.max(16, Math.floor(this.height / 2)), peers), density };
     return { changed: false, reason: 'stable', density };
   }
   close() { this.db.close(); }

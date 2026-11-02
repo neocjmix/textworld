@@ -139,6 +139,7 @@ export class ParticipantPolicy {
     if (typeof id !== 'string' || !id || id.length > 100) throw new PolicyError('BAD_ID', '입력 식별자가 필요합니다.');
     return this.world.prior(this.peer.id, id);
   }
+  resetTopology() { this.recent.clear(); this.carets.clear(); this.origins.clear(); this.rememberOrigin(this.peer.x); }
   acceptMove({ x, y, epoch, intent }) {
     this.assertEpoch(epoch);
     const point = this.canonical(x, y);

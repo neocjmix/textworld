@@ -156,7 +156,7 @@ test('world resize during a delay stops remaining steps before mutation', async 
   const result = await f.runner.run(f.actor, request('resize', [type('ABC')]));
   assert.equal(result.status, 'blocked'); assert.equal(result.error.code, 'STALE_EPOCH');
   assert.equal(result.error.status, 409); assert.equal(result.completedSteps, 1);
-  assert.equal(f.world.getCell(10, 10).text, 'A'); assert.equal(f.world.getCell(11, 10), undefined);
+  assert.deepEqual(f.world.snapshot().cells.map(c=>c.text),['A']);
 });
 
 test('expired result IDs remain tombstoned and cannot accidentally execute twice', async t => {

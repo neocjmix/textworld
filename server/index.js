@@ -48,6 +48,20 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   const measurements = new Measurements({path:metricsPath || (storagePath === ':memory:' ? ':memory:' : storagePath + '.metrics.sqlite'),enabled:metricsEnabled});
   const commit = world.commit.bind(world);
   world.commit = (...args) => {const started=performance.now();try {const result=commit(...args);measurements.record('commit.count');measurements.record('commit.cells',result.cells.length);return result;}finally {measurements.record('commit.ms',performance.now()-started);}};
+  const resizeWorld=world.resize.bind(world);
+  world.resize=(width,height,participants=peers(),options)=>{
+    const started=performance.now();
+    try {
+      const result=resizeWorld(width,height,[...new Set([...participants,...peers()])],options);
+      if(result.changed){
+        measurements.record('topology.changed');measurements.record('topology.destroyed_cells',result.destroyedCells);measurements.record('topology.surviving_cells',result.survivingCells);
+        for(const actor of actors){actor.policy.resetTopology();actor.writing.reset(actor.peer);}
+        for(const [socket,actor] of clients)scopedUpdate(socket,actor,{snapshot:true,reason:'density-resize',resize:result});
+        notify();
+      }
+      return result;
+    } finally {measurements.record('topology.ms',performance.now()-started);}
+  };
   const clients = new Map(), actors = new Set(), listeners = new Set();
   const networks = new NetworkBudgets({ now: policyNow });
   let colorIndex = 0, closing = false, population=0,lastPopulationAt=performance.now();
@@ -265,10 +279,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   const adaptation = setInterval(() => {
     try {
       const result = world.adapt(peers());
-      if (result.changed) {
-        for (const [socket, actor] of clients) scopedUpdate(socket, actor, { snapshot: true, reason: 'density-resize', resize: result });
-        notify();
-      }
+      // world.resize atomically remaps actors and publishes the new topology.
     } catch (error) { console.error('Density adaptation failed:', error.message); }
   }, 10000);
   return {

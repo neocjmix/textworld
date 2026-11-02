@@ -28,9 +28,13 @@ export function createPanMotion({
     // RAF timestamps describe the frame's start and can precede a pointerup
     // handled in that same frame. Use one monotonic clock for release and tick.
     const time = now();
-    const dt = time - lastFrame;
+    let dt = time - lastFrame;
     // A suspended tab or stalled frame must not resume with a large jump.
-    if (!Number.isFinite(dt) || dt < 0 || dt > 120) { cancel(); return; }
+    if (!Number.isFinite(dt) || dt < 0 || (dt > 120 && mode !== 'wheel')) { cancel(); onRest(); return; }
+    // A stalled frame must not discard explicitly supplied wheel distance.
+    // Visibility/navigation already cancel hidden-tab input; clamp smoothing
+    // time here while preserving its remaining distance. Fling still stops.
+    dt = Math.min(dt, 120);
     lastFrame = time;
     if (mode === 'wheel') {
       // Consume exactly the supplied wheel distance. Trackpads already send

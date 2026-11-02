@@ -122,3 +122,10 @@ test('large or invalid input cannot create unbounded inertial speed', () => {
   assert.ok(h.total().x - direct < 665);
   assert.ok(Number.isFinite(h.total().x));
 });
+
+test('a stalled visible frame preserves explicit wheel distance and settles', () => {
+  const h=harness();h.motion.wheel(90,52);h.frame(500);
+  for(let n=0;n<60&&h.motion.active;n++)h.frame(16);
+  assert.ok(Math.abs(h.total().x-90)<1e-8);assert.ok(Math.abs(h.total().y-52)<1e-8);
+  assert.equal(h.motion.active,false);
+});

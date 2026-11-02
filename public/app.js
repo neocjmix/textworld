@@ -623,6 +623,7 @@ function connect() {
     const message = JSON.parse(event.data);
     if (message.type === 'snapshot') {
       const wasConnected = connected, previousCursor = { ...cursor }, oldEpoch = world?.epoch;
+      if(oldEpoch && oldEpoch !== message.world.epoch){motion.cancel();cameraMotion.cancel();panRemainder={x:0,y:0};drag=null;pinch=null;pointers.clear();dragCameraOffset=null;}
       const nextMe = message.peers.find(peer => peer.id === message.selfId);
       const fits = point => point.x >= 0 && point.x < message.world.width && point.y >= 0 && point.y < message.world.height;
       const stableStep = step => fits(step.from) && fits(step.to) && (step.kind === 'return'
@@ -658,7 +659,7 @@ function connect() {
       } else if (!wasConnected) {
         move(previousCursor.x, previousCursor.y, { manual: false, newOrigin: !keepWriting });
         notice('다시 연결했습니다. 이전 위치에서 계속하세요.');
-      } else if (oldEpoch !== world.epoch) notice('세계의 크기가 바뀌었습니다.');
+      } else if (oldEpoch !== world.epoch) notice('세계 크기가 바뀌어 글과 자리가 재배치됐습니다. 새 자리에서 입력하세요.');
       center();
       if (!wasConnected && isDesktop()) focusInput();
     } else if (message.type === 'view') {

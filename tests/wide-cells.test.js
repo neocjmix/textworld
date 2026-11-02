@@ -72,26 +72,14 @@ test('competing wide and narrow overwrites converge and retries do not resurrect
   validSpans(world);
 });
 
-test('wide glyphs cross the torus seam and defer width changes until the span is removed', t => {
-  const { world, write, erase } = fixture(t);
-  const result = write('한', 63, 31);
-  assert.deepEqual(result.cursor, { x: 1, y: 31 });
-  assert.equal(world.getCell(0, 31).leadX, 63);
-  validSpans(world);
-  assert.deepEqual(world.resize(128, 64), { changed: false, reason: 'wide-boundary' });
-  assert.equal(world.resize(64, 64).changed, true);
-  validSpans(world);
-  erase(0, 31); assert.equal(world.snapshot().cells.length, 0);
-  assert.equal(world.resize(128, 64).changed, true);
+test('wide glyphs crossing the seam no longer block growth or shrink', t => {
+  const {world,write}=fixture(t);write('한',63,31);assert.equal(world.getCell(0,31).leadX,63);
+  assert.equal(world.resize(128,64,[],{seed:42}).changed,true);validSpans(world);
+  assert.equal(world.resize(32,16,[],{seed:43}).changed,true);validSpans(world);
 });
-
-test('a continuation alone in a removed band blocks contraction and counts toward density', t => {
-  const { world, write } = fixture(t);
-  write('한', 31);
-  assert.deepEqual(world.resize(32, 16), { changed: false, reason: 'occupied-boundary' });
-  assert.equal(world.snapshot().cells.filter(occupiedCell).length, 2);
-  assert.equal(world.adapt([], { cooldown: 0 }).density, 2 / (64 * 32));
-  validSpans(world);
+test('contraction removes no dangling wide continuations', t => {
+  const {world,write}=fixture(t);write('한',31);assert.equal(world.resize(32,16).changed,true);validSpans(world);
+  assert.equal(world.adapt([],{cooldown:0}).density,world.snapshot().cells.filter(occupiedCell).length/(32*16));
 });
 
 test('a paste wrapping over its own span leaves no orphan and matches split input', t => {

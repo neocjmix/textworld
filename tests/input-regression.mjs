@@ -117,16 +117,10 @@ async function finishInvalidatedComposition(page, text = '한') {
   await page.waitForFunction(() => !window.textworld.inspect().composing && window.textworld.inspect().pending === 0);
 }
 
-async function densitySnapshot(app, page, { moveTo, width = 64, height = 32 } = {}) {
-  const state = await page.evaluate(() => window.textworld.inspect());
-  const peers = state.peers.map(peer => ({ ...peer }));
-  if (moveTo) Object.assign(peers[0], moveTo);
-  const resize = app.world.resize(width, height, peers);
-  for (const socket of app.wss.clients) socket.send(JSON.stringify({
-    type: 'snapshot', ...app.world.snapshot(), selfId: peers[0].id, peers,
-    reason: 'density-resize', resize,
-  }));
+async function densitySnapshot(app, page, { width = 64, height = 32 } = {}) {
+  const resize = app.world.resize(width, height, undefined, { seed:42 });
   await page.waitForFunction(epoch => window.textworld.inspect().world.epoch === epoch, app.world.epoch);
+  return {resize,state:await page.evaluate(()=>window.textworld.inspect())};
 }
 
 try {
@@ -168,7 +162,7 @@ try {
     await finishInvalidatedComposition(page);
     assert.equal(app.world.snapshot().cells.length, 0);
     assert.equal(app.world.seq, 0);
-    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 20, y: 12 });
+    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x:20,y:12 });
   });
 
   await scenario('map panning cancels composition before a late completion', async ({ app, page }) => {
@@ -222,35 +216,24 @@ try {
     assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 8, y: 8 });
   });
 
-  await scenario('A density resize at unchanged coordinates retains native Korean replacement context', async ({ app, page }) => {
+  await scenario('Scattered resize invalidates old native ranges and allows new Korean input', async ({ app, page }) => {
     const cdp = await nativeSession(page);
     await cdp.send('Input.insertText', { text: 'ㅎ' });
     await page.waitForFunction(() => window.textworld.inspect().pending === 0);
-    assert.equal(await nativeText(page), 'ㅎ');
-    await densitySnapshot(app, page);
-    assert.equal(await nativeText(page), 'ㅎ', 'safe density change must not erase the native replacement range');
-    await beginComposition(page, '하', { replacementStart: 0, replacementEnd: 1 });
-    await finishComposition(page);
-    assert.equal(app.world.getCell(7, 8)?.text, '한');
-    assert.equal(app.world.getCell(9, 8)?.text || '', '');
-    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 9, y: 8 });
+    const {state}=await densitySnapshot(app,page);
+    assert.equal(await nativeText(page),'');
+    await cdp.send('Input.insertText',{text:'한'});
+    await page.waitForFunction(()=>window.textworld.inspect().pending===0);
+    assert.equal(app.world.getCell(state.cursor.x,state.cursor.y)?.text,'한');
   });
-
-  await scenario('An active Korean composition survives a density resize that preserves its addresses', async ({ app, page }) => {
-    const cdp = await nativeSession(page);
-    await cdp.send('Input.insertText', { text: 'ㅎ' });
-    await page.waitForFunction(() => window.textworld.inspect().pending === 0);
-    await beginComposition(page, '하', { replacementStart: 0, replacementEnd: 1 });
-    const seq = app.world.seq;
-    await densitySnapshot(app, page);
-    assert.equal(await nativeText(page), '하');
-    assert.equal(await page.evaluate(() => window.textworld.inspect().preedit), '하');
-    assert.equal(app.world.seq, seq + 1, 'only the resize has been committed');
-    await cdp.send('Input.imeSetComposition', { text: '한', selectionStart: 1, selectionEnd: 1 });
-    await finishComposition(page);
-    assert.equal(app.world.getCell(7, 8)?.text, '한');
-    assert.equal(app.world.getCell(9, 8)?.text || '', '');
-    assert.equal(await page.evaluate(() => window.textworld.inspect().composing), false);
+  await scenario('Active composition is cancelled safely when scattered resize changes its addresses', async ({ app,page })=>{
+    const cdp=await nativeSession(page);await cdp.send('Input.insertText',{text:'ㅎ'});
+    await page.waitForFunction(()=>window.textworld.inspect().pending===0);
+    await beginComposition(page,'하',{replacementStart:0,replacementEnd:1});
+    await densitySnapshot(app,page);const seq=app.world.seq;
+    assert.equal(await page.evaluate(()=>window.textworld.inspect().preedit),'');
+    await finishInvalidatedComposition(page);
+    assert.equal(app.world.seq,seq);
   });
 
   await scenario('A density snapshot with an uncertain write still cancels composition', async ({ app, page }) => {
@@ -273,19 +256,18 @@ try {
     assert.equal(await page.evaluate(() => window.textworld.inspect().preedit), '');
     await finishInvalidatedComposition(page);
     assert.equal(app.world.seq, seq, 'late composition must not become an edit after uncertain recovery');
-    assert.equal(app.world.getCell(7, 8)?.text, 'A');
-    assert.equal(app.world.getCell(8, 8)?.text || '', '');
+    assert.equal(app.world.snapshot().cells.filter(c=>c.text==='A').length,1);
   });
 
   await scenario('A density snapshot that changes the cursor cancels the old composition range', async ({ app, page }) => {
     await beginComposition(page);
-    await densitySnapshot(app, page, { moveTo: { x: 20, y: 12 } });
+    const {state:relocated}=await densitySnapshot(app, page);
     const seq = app.world.seq;
     assert.equal(await nativeText(page), '한');
     await finishInvalidatedComposition(page);
     assert.equal(app.world.seq, seq);
     assert.equal(app.world.snapshot().cells.length, 0);
-    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 20, y: 12 });
+    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), relocated.cursor);
   });
 
   await scenario('An expansion that breaks a wrapped writing step cancels its native replacement range', async ({ app, page }) => {
@@ -298,15 +280,14 @@ try {
     await beginComposition(page, '하', { replacementStart: 0, replacementEnd: 1 });
     // All old coordinates still exist, but 126 + two columns no longer reaches
     // 0 after expansion. Address preservation alone cannot preserve this range.
-    await densitySnapshot(app, page, { width: 256, height: 128 });
+    const {state:remapped}=await densitySnapshot(app, page, { width: 256, height: 128 });
     const seq = app.world.seq;
     assert.equal(await nativeText(page), '하', 'a broken world path must not rewrite the active native range');
     assert.equal(await page.evaluate(() => window.textworld.inspect().preedit), '');
     await finishInvalidatedComposition(page);
     assert.equal(app.world.seq, seq);
-    assert.equal(app.world.getCell(126, 8)?.text, 'ㅎ');
-    assert.equal(app.world.getCell(0, 8)?.text || '', '');
-    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), { x: 0, y: 8 });
+    assert.equal(app.world.snapshot().cells.filter(c=>c.text==='ㅎ').length,1);
+    assert.deepEqual(await page.evaluate(() => window.textworld.inspect().cursor), remapped.cursor);
   });
   await scenario('Selecting the current world address resets both native context and its spatial mapping', async ({ app, page }) => {
     await page.keyboard.insertText('ABC');
