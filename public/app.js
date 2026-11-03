@@ -511,7 +511,6 @@ nativeInput = createNativeInput(input, {
   },
   onReset: resetNativeProjection,
   onUnsupported: unsupportedInput,
-  onInvalidated() { notice('위치가 바뀌어 조합을 취소했습니다. 중심 칸에 다시 입력해 주세요.'); },
 });
 input.addEventListener('keydown', event => {
   stopPan();
@@ -605,7 +604,6 @@ async function locate(initial = false) {
     if (request !== gpsRequest || (initial && revision !== navigationRevision)) return;
     const point = gpsToCell(result.coords.latitude, result.coords.longitude, world);
     move(point.x, point.y, { manual: false, cameraImmediate: true });
-    notice('GPS에 해당하는 위치입니다. 중심 칸에 바로 입력하세요.');
   }, () => {
     if (request === gpsRequest && !initial) notice('GPS 위치를 얻지 못했습니다. 지도에서 이동해 주세요.');
   }, { enableHighAccuracy: false, timeout: 8000, maximumAge: initial ? 60000 : 0 });
