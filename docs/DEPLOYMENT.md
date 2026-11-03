@@ -172,3 +172,11 @@ Railway의 [공개 네트워킹 기술 명세](https://docs.railway.com/networki
 구현 `30e9b8dbbcf17c811a8d43fecefd09cddc8210d0`의 배포 `66d36272-7fd8-4150-ab95-e4ed2b8ed31b`가17:05:48 UTC에SUCCESS에 도달했다. 기존64×32·epoch8의 운영 월드가 서버의 자동 밀도 판단으로128×64·epoch9로 실제 확장됐다. seed3982370324에서 가로1154·세로2715곳에 변경이 분산됐고1083점유 셀 중1057개가 살아남고26개가 제거됐다. 문장 인접성은 바뀔 수 있다.
 
 실제 공개 Chromium이 재배치 snapshot을 받고 커서(32,16)→(64,33)를 반영했다. 새 시야의 CJK 쌍과 범위 내 커서, pending0, pageerror0을 확인했다. 운영 검증의 추가 쓰기는0건이다. artifacts/topology-live-verification.json 및 topology-live.png에 근거를 남기고 화면을 직접 검토했다. 저장된 topology_events에서 시드와 손실량을 보존한다. 현재 크기 범위32×16~1024×512와 density/cooldown은 유지하며, 글·커서의 보존을 이유로 resize를 막지는 않는다.
+
+### 목표 밀도 제어·국소 연속성 배포 — 2026-11-03
+
+구현 `2a4bda1`, 배포 소스 `40f9779544b62f1f688e927e83367b82fc1d7a44`(그래프 포맷 정리 포함), Railway 배포 `a1911bb6-aecb-4e97-aa43-9eefc99a07a1`이 **14:11:33 UTC SUCCESS**에 도달했다. 현재 서비스는 해당 SHA에 고정되어 있다. 기존 SQLite 스키마·영구 볼륨을 유지하며 점유 카운터는 저장된 글에서 복구한다. [새 제어 규칙과 한계](DENSITY_CONTROL.md)를 적용했다.
+
+전환 중 health 요청 한 건은 502를 받았다. SUCCESS 이후 공개 `/health` 정상, 배포된 `/app.js`와 로컬 파일의 일치, 데스크톱·모바일 Chromium의 두 참여자 presence, 글꼴·pending 0·페이지/프로토콜 오류 0을 확인했다. 쓰기 없는 25초 동안 32×16·epoch110이 유지됐고 검증 중 추가 쓰기는 0건이다. 단일 프로세스/볼륨의 이 배포가 무중단이었다고 주장하지 않는다.
+
+새 revision에서 `density.actual/projected/target_area/above_band/at_limit/net_growth_cells_per_second/net_decay_cells_per_second` 각각 59회와 `observer.ink_density` 11회가 분 집계로 영속화됐고 collector failures는 0이었다. 공개 관측 당시 빈 세계라 실제 성장·축소 부하 검증은 별도의 로컬 실시간 두 브라우저와 가속 시계 엔진 실험에 근거한다. `artifacts/density-public-verification.json`, `density-public-desktop.png`, `density-public-mobile.png`에 근거를 남겼다.
