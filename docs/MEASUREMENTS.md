@@ -62,3 +62,5 @@ HTTP는 `GET /api/metrics?period=60|3600&since=...&before=...&limit=...`, Bearer
 만료 실험은 5초 sweep마다 `expiration.ms`, `expiration.deleted_cells`, `expiration.batch_full`을 집계한다. batch_full은 삭제된 셀이 500개 이상인 실행 횟수의 지표이며 두 칸 문자의 경우 셀 수와 후보 글자 수가 다르다. 전체 순회의 시간과 적체 가능성을 살펴본다.
 
 점진적 resize의 `topology.adapt_ms`, `topology.search_deferred`, `topology.forced`로 후보 탐색 지연과 보류·강제 변경을 관찰한다.
+
+`topology.lost_text_cells`와 `topology.broken_adjacencies`는 resize 결과의 실제 문자 손실과 끊어진 점유 셀 인접 관계를 집계한다. 점유 관계는 문장 개수와 같지 않다.

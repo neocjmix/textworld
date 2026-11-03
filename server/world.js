@@ -1,4 +1,4 @@
-import { remesh } from './topology.js';
+import { remesh, findBlankSeams } from './topology.js';
 import { DatabaseSync } from 'node:sqlite';
 import { randomUUID, randomInt } from 'node:crypto';
 import { closeSync, fsyncSync, mkdirSync, openSync } from 'node:fs';
@@ -233,20 +233,20 @@ export class World {
     }
     return this.commit([...changes.values()], { author, id, reason: 'expire', cursor: null });
   }
-  resize(width, height, peers = [], { seed = randomInt(0, 4294967296) } = {}) {
+  resize(width, height, peers = [], { seed = randomInt(0, 4294967296), seams } = {}) {
     if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width < 32 || height < 16 || width > 1024 || height > 512) {
       throw new WorldError('BAD_EXTENT', '세계 크기가 실험 범위를 벗어났습니다.');
     }
     if (width === this.width && height === this.height) return { changed: false, reason: 'unchanged' };
     if(!Number.isSafeInteger(seed)||seed<0||seed>4294967295)throw new WorldError('BAD_SEED','Invalid topology seed.');
     const from = { width: this.width, height: this.height };
-    const plan = remesh(this.cells, from, { width, height }, seed);
+    const plan = remesh(this.cells, from, { width, height }, seed, { seams });
     const next = { width, height, epoch: this.epoch + 1, seq: this.seq + 1 };
     const relocated = peers.map(peer => plan.cursor(peer));
     this.db.exec('BEGIN IMMEDIATE');
     try {
       this.db.exec(`CREATE TABLE IF NOT EXISTS topology_events (seq INTEGER PRIMARY KEY, fromWidth INTEGER, fromHeight INTEGER, toWidth INTEGER, toHeight INTEGER, seed INTEGER, summary TEXT)`);
-      this.db.prepare('INSERT INTO topology_events VALUES (?,?,?,?,?,?,?)').run(next.seq, from.width, from.height, width, height, seed, JSON.stringify(plan.summary));
+      this.db.prepare('INSERT INTO topology_events VALUES (?,?,?,?,?,?,?)').run(next.seq, from.width, from.height, width, height, seed, JSON.stringify({ ...plan.summary, ...(seams ? { seams } : {}) }));
       this.db.exec('DELETE FROM cells');
       const insert = this.db.prepare('INSERT INTO cells (x,y,text,version,author,updatedAt,groupId,width,leadX) VALUES (?,?,?,?,?,?,?,?,?)');
       for (const cell of plan.cells.values()) insert.run(cell.x, cell.y, cell.text, cell.version, cell.author, 0, cell.group, cell.width, cell.leadX);
@@ -259,7 +259,7 @@ export class World {
     this.lastResize = this.now();
     return { changed: true, reason: 'density', preservesAddresses: false, from, ...this.metadata(), ...plan.summary };
   }
-  adapt(peers = [], { cooldown = 30000 } = {}) {
+  adapt(peers = [], { cooldown = 10000 } = {}) {
     const occupied = [...this.cells.values()].filter(occupiedCell).length;
     const density = Math.max(occupied, peers.length * 96) / (this.width * this.height);
     if (this.now() - this.lastResize < cooldown) return { changed: false, reason: 'cooldown', density };
@@ -274,9 +274,7 @@ export class World {
       const preferWidth = grow ? this.width / this.height <= 2 : this.width / this.height > 2;
       dimensions.sort((a, b) => (a.axis === (preferWidth ? 'width' : 'height') ? -1 : 1));
       const from = { width: this.width, height: this.height };
-      // A completely occupied row/column proves that axis cannot be changed
-      // without touching text. If both available axes are blocked, proceed by
-      // one cell; otherwise retry later with different scattered candidates.
+      // A completely occupied row/column blocks preservation on that axis.
       const isText = cell => cell && (cell.width === 0 || !!cell.text?.trim());
       const blocked = d => d.axis === 'width'
         ? Array.from({ length: this.height }, (_, y) => Array.from({ length: this.width }, (_, x) => isText(this.getCell(x, y))).every(Boolean)).some(Boolean)
@@ -293,12 +291,36 @@ export class World {
           }
         }
       }
-      if (dimensions.every(blocked)) {
-        const d = dimensions[0], to = { ...from, [d.axis]: d.size + (grow ? 1 : -1) };
-        return { ...this.resize(to.width, to.height, peers), density, preservation: 'forced' };
+      // Coordinate one-cell blank seams where the bounded exact search fits.
+      // Independent random seams rarely align across neighbouring text.
+      for (const d of dimensions) {
+        const seed = randomInt(0, 4294967296), delta = grow ? 1 : -1;
+        const seams = findBlankSeams(this.cells, from, d.axis, delta, seed);
+        if (seams.status === 'too-large') continue;
+        if (seams.status === 'found') {
+          const to = { ...from, [d.axis]: d.size + delta };
+          if (remesh(this.cells, from, to, seed, { seams }).preservesText)
+            return { ...this.resize(to.width, to.height, peers, { seed, seams }), density, preservation: 'text' };
+          // An inconsistent plan cannot be applied; use the least-damaging fallback.
+        }
       }
-      this.lastResize = this.now();
-      return { changed: false, reason: 'preservation-search', density };
+      {
+        // If no safe candidate was found, progress with the least damaging
+        // sampled alternative. Large worlds use bounded, non-exhaustive search.
+        let best;
+        for (const d of dimensions) {
+          const room = grow ? d.max - d.size : d.size - d.min;
+          const step = Math.min(room, 8, Math.max(1, Math.ceil(d.size / 16)));
+          const to = { ...from, [d.axis]: d.size + (grow ? step : -step) };
+          const attempts = from.width * from.height > 65536 ? 1 : from.width * from.height > 16384 ? 4 : 6;
+          for (let attempt = 0; attempt < attempts; attempt++) {
+            const seed = randomInt(0, 4294967296), plan = remesh(this.cells, from, to, seed);
+            const score = plan.summary.lostTextCells * (2 * from.width * from.height + 1) + plan.summary.brokenAdjacencies;
+            if (!best || score < best.score) best = { seed, to, score };
+          }
+        }
+        return { ...this.resize(best.to.width, best.to.height, peers, { seed: best.seed }), density, preservation: 'forced' };
+      }
     }
     return { changed: false, reason: 'stable', density };
   }

@@ -54,7 +54,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     try {
       const result=resizeWorld(width,height,[...new Set([...participants,...peers()])],options);
       if(result.changed){
-        measurements.record('topology.changed');measurements.record('topology.destroyed_cells',result.destroyedCells);measurements.record('topology.surviving_cells',result.survivingCells);
+        measurements.record('topology.changed');measurements.record('topology.lost_text_cells',result.lostTextCells);measurements.record('topology.broken_adjacencies',result.brokenAdjacencies);measurements.record('topology.destroyed_cells',result.destroyedCells);measurements.record('topology.surviving_cells',result.survivingCells);
         for(const actor of actors){actor.policy.resetTopology();actor.writing.reset(actor.peer);}
         for(const [socket,actor] of clients)scopedUpdate(socket,actor,{snapshot:true,reason:'density-resize',resize:result});
         notify();
