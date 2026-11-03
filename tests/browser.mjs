@@ -35,7 +35,7 @@ async function centered(page) {
     ['x', snapshot.world.width, snapshot.viewport.cols],
     ['y', snapshot.world.height, snapshot.viewport.rows],
   ]) {
-    const center = snapshot.camera[axis] + span * (axis === 'y' ? .43 : .5);
+    const center = snapshot.camera[axis] + span * (axis === 'y' ? snapshot.cursorVerticalFraction : .5);
     const expected = snapshot.cursor[axis] + 0.5;
     const error = Math.abs(wrap(center - expected + extent / 2, extent) - extent / 2);
     assert.ok(error < 1e-6, `${axis}: cursor must be at viewport center, error ${error}`);
@@ -45,7 +45,7 @@ async function centered(page) {
     const host = document.getElementById('input'), input = host.getBoundingClientRect();
     const cursor = document.getElementById('cursor').getBoundingClientRect();
     return {
-      fieldX: field.x + field.width / 2, fieldY: field.y + field.height * .43,
+      fieldX: field.x + field.width / 2, fieldY: field.y + field.height * window.textworld.inspect().cursorVerticalFraction,
       inputX: input.x + input.width / 2, inputY: input.y + input.height / 2,
       cursorX: cursor.x + cursor.width / 2, cursorY: cursor.y + cursor.height / 2,
       nativePreview: host.hasAttribute('data-native-preview'),

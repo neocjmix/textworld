@@ -33,6 +33,9 @@ let observedView = null, viewRevision = 0, sentView = '', viewTimer, recoveryTim
 let cursor = { x: 0, y: 0 }, camera = { x: 0, y: 0 };
 let cameraAnchor = null, cameraEpoch = null;
 let viewportOrigin = { x: 0, y: 0 };
+let keyboardVisible = false, openViewportHeight = 0, viewportWidth = 0;
+const cursorVerticalFraction = () => keyboardVisible
+  ? Math.max(.5, 1 - Math.max(56, dimensions().height * 1.5) / Math.max(size.height, 1)) : .43;
 const writing = new WritingSession(cursor);
 const nativeProjection = new NativeProjection(cursor);
 let nativeTrailBase = [];
@@ -93,7 +96,7 @@ function requestedView() {
   // A small margin keeps a smoothly moving camera covered. The server applies
   // the same maximum rectangle to every participant, regardless of transport.
   let cols = Math.min(VIEW_LIMITS.maxCols, Math.ceil(v.cols) + 8);
-  let rows = Math.min(VIEW_LIMITS.maxRows, Math.ceil(v.rows * 1.14) + 4);
+  let rows = Math.min(VIEW_LIMITS.maxRows, Math.ceil(v.rows * (keyboardVisible ? 2 : 1.14)) + 4);
   if (cols * rows > VIEW_LIMITS.maxArea) {
     const scale = Math.sqrt(VIEW_LIMITS.maxArea / (cols * rows));
     cols = Math.max(1, Math.floor(cols * scale));
@@ -137,7 +140,7 @@ function center({ immediate = false, residual = false, direct = false, timeConst
     cameraAnchor.y += shortest(cursor.y - wrap(cameraAnchor.y, world.height), world.height);
   }
   const target = { x: cameraAnchor.x + .5 - v.cols / 2 + (residual ? panRemainder.x : 0),
-    y: cameraAnchor.y + .5 - v.rows * .43 + (residual ? panRemainder.y : 0) };
+    y: cameraAnchor.y + .5 - v.rows * cursorVerticalFraction() + (residual ? panRemainder.y : 0) };
   if (direct && dragCameraOffset) { target.x += dragCameraOffset.x; target.y += dragCameraOffset.y; }
   // Large teleports must not leave the actual writing position off-screen.
   const px = (cameraAnchor.x + .5 - camera.x) * d.width;
@@ -194,7 +197,7 @@ function grabCamera() {
   const v = visible();
   dragCameraOffset = cameraAnchor ? {
     x: camera.x - (cameraAnchor.x + .5 - v.cols / 2 + panRemainder.x),
-    y: camera.y - (cameraAnchor.y + .5 - v.rows * .43 + panRemainder.y),
+    y: camera.y - (cameraAnchor.y + .5 - v.rows * cursorVerticalFraction() + panRemainder.y),
   } : { x: 0, y: 0 };
 }
 function queueMove(intent) {
@@ -350,6 +353,11 @@ function resizeCanvas() {
   motion.cancel();
   const r = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
   size = { width: r.width, height: r.height };
+  if (cursorPositionReady && world) {
+    const position = cursorMotion.position, margin = Math.min(dimensions().height / 2, r.height / 2);
+    const y = Math.max(margin, Math.min(r.height - margin, position.y));
+    if (y !== position.y) cursorMotion.jump({ x: position.x, y });
+  }
   canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   center({ timeConstant: 110, viewportChange: true }); draw();
@@ -357,6 +365,13 @@ function resizeCanvas() {
 }
 function fitVisualViewport() {
   const v = window.visualViewport;
+  const height = v?.height || window.innerHeight, width = v?.width || window.innerWidth;
+  if (!viewportWidth || Math.abs(width - viewportWidth) > 80) { openViewportHeight = height; viewportWidth = width; }
+  if (document.activeElement !== input) openViewportHeight = height;
+  const oldKeyboardVisible = keyboardVisible;
+  const keyboardRect = navigator.virtualKeyboard?.boundingRect;
+  keyboardVisible = matchMedia('(pointer: coarse), (any-pointer: coarse)').matches && document.activeElement === input
+    && (!!keyboardRect?.height || openViewportHeight - height > Math.max(120, openViewportHeight * .18));
   const origin = { x: v?.offsetLeft || 0, y: v?.offsetTop || 0 };
   const offset = { x: origin.x - viewportOrigin.x, y: origin.y - viewportOrigin.y };
   viewportOrigin = origin;
@@ -374,8 +389,14 @@ function fitVisualViewport() {
     // viewport around the keyboard, then gently return toward its new centre.
     cameraMotion.jump({ x: camera.x + offset.x / d.width, y: camera.y + offset.y / d.height });
     center({ timeConstant: 110, viewportChange: true });
+  } else if (world && oldKeyboardVisible !== keyboardVisible) {
+    center({ timeConstant: 110, viewportChange: true });
+    reportView();
   }
 }
+input.addEventListener('focus', () => { openViewportHeight = window.visualViewport?.height || window.innerHeight; });
+input.addEventListener('blur', () => { if (keyboardVisible) { keyboardVisible = false; center({ timeConstant: 110, viewportChange: true }); reportView(); } });
+navigator.virtualKeyboard?.addEventListener('geometrychange', fitVisualViewport);
 new ResizeObserver(resizeCanvas).observe($('viewport'));
 window.addEventListener('resize', fitVisualViewport);
 window.visualViewport?.addEventListener('resize', fitVisualViewport);
@@ -724,4 +745,4 @@ document.fonts.load(`18px ${mapFont}`, '한글日本語中文iWM').then(faces =>
   notice('지도 글꼴을 불러오지 못했습니다. 페이지를 새로고침해 주세요.');
 });
 // Read-only browser diagnostics for verifying spatial invariants.
-window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), observedView, viewRevision, freshnessMarks: [...freshnessMarks], freshness: freshnessBands, peers: structuredClone(peers), cells: [...cells.values()], localCells: [...localCells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, cameraActive: cameraMotion.active, cursorActive: cursorMotion.active, fontReady }) };
+window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), observedView, viewRevision, freshnessMarks: [...freshnessMarks], freshness: freshnessBands, peers: structuredClone(peers), cells: [...cells.values()], localCells: [...localCells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, cameraActive: cameraMotion.active, cursorActive: cursorMotion.active, keyboardVisible, cursorVerticalFraction: cursorVerticalFraction(), fontReady }) };
