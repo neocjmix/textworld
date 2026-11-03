@@ -263,8 +263,43 @@ export class World {
     const occupied = [...this.cells.values()].filter(occupiedCell).length;
     const density = Math.max(occupied, peers.length * 96) / (this.width * this.height);
     if (this.now() - this.lastResize < cooldown) return { changed: false, reason: 'cooldown', density };
-    if (density > 0.25 && (this.width < 1024 || this.height < 512)) return { ...this.resize(Math.min(1024, this.width * 2), Math.min(512, this.height * 2), peers), density };
-    if (density < 0.04 && (this.width > 32 || this.height > 16)) return { ...this.resize(Math.max(32, Math.floor(this.width / 2)), Math.max(16, Math.floor(this.height / 2)), peers), density };
+    const grow = density > .25, shrink = density < .04;
+    if (grow || shrink) {
+      const dimensions = [
+        { axis: 'width', size: this.width, min: 32, max: 1024 },
+        { axis: 'height', size: this.height, min: 16, max: 512 },
+      ].filter(d => grow ? d.size < d.max : d.size > d.min);
+      if (!dimensions.length) return { changed: false, reason: 'limit', density };
+      // Keep dimensions near the existing 2:1 aspect ratio across steps.
+      const preferWidth = grow ? this.width / this.height <= 2 : this.width / this.height > 2;
+      dimensions.sort((a, b) => (a.axis === (preferWidth ? 'width' : 'height') ? -1 : 1));
+      const from = { width: this.width, height: this.height };
+      // A completely occupied row/column proves that axis cannot be changed
+      // without touching text. If both available axes are blocked, proceed by
+      // one cell; otherwise retry later with different scattered candidates.
+      const isText = cell => cell && (cell.width === 0 || !!cell.text?.trim());
+      const blocked = d => d.axis === 'width'
+        ? Array.from({ length: this.height }, (_, y) => Array.from({ length: this.width }, (_, x) => isText(this.getCell(x, y))).every(Boolean)).some(Boolean)
+        : Array.from({ length: this.width }, (_, x) => Array.from({ length: this.height }, (_, y) => isText(this.getCell(x, y))).every(Boolean)).some(Boolean);
+      // Try both axes and progressively smaller steps before any destructive
+      // change. Each candidate is evaluated against the same committed epoch.
+      for (const d of dimensions.filter(d => !blocked(d))) {
+        const room = grow ? d.max - d.size : d.size - d.min;
+        for (let step = Math.min(room, Math.max(1, Math.floor(d.size / 8))); step >= 1; step = step === 1 ? 0 : Math.max(1, Math.floor(step / 2))) {
+          const to = { ...from, [d.axis]: d.size + (grow ? step : -step) };
+          for (let attempt = 0; attempt < 4; attempt++) {
+            const seed = randomInt(0, 4294967296);
+            if (remesh(this.cells, from, to, seed).preservesText) return { ...this.resize(to.width, to.height, peers, { seed }), density, preservation: 'text' };
+          }
+        }
+      }
+      if (dimensions.every(blocked)) {
+        const d = dimensions[0], to = { ...from, [d.axis]: d.size + (grow ? 1 : -1) };
+        return { ...this.resize(to.width, to.height, peers), density, preservation: 'forced' };
+      }
+      this.lastResize = this.now();
+      return { changed: false, reason: 'preservation-search', density };
+    }
     return { changed: false, reason: 'stable', density };
   }
   close() { this.db.close(); }

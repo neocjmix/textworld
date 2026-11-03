@@ -266,10 +266,14 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     notify();
   }, 5000);
   const adaptation = setInterval(() => {
+    const started = performance.now();
     try {
       const result = world.adapt(peers());
+      if (result.reason === 'preservation-search') measurements.record('topology.search_deferred');
+      if (result.preservation === 'forced') measurements.record('topology.forced');
       // world.resize atomically remaps actors and publishes the new topology.
     } catch (error) { console.error('Density adaptation failed:', error.message); }
+    finally { measurements.record('topology.adapt_ms', performance.now() - started); }
   }, 10000);
   return {
     server, world, wss, measurements,

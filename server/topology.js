@@ -12,26 +12,15 @@ function generator(seed) {
 function axis(oldSize, newSize, costs, random) {
   const delta = newSize - oldSize, mapping = new Int32Array(oldSize);
   if (!delta) { for (let i = 0; i < oldSize; i++) mapping[i] = i; return { mapping, seams: 0 }; }
-  const count = Math.abs(delta), bands = Math.min(16, count, oldSize);
-  const phase = Math.floor(random() * oldSize), remainderStart = Math.floor(random() * bands);
+  const count = Math.abs(delta);
+  const candidates = Array.from({length: oldSize}, (_, index) => ({ index, score: costs(index, delta > 0), tie: random() }));
+  candidates.sort((a, b) => a.score - b.score || a.tie - b.tie);
   const edits = new Uint16Array(oldSize);
-  for (let band = 0; band < bands; band++) {
-    const candidates = [];
-    for (let n = Math.floor(band * oldSize / bands); n < Math.floor((band + 1) * oldSize / bands); n++) {
-      const index = wrap(n + phase, oldSize);
-      candidates.push({ index, score: costs(index, delta > 0), tie: random() });
-    }
-    candidates.sort((a, b) => a.score - b.score || a.tie - b.tie);
-    const quota = Math.floor(count / bands) + Number(wrap(band - remainderStart, bands) < count % bands);
+  if (delta < 0) {
+    for (let n = 0; n < count; n++) edits[candidates[n].index] = 1;
+  } else {
     const best = candidates.filter(c => c.score === candidates[0].score);
-    for (let n = 0; n < quota; n++) {
-      if (delta < 0) edits[candidates[n].index] = 1;
-      else {
-        // Within each stratum prefer blank gaps; replacement permits varied
-        // spacing even when doubling (one slot at every gap would form a grid).
-        edits[best[Math.floor(random() * best.length)].index]++;
-      }
-    }
+    for (let n = 0; n < count; n++) edits[best[Math.floor(random() * best.length)].index]++;
   }
   let offset = 0, seams = 0;
   for (let i = 0; i < oldSize; i++) {
@@ -99,6 +88,22 @@ export function remesh(cells, from, to, seed) {
     result.set(cellKey(tail.x, tail.y), { ...oldTail, ...tail, leadX: location.x });
     reserved.add(cellKey(tail.x, tail.y));
   }
-  return { cells: result, cursor, summary: { seed, strategy: 'scattered-strata-v1',
+  // Test actual remapping, including row/column shear, rather than assuming a
+  // blank-looking insertion or deletion keeps neighbouring text together.
+  let preservesText = true;
+  for (const cell of cells.values()) {
+    if (!occupied[cell.y * from.width + cell.x]) continue;
+    const location = point(cell.x, cell.y);
+    const mapped = location && result.get(cellKey(location.x, location.y));
+    if (!mapped || mapped.version !== cell.version || mapped.text !== cell.text || mapped.width !== cell.width) { preservesText = false; break; }
+    for (const [dx, dy] of [[1,0],[0,1]]) {
+      const x = wrap(cell.x + dx, from.width), y = wrap(cell.y + dy, from.height);
+      if (!occupied[y * from.width + x]) continue;
+      const neighbour = point(x, y);
+      if (!neighbour || neighbour.x !== wrap(location.x + dx, to.width) || neighbour.y !== wrap(location.y + dy, to.height)) { preservesText = false; break; }
+    }
+    if (!preservesText) break;
+  }
+  return { cells: result, cursor, preservesText, summary: { seed, strategy: 'scattered-blank-v2',
     horizontalSeams, verticalSeams, survivingCells: result.size, destroyedCells: before - result.size } };
 }
