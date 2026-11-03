@@ -1,4 +1,5 @@
 import { cellKey, occupiedCell, wrap } from '../shared/world.js';
+import { inkArea } from './density.js';
 
 // Seeded so one small event record can reproduce a plan; never store per-cell maps.
 function generator(seed) {
@@ -13,17 +14,19 @@ function axis(oldSize, newSize, costs, random, seam) {
   const delta = newSize - oldSize, mapping = new Int32Array(oldSize);
   if (!delta) { for (let i = 0; i < oldSize; i++) mapping[i] = i; return { mapping, seams: 0 }; }
   const count = Math.abs(delta);
-  const candidates = Array.from({length: oldSize}, (_, index) => ({ index, score: costs(index, delta > 0), tie: random() }));
-  candidates.sort((a, b) => a.score - b.score || a.tie - b.tie);
   const edits = new Uint16Array(oldSize);
   if (seam !== undefined) {
-    if (count !== 1 || seam < 0 || seam >= oldSize) throw new Error('Invalid planned seam');
-    edits[seam] = 1;
-  } else if (delta < 0) {
-    for (let n = 0; n < count; n++) edits[candidates[n].index] = 1;
+    if (!Number.isInteger(seam) || seam < 0 || seam >= oldSize || (delta < 0 && seam + count > oldSize)) throw new Error('Invalid planned seam');
+    if (delta > 0) edits[seam] = count;
+    else for (let i = seam; i < seam + count; i++) edits[i] = 1;
   } else {
-    const best = candidates.filter(c => c.score === candidates[0].score);
-    for (let n = 0; n < count; n++) edits[best[Math.floor(random() * best.length)].index]++;
+    const candidates = Array.from({length: oldSize}, (_, index) => ({ index, score: costs(index, delta > 0), tie: random() }));
+    candidates.sort((a, b) => a.score - b.score || a.tie - b.tie);
+    if (delta < 0) for (let n = 0; n < count; n++) edits[candidates[n].index] = 1;
+    else {
+      const best = candidates.filter(c => c.score === candidates[0].score);
+      for (let n = 0; n < count; n++) edits[best[Math.floor(random() * best.length)].index]++;
+    }
   }
   let offset = 0, seams = 0;
   for (let i = 0; i < oldSize; i++) {
@@ -43,7 +46,7 @@ function survivor(mapping, index) {
 }
 export function remesh(cells, from, to, seed, { seams } = {}) {
   const random = generator(seed), occupied = new Uint8Array(from.width * from.height);
-  for (const c of cells.values()) if (c.width === 0 || c.text?.trim()) occupied[c.y * from.width + c.x] = 1;
+  for (const c of cells.values()) for (let k = 0; k < inkArea(c); k++) occupied[c.y * from.width + wrap(c.x + k, from.width)] = 1;
   const horizontal = [], vertical = [], intermediate = new Uint8Array(to.width * from.height);
   let horizontalSeams = 0, verticalSeams = 0;
   for (let y = 0; y < from.height; y++) {
@@ -115,11 +118,11 @@ export function remesh(cells, from, to, seed, { seams } = {}) {
       if (!neighbour || neighbour.x !== wrap(location.x + dx, to.width) || neighbour.y !== wrap(location.y + dy, to.height)) brokenAdjacencies++;
     }
   }
-  const afterTextCells = [...result.values()].filter(cell => cell.width === 0 || cell.text?.trim()).length;
+  const afterTextCells = [...result.values()].reduce((sum, cell) => sum + inkArea(cell), 0);
   const beforeTextCells = occupied.reduce((total, bit) => total + bit, 0);
   const lostTextCells = Math.max(0, beforeTextCells - afterTextCells);
   const preservesText = mappingMismatches === 0 && brokenAdjacencies === 0;
-  return { cells: result, cursor, preservesText, summary: { seed, strategy: seams ? 'coordinated-blank-v3' : 'scattered-blank-v2',
+  return { cells: result, point, cursor, preservesText, summary: { seed, strategy: seams ? seams.strategy || 'coordinated-blank-v3' : 'scattered-blank-v2',
     horizontalSeams, verticalSeams, lostTextCells, brokenAdjacencies, survivingCells: result.size, destroyedCells: before - result.size } };
 }
 

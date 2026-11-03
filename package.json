@@ -8,6 +8,7 @@
     "test": "node --test tests/*.test.js",
     "test:browser": "node tests/browser.mjs",
     "experiment": "node experiments/topology.mjs",
+    "experiment:density": "node experiments/density.mjs && node experiments/local-continuity.mjs",
     "test:input": "node tests/input-regression.mjs",
     "test:writing": "node tests/writing-interactions.mjs",
     "test:ime": "node tests/standard-input.mjs",
@@ -20,7 +21,7 @@
     "metrics:report": "node scripts/metrics-report.mjs",
     "test:measurements": "node tests/measurements-browser.mjs",
     "metrics:export": "node scripts/export-metrics.mjs",
-    "test:topology": "node tests/topology-browser.mjs && node tests/topology-transactions.mjs"
+    "test:topology": "node tests/topology-browser.mjs && node tests/topology-transactions.mjs && node tests/topology-continuity.mjs"
   },
   "engines": {
     "node": ">=24"

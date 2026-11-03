@@ -1,6 +1,7 @@
 import { freshness, FRESHNESS } from '../shared/freshness.js';
 import { VIEW_LIMITS } from '../shared/participant-rules.js';
 import { cellKey, occupiedCell, wrap } from '../shared/world.js';
+import { inkArea } from './density.js';
 
 function badView() {
   return Object.assign(new Error('시야는 허용된 열·행 수와 면적 안의 정수 크기여야 합니다.'), {
@@ -134,11 +135,26 @@ export class Observer {
     return { ...this.view };
   }
 
+  relocate({ dx, dy, bounds }) {
+    if (!this.last) return;
+    const v = this.last.view;
+    if (v.x < bounds.x || v.y < bounds.y || v.x + v.cols > bounds.x + bounds.cols || v.y + v.rows > bounds.y + bounds.rows) return;
+    const moved = cell => ({ ...cell, x: cell.x + dx, y: cell.y + dy,
+      ...(Number.isInteger(cell.leadX) ? { leadX: cell.leadX + dx } : {}) });
+    this.last = { ...this.last, epoch: this.world.epoch, width: this.world.width, height: this.world.height,
+      view: moved(this.last.view), marks: this.last.marks.map(moved), peers: this.last.peers.map(moved),
+      cells: new Map([...this.last.cells.values()].map(cell => { const next = moved(cell); return [cellKey(next.x, next.y), next]; })) };
+  }
+
   read(peers = [], { since, force = false } = {}) {
     const { world, peer } = this, old = this.last, previousRevision = this.revision;
     const rectangle = viewRectangle(world, peer, this.view);
     const marks = [];
     const current = cellsInRectangle(world, rectangle, marks);
+    let ink = 0;
+    for (const cell of current.values()) for (let k=0;k<inkArea(cell);k++)
+      if (contains(rectangle,wrap(cell.x+k,world.width),cell.y,world)) ink++;
+    this.density = ink / (rectangle.cols * rectangle.rows);
     const ages = {}, colors = {};
     let nextFreshnessAt = Infinity;
     for (const cell of [...current.values(), ...marks]) {

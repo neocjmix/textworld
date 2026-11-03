@@ -15,6 +15,9 @@ import { createAgentHTTP } from './agent-http.js';
 import { Measurements, route as measurementRoute } from './measurements.js';
 import { createMCPAgent } from './mcp-agent.js';
 import { expire } from './expiration.js';
+import { DENSITY } from './density.js';
+import { localContinuity } from './local-continuity.js';
+import { relocateWriting } from '../shared/relocation.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
@@ -52,11 +55,25 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   world.resize=(width,height,participants=peers(),options)=>{
     const started=performance.now();
     try {
+      const before = new Map([...actors].map(actor => [actor, { peer: { ...actor.peer }, requested: actor.observer.view,
+        view: viewRectangle(world, actor.peer, actor.observer.view) }]));
       const result=resizeWorld(width,height,[...new Set([...participants,...peers()])],options);
       if(result.changed){
         measurements.record('topology.changed');measurements.record('topology.lost_text_cells',result.lostTextCells);measurements.record('topology.broken_adjacencies',result.brokenAdjacencies);measurements.record('topology.destroyed_cells',result.destroyedCells);measurements.record('topology.surviving_cells',result.survivingCells);
-        for(const actor of actors){actor.policy.resetTopology();actor.writing.reset(actor.peer);}
-        for(const [socket,actor] of clients)scopedUpdate(socket,actor,{snapshot:true,reason:'density-resize',resize:result});
+        const relocations = new Map();
+        const browserActors = new Set(clients.values());
+        for(const actor of actors){
+          const relocation = localContinuity(before.get(actor), actor.peer, result, actor.policy, actor.writing);
+          if (relocation) {
+            actor.policy.relocate(relocation); relocateWriting(actor.writing, relocation);
+            // Only WebSockets receive the per-view translation with an eager
+            // snapshot. HTTP/MCP must retain the old baseline until their next
+            // read returns a reset with the newly addressed cells.
+            if (browserActors.has(actor)) actor.observer.relocate(relocation);
+            relocations.set(actor, relocation); measurements.record('topology.local_preserved');
+          } else { actor.policy.resetTopology(); actor.writing.reset(actor.peer); measurements.record('topology.local_reset'); }
+        }
+        for(const [socket,actor] of clients)scopedUpdate(socket,actor,{snapshot:true,reason:'density-resize',resize:{ ...result, relocation:relocations.get(actor) }});
         notify();
       }
       return result;
@@ -127,7 +144,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       } });
     actor.observer = new Observer({ world, peer, view: acceptedView, charge: cost => actor.policy.acceptObservation(cost) });
     const readObservation=actor.observer.read.bind(actor.observer);
-    actor.observer.read=(...args)=>{const started=performance.now();try{const result=readObservation(...args);measurements.record('observer.cells',result.cells.length);measurements.record('observer.marks',result.marks.length);measurements.record('observer.changed',Number(result.reset||result.cells.length>0||result.forget.length>0));return result;}finally{measurements.record('observer.ms',performance.now()-started);measurements.record('observer.cols',Math.min(world.width,actor.observer.view.cols));measurements.record('observer.rows',Math.min(world.height,actor.observer.view.rows));measurements.record('observer.area',Math.min(world.width,actor.observer.view.cols)*Math.min(world.height,actor.observer.view.rows));}};
+    actor.observer.read=(...args)=>{const started=performance.now();try{const result=readObservation(...args);measurements.record('observer.ink_density',actor.observer.density);measurements.record('observer.cells',result.cells.length);measurements.record('observer.marks',result.marks.length);measurements.record('observer.changed',Number(result.reset||result.cells.length>0||result.forget.length>0));return result;}finally{measurements.record('observer.ms',performance.now()-started);measurements.record('observer.cols',Math.min(world.width,actor.observer.view.cols));measurements.record('observer.rows',Math.min(world.height,actor.observer.view.rows));measurements.record('observer.area',Math.min(world.width,actor.observer.view.cols)*Math.min(world.height,actor.observer.view.rows));}};
     try {
       if (position !== undefined) {
         if (!position || typeof position !== 'object' || Array.isArray(position)) throw new PolicyError('BAD_POSITION', '셀 좌표가 필요합니다.');
@@ -269,12 +286,23 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     const started = performance.now();
     try {
       const result = world.adapt(peers());
-      if (result.reason === 'preservation-search') measurements.record('topology.search_deferred');
+      measurements.record('density.actual', result.density);
+      measurements.record('density.projected', result.projectedDensity);
+      measurements.record('density.target_area', result.targetArea);
+      measurements.record('density.net_growth_cells_per_second', Math.max(0,result.netCellsPerSecond));
+      measurements.record('density.net_decay_cells_per_second', Math.max(0,-result.netCellsPerSecond));
+      measurements.record('density.above_band', Number(result.density > DENSITY.upper));
+      measurements.record('density.at_limit', Number(result.reason === 'limit'));
+      if (result.changed) {
+        const delta=world.width * world.height - result.from.width * result.from.height;
+        measurements.record('topology.area_delta', Math.abs(delta));
+        measurements.record(delta>0?'topology.growth':'topology.shrink');
+      }
       if (result.preservation === 'forced') measurements.record('topology.forced');
       // world.resize atomically remaps actors and publishes the new topology.
     } catch (error) { console.error('Density adaptation failed:', error.message); }
     finally { measurements.record('topology.adapt_ms', performance.now() - started); }
-  }, 10000);
+  }, DENSITY.intervalMs);
   return {
     server, world, wss, measurements,
     listen: (port = 3000, host = '0.0.0.0') => new Promise(resolve => server.listen(port, host, () => resolve(server.address()))),

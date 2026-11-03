@@ -1,4 +1,5 @@
 import { cellKey, cellSpan, graphemes, occupiedCell, wrap, writePlan } from '../shared/world.js';
+import { translatePoint } from '../shared/relocation.js';
 
 export const LIMITS = Object.freeze({
   request: { ratePerSecond: 80, burst: 160 },
@@ -140,6 +141,13 @@ export class ParticipantPolicy {
     return this.world.prior(this.peer.id, id);
   }
   resetTopology() { this.recent.clear(); this.carets.clear(); this.origins.clear(); this.rememberOrigin(this.peer.x); }
+  relocate(relocation) {
+    const moved = values => new Map([...values.values()].map(p => {
+      const next = translatePoint(p, relocation); return [cellKey(next.x, next.y), next];
+    }));
+    this.recent = moved(this.recent); this.carets = moved(this.carets);
+    this.origins = new Set([...this.origins].map(x => x + relocation.dx));
+  }
   acceptMove({ x, y, epoch, intent }) {
     this.assertEpoch(epoch);
     const point = this.canonical(x, y);

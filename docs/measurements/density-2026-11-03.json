@@ -1,0 +1,176 @@
+{
+  "date": "2026-11-03",
+  "baselineRevision": "cb35fa2025b1596e59e5f54eb76dc381ec403a44",
+  "method": "Seeded uniformly scattered synthetic engine traffic, accelerated clock, real SQLite/remesh/expiry. Sample after each second of writes, expiry and adaptation. Previous controller uses random seam seeds; not a service capacity benchmark.",
+  "before": [
+    {
+      "writers": 1,
+      "rate": 10,
+      "seconds": 480,
+      "stopAt": null,
+      "legacy": true,
+      "peakDensity": 0.8403361344537815,
+      "secondsAboveBand": 477,
+      "final": {
+        "t": 480,
+        "area": 6510,
+        "width": 310,
+        "height": 21,
+        "occupied": 2548,
+        "density": 0.3913978494623656,
+        "changed": true,
+        "lost": 0,
+        "broken": 518
+      },
+      "steadyDensityMin": 0.3913978494623656,
+      "steadyDensityMax": 0.5195195195195195,
+      "steadyResizes": 12,
+      "resizes": 48,
+      "lostCells": 0,
+      "brokenAdjacencies": 11324,
+      "adaptP95Ms": 144.79741400000012,
+      "adaptMaxMs": 332.1788320000005
+    }
+  ],
+  "after": [
+    {
+      "writers": 1,
+      "rate": 10,
+      "seconds": 480,
+      "stopAt": null,
+      "legacy": false,
+      "peakDensity": 0.1414141414141414,
+      "secondsAboveBand": 8,
+      "final": {
+        "t": 480,
+        "area": 40040,
+        "width": 280,
+        "height": 143,
+        "occupied": 3564,
+        "density": 0.08901098901098901,
+        "changed": false,
+        "lost": 0,
+        "broken": 0
+      },
+      "steadyDensityMin": 0.08751248751248751,
+      "steadyDensityMax": 0.09100899100899101,
+      "steadyResizes": 0,
+      "resizes": 41,
+      "lostCells": 0,
+      "brokenAdjacencies": 0,
+      "adaptP95Ms": 6.370589999999993,
+      "adaptMaxMs": 35.40473999999995
+    },
+    {
+      "writers": 10,
+      "rate": 5,
+      "seconds": 480,
+      "stopAt": null,
+      "legacy": false,
+      "peakDensity": 0.4388888888888889,
+      "secondsAboveBand": 32,
+      "final": {
+        "t": 480,
+        "area": 205119,
+        "width": 639,
+        "height": 321,
+        "occupied": 17628,
+        "density": 0.08594035657350124,
+        "changed": false,
+        "lost": 0,
+        "broken": 0
+      },
+      "steadyDensityMin": 0.08591110526084858,
+      "steadyDensityMax": 0.08829996246081542,
+      "steadyResizes": 0,
+      "resizes": 56,
+      "lostCells": 0,
+      "brokenAdjacencies": 8,
+      "adaptP95Ms": 29.38727999999992,
+      "adaptMaxMs": 243.46712200000002
+    },
+    {
+      "writers": 2,
+      "rate": 10,
+      "seconds": 600,
+      "stopAt": 240,
+      "legacy": false,
+      "peakDensity": 0.22067901234567902,
+      "secondsAboveBand": 20,
+      "final": {
+        "t": 600,
+        "area": 512,
+        "width": 32,
+        "height": 16,
+        "occupied": 0,
+        "density": 0,
+        "changed": false,
+        "lost": 0,
+        "broken": 0
+      },
+      "steadyDensityMin": 0,
+      "steadyDensityMax": 0,
+      "steadyResizes": 19,
+      "resizes": 91,
+      "lostCells": 0,
+      "brokenAdjacencies": 3,
+      "adaptP95Ms": 8.89564799999971,
+      "adaptMaxMs": 84.72309400000086
+    }
+  ],
+  "localContinuity": [
+    {
+      "width": 64,
+      "height": 32,
+      "views": 1000,
+      "preservedFraction": 0,
+      "independentSeamsPreservedFraction": 0
+    },
+    {
+      "width": 128,
+      "height": 64,
+      "views": 1000,
+      "preservedFraction": 0.079,
+      "independentSeamsPreservedFraction": 0
+    },
+    {
+      "width": 256,
+      "height": 128,
+      "views": 1000,
+      "preservedFraction": 0.314,
+      "independentSeamsPreservedFraction": 0
+    },
+    {
+      "width": 512,
+      "height": 256,
+      "views": 1000,
+      "preservedFraction": 0.631,
+      "independentSeamsPreservedFraction": 0
+    },
+    {
+      "width": 896,
+      "height": 448,
+      "views": 1000,
+      "preservedFraction": 0.759,
+      "independentSeamsPreservedFraction": 0
+    }
+  ],
+  "realTimeBrowser": {
+    "nativeEdits": 60,
+    "committed": 60,
+    "peakDensity": 0.11333333333333333,
+    "finalDensity": 0.08316008316008316,
+    "world": {
+      "width": 78,
+      "height": 37,
+      "epoch": 18,
+      "seq": 77,
+      "textLayout": 2
+    },
+    "resizes": 16,
+    "protocolErrors": [
+      "STALE_EPOCH"
+    ],
+    "pageErrors": []
+  }
+}

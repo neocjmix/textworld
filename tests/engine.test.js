@@ -208,20 +208,27 @@ test('shrink proceeds with occupied cells and relocates cursors into valid bound
   for(const c of world.cells.values())assert.ok(c.x<64&&c.y<32);
 });
 
-test('density adaptation grows, contracts and honors cooldown hysteresis', t => {
+test('density adaptation follows text, contracts after sustained low density and honors cooldown', t => {
   let now = 1000;
   const { world } = fixture(t, { width: 32, height: 16, now: () => now });
   const peers = [{ x: 1, y: 1 }, { x: 2, y: 1 }];
   assert.equal(world.adapt(peers).reason, 'cooldown');
-  now += 30001;
+  now += 1000;
+  assert.equal(world.adapt(peers).changed, false, 'idle connections do not count as text');
+  world.applyWrite({author:'a',id:'load',epoch:world.epoch,x:0,y:0,text:'A'.repeat(32)+'\n'+'B'.repeat(32)+'\nC'});
+  now += 1000;
   assert.equal(world.adapt(peers).changed, true);
-  assert.ok(world.width > 32 && world.width < 64);
-  assert.equal(world.height, 16);
+  assert.ok(world.width * world.height > 512 && world.width * world.height <= 576);
   assert.equal(world.adapt([]).reason, 'cooldown');
+  world.conditionalDelete({id:'clear',epoch:world.epoch,candidates:world.expiredCandidates(Infinity)});
+  now += 10000;
+  assert.equal(world.adapt([]).changed, false);
   now += 30001;
   assert.equal(world.adapt([]).changed, true);
-  assert.ok(world.width < 36 && world.width >= 32);
-  while (world.width > 32 || world.height > 16) world.adapt([], { cooldown: 0 });
+  for (let i = 0; i < 20 && (world.width > 32 || world.height > 16); i++) {
+    now += 5000; world.adapt([]);
+  }
+  assert.equal(world.width * world.height,512);
   assert.equal(world.adapt([], { cooldown: 0 }).changed, false);
 });
 

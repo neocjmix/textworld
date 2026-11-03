@@ -1,4 +1,6 @@
-import { remesh, findBlankSeams } from './topology.js';
+import { remesh } from './topology.js';
+import { coherentSeams } from './coherent-seams.js';
+import { DENSITY, DensityController, inkArea } from './density.js';
 import { DatabaseSync } from 'node:sqlite';
 import { randomUUID, randomInt } from 'node:crypto';
 import { closeSync, fsyncSync, mkdirSync, openSync } from 'node:fs';
@@ -82,6 +84,8 @@ export class World {
     Object.assign(this, meta);
     this.cells = new Map(this.db.prepare('SELECT c.x,c.y,c.text,c.width,c.leadX,c.version,c.author,t.updatedAt,c.groupId AS "group" FROM cells c JOIN change_times t ON t.version=(SELECT MAX(version) FROM change_times WHERE version<=c.version)').all().map(cell => [cellKey(cell.x, cell.y), cell]));
     this.lastResize = this.now();
+    this.ink = [...this.cells.values()].reduce((sum, cell) => sum + inkArea(cell), 0);
+    this.densityController = new DensityController(this.now(), this.ink);
     this.saveMeta();
   }
   metadata() { return { width: this.width, height: this.height, epoch: this.epoch, seq: this.seq, textLayout: 2 }; }
@@ -175,7 +179,11 @@ export class World {
       this.db.exec('COMMIT');
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
     this.seq = seq;
-    for (const cell of cells) this.cells.set(cellKey(cell.x, cell.y), cell);
+    for (const cell of cells) {
+      const key = cellKey(cell.x, cell.y);
+      this.ink += inkArea(cell) - inkArea(this.cells.get(key));
+      this.cells.set(key, cell);
+    }
     return result;
   }
   reserveAuthor(author, color) {
@@ -254,75 +262,57 @@ export class World {
       this.db.exec('COMMIT');
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
     this.cells = plan.cells;
+    this.ink = [...this.cells.values()].reduce((sum, cell) => sum + inkArea(cell), 0);
+    this.densityController.resized(this.ink, width * height);
     Object.assign(this, next);
     peers.forEach((peer, index) => Object.assign(peer, relocated[index]));
     this.lastResize = this.now();
-    return { changed: true, reason: 'density', preservesAddresses: false, from, ...this.metadata(), ...plan.summary };
+    const result = { changed: true, reason: 'density', preservesAddresses: false, from, ...this.metadata(), ...plan.summary };
+    // Internal proof of local continuity. Never expose the world's seam paths
+    // or a map of unseen addresses through the participant interface.
+    Object.defineProperty(result, 'mapping', { value: plan.point });
+    return result;
   }
-  adapt(peers = [], { cooldown = 10000 } = {}) {
-    const occupied = [...this.cells.values()].filter(occupiedCell).length;
-    const density = Math.max(occupied, peers.length * 96) / (this.width * this.height);
-    if (this.now() - this.lastResize < cooldown) return { changed: false, reason: 'cooldown', density };
-    const grow = density > .125, shrink = density < .04;
-    if (grow || shrink) {
-      const dimensions = [
-        { axis: 'width', size: this.width, min: 32, max: 1024 },
-        { axis: 'height', size: this.height, min: 16, max: 512 },
-      ].filter(d => grow ? d.size < d.max : d.size > d.min);
-      if (!dimensions.length) return { changed: false, reason: 'limit', density };
-      // Keep dimensions near the existing 2:1 aspect ratio across steps.
-      const preferWidth = grow ? this.width / this.height <= 2 : this.width / this.height > 2;
-      dimensions.sort((a, b) => (a.axis === (preferWidth ? 'width' : 'height') ? -1 : 1));
-      const from = { width: this.width, height: this.height };
-      // A completely occupied row/column blocks preservation on that axis.
-      const isText = cell => cell && (cell.width === 0 || !!cell.text?.trim());
-      const blocked = d => d.axis === 'width'
-        ? Array.from({ length: this.height }, (_, y) => Array.from({ length: this.width }, (_, x) => isText(this.getCell(x, y))).every(Boolean)).some(Boolean)
-        : Array.from({ length: this.width }, (_, x) => Array.from({ length: this.height }, (_, y) => isText(this.getCell(x, y))).every(Boolean)).some(Boolean);
-      // Try both axes and progressively smaller steps before any destructive
-      // change. Each candidate is evaluated against the same committed epoch.
-      for (const d of dimensions.filter(d => !blocked(d))) {
-        const room = grow ? d.max - d.size : d.size - d.min;
-        for (let step = Math.min(room, Math.max(1, Math.floor(d.size / 8))); step >= 1; step = step === 1 ? 0 : Math.max(1, Math.floor(step / 2))) {
-          const to = { ...from, [d.axis]: d.size + (grow ? step : -step) };
-          for (let attempt = 0; attempt < 4; attempt++) {
-            const seed = randomInt(0, 4294967296);
-            if (remesh(this.cells, from, to, seed).preservesText) return { ...this.resize(to.width, to.height, peers, { seed }), density, preservation: 'text' };
-          }
+  adapt(peers = [], { cooldown, seed = randomInt(0, 4294967296) } = {}) {
+    const control = this.densityController.decide({ now: this.now(), occupied: this.ink,
+      width: this.width, height: this.height, lastResize: this.lastResize, cooldown });
+    if (control.reason !== 'due') return control;
+    const grow = control.mode === 'grow', from = { width: this.width, height: this.height };
+    const preferWidth = grow ? this.width / this.height <= 2 : this.width / this.height > 2;
+    const dimensions = [
+      { axis: 'width', other: this.height, size: this.width, min: DENSITY.minWidth, max: DENSITY.maxWidth },
+      { axis: 'height', other: this.width, size: this.height, min: DENSITY.minHeight, max: DENSITY.maxHeight },
+    ].filter(d => grow ? d.size < d.max : d.size > d.min)
+      .sort((a, b) => Number(b.axis === (preferWidth ? 'width' : 'height')) - Number(a.axis === (preferWidth ? 'width' : 'height')));
+    let best, candidate = 0;
+    for (const d of dimensions) {
+      const goal = Math.ceil(control.targetArea / d.other);
+      // Blank preservation must not turn a 2D world into an ever longer strip.
+      const min = Math.max(d.min, d.axis === 'width' ? d.other : Math.ceil(d.other / 4));
+      const max = Math.min(d.max, d.axis === 'width' ? d.other * 4 : d.other);
+      const room = grow ? max - d.size : d.size - min;
+      if (room <= 0) continue;
+      const requested = Math.min(room, Math.max(1, Math.floor(d.size * DENSITY.stepFraction)), Math.max(1, Math.abs(goal - d.size)));
+      // A large blank deletion may not fit where several smaller ones would.
+      // Exhaust smaller blank steps before forcing deletion; growth of a band
+      // has the same cut locations regardless of its inserted width.
+      for (let step = requested; step >= 1; step = grow || step === 1 ? 0 : Math.max(1, Math.floor(step / 2))) {
+        const to = { ...from, [d.axis]: d.size + (grow ? step : -step) };
+        for (let attempt = 0; attempt < 2; attempt++) {
+          const candidateSeed = (seed + candidate++ * 0x9e3779b9) >>> 0;
+          const seams = coherentSeams(this.cells, from, d.axis, grow ? step : -step, candidateSeed);
+          const plan = remesh(this.cells, from, to, candidateSeed, { seams });
+          if (plan.preservesText) return { ...control, ...this.resize(to.width, to.height, peers, { seed: candidateSeed, seams }), preservation: 'text' };
+          // Forced progress must still provide the requested capacity, not an
+          // arbitrarily tiny safe-looking change that cannot catch up to input.
+          if (step !== requested) continue;
+          const score = plan.summary.lostTextCells * (2 * this.width * this.height + 1) + plan.summary.brokenAdjacencies;
+          if (!best || score < best.score) best = { to, seed: candidateSeed, seams, score };
         }
-      }
-      // Coordinate one-cell blank seams where the bounded exact search fits.
-      // Independent random seams rarely align across neighbouring text.
-      for (const d of dimensions) {
-        const seed = randomInt(0, 4294967296), delta = grow ? 1 : -1;
-        const seams = findBlankSeams(this.cells, from, d.axis, delta, seed);
-        if (seams.status === 'too-large') continue;
-        if (seams.status === 'found') {
-          const to = { ...from, [d.axis]: d.size + delta };
-          if (remesh(this.cells, from, to, seed, { seams }).preservesText)
-            return { ...this.resize(to.width, to.height, peers, { seed, seams }), density, preservation: 'text' };
-          // An inconsistent plan cannot be applied; use the least-damaging fallback.
-        }
-      }
-      {
-        // If no safe candidate was found, progress with the least damaging
-        // sampled alternative. Large worlds use bounded, non-exhaustive search.
-        let best;
-        for (const d of dimensions) {
-          const room = grow ? d.max - d.size : d.size - d.min;
-          const step = Math.min(room, 8, Math.max(1, Math.ceil(d.size / 16)));
-          const to = { ...from, [d.axis]: d.size + (grow ? step : -step) };
-          const attempts = from.width * from.height > 65536 ? 1 : from.width * from.height > 16384 ? 4 : 6;
-          for (let attempt = 0; attempt < attempts; attempt++) {
-            const seed = randomInt(0, 4294967296), plan = remesh(this.cells, from, to, seed);
-            const score = plan.summary.lostTextCells * (2 * from.width * from.height + 1) + plan.summary.brokenAdjacencies;
-            if (!best || score < best.score) best = { seed, to, score };
-          }
-        }
-        return { ...this.resize(best.to.width, best.to.height, peers, { seed: best.seed }), density, preservation: 'forced' };
       }
     }
-    return { changed: false, reason: 'stable', density };
+    if (!best) return { ...control, reason: 'limit' };
+    return { ...control, ...this.resize(best.to.width, best.to.height, peers, { seed: best.seed, seams: best.seams }), preservation: 'forced' };
   }
   close() { this.db.close(); }
 }

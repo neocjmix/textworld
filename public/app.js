@@ -9,6 +9,7 @@ import { createNativeInput } from './native-input.js';
 import { projectLocalCells } from './local-world.js';
 import { createNativeSurface } from './native-surface.js';
 import { createCameraMotion } from './camera-motion.js';
+import { writingFits, relocateWriting, trailFits, translateTrail } from '/shared/relocation.js';
 
 const $ = id => document.getElementById(id);
 const app = $('app');
@@ -32,6 +33,7 @@ let localCells = new Map(), freshnessMarks = new Map(), freshnessBands = {}, col
 let observedView = null, viewRevision = 0, sentView = '', viewTimer, recoveryTimer;
 let cursor = { x: 0, y: 0 }, camera = { x: 0, y: 0 };
 let cameraAnchor = null, cameraEpoch = null;
+let dotOrigin = { x: 0, y: 0 };
 let viewportOrigin = { x: 0, y: 0 };
 let keyboardVisible = false, openViewportHeight = 0, viewportWidth = 0;
 const cursorVerticalFraction = () => keyboardVisible
@@ -300,7 +302,7 @@ function draw() {
   // A square dot pattern in map pixels, anchored to the moving world rather
   // than the viewport. Text cells themselves remain 9 × 26 at 100% zoom.
   const dotSpacing = 26 * zoom, dotSize = Math.max(1, 1.3 * zoom);
-  const originX = camera.x * d.width, originY = camera.y * d.height;
+  const originX = (camera.x - dotOrigin.x) * d.width, originY = (camera.y - dotOrigin.y) * d.height;
   ctx.fillStyle = '#c4cdc0';
   for (let y = Math.floor(originY / dotSpacing) * dotSpacing; y <= originY + size.height; y += dotSpacing) {
     for (let x = Math.floor(originX / dotSpacing) * dotSpacing; x <= originX + size.width; x += dotSpacing) {
@@ -638,13 +640,16 @@ function connect() {
       const wasConnected = connected, previousCursor = { ...cursor }, oldEpoch = world?.epoch;
       if(oldEpoch && oldEpoch !== message.world.epoch){motion.cancel();cameraMotion.cancel();panRemainder={x:0,y:0};drag=null;pinch=null;pointers.clear();dragCameraOffset=null;}
       const nextMe = message.peers.find(peer => peer.id === message.selfId);
-      const fits = point => point.x >= 0 && point.x < message.world.width && point.y >= 0 && point.y < message.world.height;
-      const stableStep = step => fits(step.from) && fits(step.to) && (step.kind === 'return'
-        ? wrap(step.from.y + 1, message.world.height) === step.to.y
-        : wrap(step.from.x + wrap(step.to.x - step.from.x, world.width), message.world.width) === step.to.x);
-      const keepNativeContext = wasConnected && message.reason === 'density-resize' && message.resize?.preservesAddresses === true
-        && pending.size === 0 && selfId === message.selfId && nextMe?.x === previousCursor.x && nextMe?.y === previousCursor.y
-        && writing.lineStartX < message.world.width && writing.trail.every(stableStep);
+      const relocation = message.resize?.relocation;
+      const keepPlace = wasConnected && message.reason === 'density-resize' && relocation && message.world.epoch === oldEpoch + 1
+        && pending.size === 0 && selfId === message.selfId && nextMe?.x === previousCursor.x + relocation.dx && nextMe?.y === previousCursor.y + relocation.dy;
+      const keepNativeContext = keepPlace && nativeProjection.canRelocate(relocation)
+        && writingFits(writing, relocation) && trailFits(nativeTrailBase, relocation);
+      if (keepNativeContext) {
+        nativeProjection.relocate(relocation); relocateWriting(writing, relocation);
+        nativeTrailBase = translateTrail(nativeTrailBase, relocation);
+      }
+      const cameraShift = keepPlace && cameraAnchor ? { x: nextMe.x - cameraAnchor.x, y: nextMe.y - cameraAnchor.y } : null;
       const keepWriting = keepNativeContext || (!firstSnapshot && !wasConnected && oldEpoch === message.world.epoch && pending.size === 0);
       cancelMove(); lastSentPosition = null; world = message.world; selfId = message.selfId;
       freshnessBands = message.freshness || {};
@@ -659,8 +664,8 @@ function connect() {
       cursor = me ? { x: me.x, y: me.y } : { x: 0, y: 0 };
       if (pending.size) { notice('세계를 갱신했습니다. 전송 중이던 글자를 확인해 주세요.'); pending.clear(); }
       refreshLocalCells();
-      // Empty-edge resize can keep the same place and known text context.
-      // Recovery snapshots and uncertain writes still invalidate native ranges.
+      // A proved rigid local translation keeps native UTF-16 ranges, IME draft,
+      // and text pixels in place. Uncertain writes still invalidate context.
       if (!keepNativeContext) resetComposition();
       connection(true);
       reportView({ immediate: true });
@@ -674,7 +679,12 @@ function connect() {
       } else if (!wasConnected) {
         move(previousCursor.x, previousCursor.y, { manual: false, newOrigin: !keepWriting });
         notice('다시 연결했습니다. 이전 위치에서 계속하세요.');
-      } else if (oldEpoch !== world.epoch) notice('세계 크기가 바뀌어 글과 자리가 재배치됐습니다. 새 자리에서 입력하세요.');
+      } else if (oldEpoch !== world.epoch && !keepNativeContext) notice('세계 크기가 바뀌어 글과 자리가 재배치됐습니다. 새 자리에서 입력하세요.');
+      if (cameraShift) {
+        dotOrigin.x += cameraShift.x; dotOrigin.y += cameraShift.y;
+        cameraAnchor = { ...cursor }; cameraEpoch = world.epoch;
+        cameraMotion.jump({ x: camera.x + cameraShift.x, y: camera.y + cameraShift.y });
+      } else if (oldEpoch !== world.epoch) dotOrigin = { x: 0, y: 0 };
       center();
       if (!wasConnected && isDesktop()) focusInput();
     } else if (message.type === 'view') {

@@ -1,4 +1,5 @@
 import { cellKey, wrap, writePlan } from './world.js';
+import { insideRelocation, translatePoint, trailFits, translateTrail } from './relocation.js';
 
 const segmenter = new Intl.Segmenter('und', { granularity: 'grapheme' });
 const samePoint = (a, b) => a.x === b.x && a.y === b.y;
@@ -23,6 +24,20 @@ export class NativeProjection {
     this.cursor = { ...cursor };
     this.selectionStart = this.selectionEnd = 0;
     this.revision = (this.revision || 0) + 1;
+  }
+
+  canRelocate(relocation) {
+    return insideRelocation(this.anchor, relocation) && insideRelocation(this.cursor, relocation)
+      && this.entries.every(entry => insideRelocation(entry.from, relocation) && insideRelocation(entry.to, relocation)
+        && entry.cells.every(p => insideRelocation(p, relocation)) && trailFits(entry.steps, relocation));
+  }
+
+  relocate(relocation) {
+    this.anchor = translatePoint(this.anchor, relocation); this.cursor = translatePoint(this.cursor, relocation);
+    this.entries = this.entries.map(entry => ({ ...entry, from: translatePoint(entry.from, relocation),
+      to: translatePoint(entry.to, relocation), cells: entry.cells.map(p => translatePoint(p, relocation)),
+      steps: translateTrail(entry.steps, relocation) }));
+    this.revision++;
   }
 
   pointAt(offset, entries = this.entries, text = this.text, anchor = this.anchor) {
