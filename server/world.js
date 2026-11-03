@@ -263,7 +263,7 @@ export class World {
     const occupied = [...this.cells.values()].filter(occupiedCell).length;
     const density = Math.max(occupied, peers.length * 96) / (this.width * this.height);
     if (this.now() - this.lastResize < cooldown) return { changed: false, reason: 'cooldown', density };
-    const grow = density > .25, shrink = density < .04;
+    const grow = density > .125, shrink = density < .04;
     if (grow || shrink) {
       const dimensions = [
         { axis: 'width', size: this.width, min: 32, max: 1024 },

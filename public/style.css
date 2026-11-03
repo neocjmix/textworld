@@ -153,7 +153,7 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
   position: absolute;
   z-index: 3;
   left: 50%;
-  bottom: max(8px, env(safe-area-inset-bottom));
+  top: calc(max(var(--edge), env(safe-area-inset-top)) + 52px);
   transform: translateX(-50%);
   width: max-content;
   max-width: min(460px, calc(100% - 136px));
@@ -227,7 +227,6 @@ details p { margin-top: 12px; }
   .world-status { margin-top: 3px; }
   .identity { padding-top: 6px; padding-bottom: 6px; }
   .navigation-controls { gap: 6px; }
-  #notice { bottom: max(8px, env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: no-preference) {
   #connection-dot { transition: background .2s; }
