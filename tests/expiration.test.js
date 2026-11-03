@@ -9,7 +9,7 @@ test('expiration waits for the shared timestamp uncertainty and preserves a conc
   world.applyWrite({ author: 'a', id: 'marker', epoch: 1, x: 0, y: 0, text: 'A' });
   time += 4999;
   world.applyWrite({ author: 'a', id: 'later', epoch: 1, x: 3, y: 3, text: '한' });
-  time += 3600000;
+  time += 180000;
   assert.equal(expire(world), 0);
   const candidates = world.expiredCandidates(time);
   world.applyWrite({ author: 'b', id: 'overwrite', epoch: 1, x: 3, y: 3, text: 'B' });
@@ -43,7 +43,7 @@ test('server automatically expires text and publishes removals to a live client'
   const client = connect(`ws://127.0.0.1:${address.port}/ws`);
   await client.next(message => message.type === 'snapshot');
   const after = client.messages.length;
-  time += 3605001;
+  time += 185001;
   const removal = await client.next(message => message.type === 'view' && message.observation.forget.some(p => p.x === 64 && p.y === 32), after, 8000);
   assert.ok(removal.observation.forget.some(p => p.x === 65 && p.y === 32));
   assert.equal(app.world.getCell(64, 32).text, '');

@@ -103,7 +103,7 @@ test('expiry removes old wide glyphs, preserves fresh overwrites and reaches liv
   let clock = 10000000;
   const { app, url, base } = await fixture(t, { now: () => clock });
   app.world.applyWrite({ author: 'old', id: 'old', epoch: 1, x: 3, y: 4, text: '오래' });
-  clock += 3605001;
+  clock += 185001;
   app.world.applyWrite({ author: 'new', id: 'new', epoch: 1, x: 3, y: 4, text: 'N' });
   const observer = await joined(url), after = observer.messages.length;
   assert.equal(expire(app.world, () => observer.send({ type: 'sync' })), 2);

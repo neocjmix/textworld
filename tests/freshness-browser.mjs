@@ -3,8 +3,10 @@ import {chromium} from 'playwright';
 import {mkdir} from 'node:fs/promises';
 import {createTextworld} from '../server/index.js';
 let now=10000000;const app=createTextworld({storagePath:':memory:',now:()=>now});
+// Isolate aging from the separate density-resize timer and its epoch remapping.
+app.world.adapt=()=>({changed:false,reason:'test'});
 app.world.registerAuthor('seed','#304060');
-let i=0;for(const [age,text] of [[400000,'이전 글'],[120000,'몇 분 전'],[30000,'최근 글'],[0,'방금 쓴 글']]){now=10000000-age;app.world.applyWrite({author:'seed',id:String(i),epoch:1,x:50,y:27+i++,text});}now=10000000;
+let i=0;for(const [age,text] of [[120000,'이전 글'],[70000,'조금 전'],[30000,'최근 글'],[0,'방금 쓴 글']]){now=10000000-age;app.world.applyWrite({author:'seed',id:String(i),epoch:1,x:50,y:27+i++,text});}now=10000000;
 const {port}=await app.listen(0,'127.0.0.1');const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
 try{
  const page=await browser.newPage({viewport:{width:1000,height:800}});await page.goto(`http://127.0.0.1:${port}/#x=64&y=32`);await page.waitForFunction(()=>window.textworld?.inspect().connected&&!window.textworld.inspect().cameraActive);

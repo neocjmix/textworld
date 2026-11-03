@@ -9,7 +9,7 @@ import {join} from 'node:path';
 
 test('relative freshness boundaries and unknown ages are conservative',()=>{
  assert.equal(freshness(undefined,0),'old');
- for(const [age,band] of [[0,'now'],[14999,'now'],[15000,'recent'],[60000,'minutes'],[300000,'earlier'],[3600000,'old']]) assert.equal(freshness(1000,1000+age),band);
+ for(const [age,band] of [[0,'now'],[14999,'now'],[15000,'recent'],[45000,'minutes'],[90000,'earlier'],[180000,'old']]) assert.equal(freshness(1000,1000+age),band);
 });
 test('shared change ages expire without resending text, preserve CJK and scoped erase marks',t=>{
  let now=100000;const w=new World({now:()=>now});t.after(()=>w.close());
