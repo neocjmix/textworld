@@ -125,6 +125,9 @@ const shortest = (distance, extent) => wrap(distance + extent / 2, extent) - ext
 function center({ immediate = false, residual = false, direct = false, timeConstant = 80, viewportChange = false } = {}) {
   if (!world) return;
   const v = visible(), d = dimensions();
+  const cursorElement = $('cursor');
+  const previousRect = cameraAnchor && !cursorElement.hidden ? cursorElement.getBoundingClientRect() : null;
+  const previousAnchor = cameraAnchor ? { ...cameraAnchor } : null;
   if (!cameraAnchor || cameraEpoch !== world.epoch) {
     cameraAnchor = { ...cursor }; cameraEpoch = world.epoch; immediate = true;
   } else {
@@ -148,6 +151,23 @@ function center({ immediate = false, residual = false, direct = false, timeConst
   cameraMotion.setTarget(target, { immediate, scale: { x: d.width, y: d.height }, timeConstant });
   if (cameraMotion.active && frame) { cancelAnimationFrame(frame); frame = null; }
   updateCursorSurface();
+  if (immediate || direct || composing || reducedMotion()) {
+    for (const animation of cursorElement.getAnimations()) animation.cancel();
+  }
+  // Animate the marker's displacement independently of the logical cell and
+  // camera. The native input and authoritative position remain immediate.
+  if (previousRect && previousAnchor && !immediate && !direct && !composing && !reducedMotion()
+      && (previousAnchor.x !== cameraAnchor.x || previousAnchor.y !== cameraAnchor.y)) {
+    for (const animation of cursorElement.getAnimations()) animation.cancel();
+    const nextRect = cursorElement.getBoundingClientRect();
+    const dx = previousRect.left - nextRect.left, dy = previousRect.top - nextRect.top;
+    if (Math.hypot(dx, dy) < Math.max(size.width, size.height) / 2) {
+      cursorElement.animate([
+        { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))` },
+        { transform: 'translate(-50%, -50%)' },
+      ], { duration: 120, easing: 'ease-out' });
+    }
+  }
 }
 function updateCursorSurface() {
   if (!cameraAnchor) return;
@@ -286,7 +306,7 @@ function draw() {
   // than the viewport. Text cells themselves remain 9 × 26 at 100% zoom.
   const dotSpacing = 26 * zoom, dotSize = Math.max(1, 1.3 * zoom);
   const originX = camera.x * d.width, originY = camera.y * d.height;
-  ctx.fillStyle = '#d3d9ce';
+  ctx.fillStyle = '#c4cdc0';
   for (let y = Math.floor(originY / dotSpacing) * dotSpacing; y <= originY + size.height; y += dotSpacing) {
     for (let x = Math.floor(originX / dotSpacing) * dotSpacing; x <= originX + size.width; x += dotSpacing) {
       ctx.fillRect(x - originX - dotSize / 2, y - originY - dotSize / 2, dotSize, dotSize);
