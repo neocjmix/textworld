@@ -1,3 +1,5 @@
+import { nativeWindow } from '../shared/native-context.js';
+
 const isReturn = type => type === 'insertLineBreak' || type === 'insertParagraph';
 const isCellDelete = type => type === 'deleteContentBackward' || type === 'deleteContentForward';
 const isTextEdit = type => type.startsWith('insert') || type.startsWith('delete');
@@ -37,15 +39,16 @@ export function createNativeInput(input, {
     preview = text;
     onPreedit(text, range);
   }
-  function replaceDOM(text, caret = text.length) {
+  function replaceDOM(text, caret = text.length, anchor = caret) {
     input.textContent = text;
     // Resetting a background input context must not move focus out of help or
     // another control. A focused editing host still receives its native caret.
     if (document.activeElement !== input && !input.contains(document.activeElement)) return;
     const range = document.createRange();
-    if (input.firstChild) range.setStart(input.firstChild, Math.max(0, Math.min(caret, text.length)));
-    else range.setStart(input, 0);
-    range.collapse(true);
+    if (input.firstChild) {
+      range.setStart(input.firstChild, Math.max(0, Math.min(anchor, text.length)));
+      range.setEnd(input.firstChild, Math.max(0, Math.min(caret, text.length)));
+    } else { range.setStart(input, 0); range.collapse(true); }
     const selected = document.getSelection(); selected.removeAllRanges(); selected.addRange(range);
   }
   function clearDOM() { committed = ''; pending = null; replaceDOM(''); }
@@ -65,6 +68,14 @@ export function createNativeInput(input, {
       replaceDOM(committed, edit.start); onUnsupported(edit.inputType); return false;
     }
     committed = edit.after;
+    // Compact only after a completed edit, never while an IME owns the DOM.
+    // Keep recent graphemes and the selection; clearing the whole host would
+    // detach a provisional Korean syllable just before native reconversion.
+    const window = nativeWindow(committed, edit.selectionStart, edit.selectionEnd);
+    if (window) {
+      committed = committed.slice(window.start, window.end);
+      replaceDOM(committed, edit.selectionEnd - window.start, edit.selectionStart - window.start);
+    }
     return true;
   }
   function finish() {

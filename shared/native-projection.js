@@ -26,6 +26,15 @@ export class NativeProjection {
     this.revision = (this.revision || 0) + 1;
   }
 
+  retain({ start, end }) {
+    this.text = this.text.slice(start, end);
+    this.entries = this.entries.filter(e => e.start >= start && e.end <= end)
+      .map(e => ({ ...e, start: e.start - start, end: e.end - start }));
+    this.selectionStart -= start; this.selectionEnd -= start;
+    this.anchor = { ...(this.entries[0]?.from || this.cursor) };
+    this.revision++;
+  }
+
   canRelocate(relocation) {
     return insideRelocation(this.anchor, relocation) && insideRelocation(this.cursor, relocation)
       && this.entries.every(entry => insideRelocation(entry.from, relocation) && insideRelocation(entry.to, relocation)
@@ -37,6 +46,26 @@ export class NativeProjection {
     this.entries = this.entries.map(entry => ({ ...entry, from: translatePoint(entry.from, relocation),
       to: translatePoint(entry.to, relocation), cells: entry.cells.map(p => translatePoint(p, relocation)),
       steps: translateTrail(entry.steps, relocation) }));
+    this.revision++;
+  }
+
+  remap(resize, cursor, spanAt) {
+    const map = resize.cursorMapping;
+    const cells = points => {
+      const mapped = new Map();
+      for (const p of points) {
+        const next = resize.mapping(p.x, p.y);
+        if (!next) continue;
+        // Wide-glyph repair can place a continuation next to its mapped head.
+        for (const cell of spanAt(next.x, next.y)) {
+          mapped.set(cellKey(cell.x, cell.y), { x: cell.x, y: cell.y });
+        }
+      }
+      return [...mapped.values()];
+    };
+    this.anchor = map(this.anchor); this.cursor = { x: cursor.x, y: cursor.y };
+    this.entries = this.entries.map(entry => ({ ...entry, from: map(entry.from), to: map(entry.to),
+      cells: cells(entry.cells), steps: entry.steps.map(s => ({ ...s, from: map(s.from), to: map(s.to) })) }));
     this.revision++;
   }
 

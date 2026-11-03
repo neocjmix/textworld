@@ -37,6 +37,20 @@ const compose = (cdp, text, extra = {}) => cdp.send('Input.imeSetComposition', {
 const commit = (cdp, text) => cdp.send('Input.insertText', { text });
 const span = edit => ({ before: edit.before, start: edit.start, end: edit.end, text: edit.text, after: edit.after });
 try {
+  await scenario('Native context compacts after a completed edit and retains its final syllable for reconversion', async ({ page, cdp }) => {
+    await commit(cdp, 'A'.repeat(256));
+    await compose(cdp, '한');
+    assert.equal((await state(page)).text, 'A'.repeat(256) + '한');
+    assert.equal((await state(page)).resets, 0);
+    await commit(cdp, '한');
+    const rotated = await state(page);
+    assert.equal(rotated.text, 'A'.repeat(127) + '한'); assert.equal(rotated.committed, rotated.text); assert.equal(rotated.resets, 0);
+    assert.equal(rotated.edits.at(-1).before.length, 256);
+    await compose(cdp, '韓', { replacementStart: 127, replacementEnd: 128 }); await commit(cdp, '韓');
+    assert.equal((await state(page)).text, 'A'.repeat(127) + '韓');
+    await compose(cdp, '글'); await commit(cdp, '글');
+    assert.deepEqual(span((await state(page)).edits.at(-1)), { before: 'A'.repeat(127) + '韓', start: 128, end: 128, text: '글', after: 'A'.repeat(127) + '韓글' });
+  });
   await scenario('Native rich editing host provides authoritative ranges for text and deletion', async ({ page }) => {
     await page.keyboard.type('ABC'); await page.keyboard.press('Backspace');
     const s = await state(page);

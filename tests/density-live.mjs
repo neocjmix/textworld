@@ -9,10 +9,14 @@ const {port}=await app.listen(0,'127.0.0.1');
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
 try {
   const context=await browser.newContext({viewport:{width:800,height:600}});
-  const pages=await Promise.all([context.newPage(),context.newPage()]),errors=[],protocol=[];
-  for(const page of pages){page.on('pageerror',e=>errors.push(e.message));page.on('websocket',ws=>ws.on('framereceived',e=>{
-    const m=JSON.parse(String(e.payload));if(m.type==='error')protocol.push(m.code);
-  }));}
+  const pages=await Promise.all([context.newPage(),context.newPage()]),errors=[],protocol=[],inputBytes=[],contextBytes=[];
+  for(const page of pages){page.on('pageerror',e=>errors.push(e.message));page.on('websocket',ws=>{
+    ws.on('framereceived',e=>{
+      const m=JSON.parse(String(e.payload));if(m.type==='error')protocol.push(m.code);
+      if(m.type==='snapshot')contextBytes.push(Buffer.byteLength(JSON.stringify(m.input)));
+    });
+    ws.on('framesent',e=>{const m=JSON.parse(String(e.payload));if(m.type==='input')inputBytes.push(Buffer.byteLength(String(e.payload)));});
+  });}
   await Promise.all(pages.map((p,i)=>p.goto(`http://127.0.0.1:${port}/#x=2&y=${4+i*6}`)));
   await Promise.all(pages.map(p=>p.waitForFunction(()=>window.textworld?.inspect().connected)));
   const initialEpoch=app.world.epoch;let peakDensity=0;
@@ -27,11 +31,13 @@ try {
   }
   assert.ok(app.world.epoch>initialEpoch+2);
   assert.ok(app.world.ink/(app.world.width*app.world.height)<.15);
-  assert.deepEqual(errors,[]);assert.ok(protocol.every(code=>code==='STALE_EPOCH'),'no unrelated policy/input errors');
+  assert.deepEqual(errors,[]);assert.deepEqual(protocol,[],'automatic resize must not reject a cursor intention');
   const count=app.world.db.prepare("SELECT count(*) n FROM operations WHERE author!='expiry'").get().n;
-  assert.ok(count>=58,'almost all 60 native edits must commit during real automatic resizing');
+  assert.equal(count,60,'all 60 native edits must commit during real automatic resizing');
+  const bytes=values=>({count:values.length,sum:values.reduce((a,b)=>a+b,0),max:Math.max(...values),mean:values.reduce((a,b)=>a+b,0)/values.length});
   const result={nativeEdits:60,committed:count,peakDensity,finalDensity:app.world.ink/(app.world.width*app.world.height),
-    world:app.world.metadata(),resizes:app.world.epoch-initialEpoch,protocolErrors:protocol,pageErrors:errors};
+    world:app.world.metadata(),resizes:app.world.epoch-initialEpoch,protocolErrors:protocol,pageErrors:errors,
+    inputBytes:bytes(inputBytes),contextSnapshotBytes:bytes(contextBytes)};
   mkdirSync('artifacts',{recursive:true});writeFileSync('artifacts/density-browser.json',JSON.stringify(result,null,2));
   console.log(JSON.stringify(result));
 } finally {await browser.close();await app.close();}

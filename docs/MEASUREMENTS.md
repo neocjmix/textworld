@@ -69,6 +69,13 @@ HTTP는 `GET /api/metrics?period=60|3600&since=...&before=...&limit=...`, Bearer
 
 새 자동 제어기는 매초 `density.actual`(표시 칸/전체 면적), `density.projected`, `density.target_area`, `density.net_growth_cells_per_second`, `density.net_decay_cells_per_second`, `density.above_band`, `density.at_limit`을 집계한다. 초과·한도 항목은 0/1 샘플이며 평균으로 판단 주기 중 해당 상태의 비율을 본다. `world.occupied`는 기존 공백 포함 저장 칸 수라 새 표시 밀도와 다르다. `observer.ink_density`는 허용된 실제 시야의 표시 밀도다. 이 값이 높고 전역 밀도가 낮다면 국소 집중 현상이다. 두 밀도의 좌표·사용자·내용은 저장하지 않는다.
 
-`topology.area_delta`는 변화 면적의 절댓값, `topology.growth`/`topology.shrink`는 방향별 사건 수다. `topology.local_preserved`/`topology.local_reset`은 서버가 각 참여자의 시야·문맥을 함께 이동할 수 있다고 검증했는지 집계한다. 브라우저의 미확정 입력 때문에 추가로 초기화되는 경우나 HTTP turn의 중단 횟수와는 다르다. `topology.search_deferred`는 과거 빌드와의 비교용으로 남으며 새 제어기에는 보류 경로가 없다.
+`topology.area_delta`는 변화 면적의 절댓값, `topology.growth`/`topology.shrink`는 방향별 사건 수다. `topology.local_preserved`/`topology.local_reset`은 서버가 각 참여자의 시야·문맥을 함께 이동할 수 있다고 검증했는지 집계한다. 이름에 reset이 있지만 현재 커서 모델에서는 입력 초기화 횟수가 아니라 평행 이동 증명 실패를 뜻한다. 이 값 때문에 조합이나 turn을 중단하지 않는다. `topology.search_deferred`는 과거 빌드와의 비교용으로 남으며 새 제어기에는 보류 경로가 없다.
 
 `npm run experiment:density`는 입력→재배치→만료의 가속 시계 실험과 고정 크기 시야의 국소 보존 가능성 실험을 실행한다. [설계와 실제 측정](DENSITY_CONTROL.md), [집계 JSON](measurements/density-2026-11-03.json)에 조건과 한계를 기록했다. `node tests/density-live.mjs`는 실시간 자동 타이머와 두 Chromium의 native 입력을 사용한다.
+
+
+## 커서 기반 입력의 비용 — 2026-11-03
+
+`input.cursor_actions`는 성공한 커서 행동 수, `input.after_resize`는 클라이언트의 epoch 표식과 현재 세계가 다른 상태에서 성공한 행동 수다. `input.plan_ms`는 서버의 주소 계산 시간, `input.context_entries`는 참여자의 임시 native grapheme 항목 수, `input.snapshot_bytes`는 개인 입력 state의 압축 전 JSON 바이트 수다. 이름은 수집기의 고정 허용 목록에 등록했으며 실제 프로토콜 실행 후 SQLite 집계에 저장되는지 검사한다. 본문·좌표·개인 문맥을 측정 로그에 남기지 않는다.
+
+실시간 두 Chromium 창의 한·중 입력 60건과 자동 resize 14회에서 입력 거부 0건을 관측했다. 일반 행동 메시지 72개는 평균 192.46바이트, 개인 입력 snapshot 필드 30개는 평균 2,017.8바이트였다. snapshot 필드에는 state 외에 처리 순번도 포함된다. [원 집계](measurements/cursor-continuity-2026-11-03.json), [조건과 설계](CURSOR_CONTINUITY.md)를 보존한다. 단일 로컬 실행이며 운영 처리량·플랫폼 청구 비용을 나타내지 않는다.

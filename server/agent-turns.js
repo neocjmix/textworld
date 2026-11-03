@@ -117,13 +117,12 @@ export function createTurnRunner({ world, publish = () => {}, presence = () => {
   };
   const summary = (actor, active, status = active.status) => ({ id: active.id, status,
     completedActions: active.completedActions, completedSteps: active.completedSteps,
-    cursor: point(actor.peer), epoch: active.epoch, elapsedMs: Math.max(0, Math.round(now() - active.startedAt)),
+    cursor: point(actor.peer), epoch: world.epoch, elapsedMs: Math.max(0, Math.round(now() - active.startedAt)),
     ...(active.error ? { error: active.error } : {}) });
   const check = (actor, active) => {
     if (actor.closed || stopped || active.controller.signal.aborted) {
       throw new PolicyError('CANCELLED', '남은 행동을 취소했습니다.', { status: 409 });
     }
-    if (world.epoch !== active.epoch) throw new PolicyError('STALE_EPOCH', '세계 크기가 바뀌어 남은 행동을 중단했습니다.', { status: 409 });
   };
   const pause = async (actor, active, deadline) => {
     check(actor, active);
@@ -136,7 +135,7 @@ export function createTurnRunner({ world, publish = () => {}, presence = () => {
   const mutationId = (active, ordinal) => `${active.id}:${ordinal}`;
   const step = (actor, active, operation) => {
     const { peer, policy, writing } = actor;
-    const common = { id: mutationId(active, active.completedSteps), epoch: active.epoch, layout: 2 };
+    const common = { id: mutationId(active, active.completedSteps), epoch: world.epoch, layout: 2 };
     if (operation.kind === 'type' || operation.kind === 'enter') {
       const text = operation.kind === 'enter' ? '\n' : operation.text;
       const plan = writing.plan(text, peer, world);
@@ -144,17 +143,17 @@ export function createTurnRunner({ world, publish = () => {}, presence = () => {
       writing.accept(plan);
       return result;
     } else if (operation.kind === 'move') {
-      policy.acceptMove({ epoch: active.epoch, x: wrap(peer.x + operation.dx, world.width), y: wrap(peer.y + operation.dy, world.height) });
+      policy.acceptMove({ epoch: world.epoch, x: wrap(peer.x + operation.dx, world.width), y: wrap(peer.y + operation.dy, world.height) });
       writing.reset(peer);
     } else if (operation.kind === 'home') {
-      policy.acceptMove({ epoch: active.epoch, x: writing.lineStartX, y: peer.y });
+      policy.acceptMove({ epoch: world.epoch, x: writing.lineStartX, y: peer.y });
       writing.reposition(peer);
     } else if (operation.kind === 'backspace') {
       const saved = { lineStartX: writing.lineStartX, active: writing.active, trail: [...writing.trail] };
       try {
         const action = writing.backspace(peer, world, world.cells);
         if (action.erase) return policy.acceptErase({ ...common, ...action.cursor, intent: 'backspace' });
-        else policy.acceptMove({ epoch: active.epoch, ...action.cursor });
+        else policy.acceptMove({ epoch: world.epoch, ...action.cursor });
       } catch (error) { Object.assign(writing, saved); throw error; }
     } else if (operation.kind === 'delete') {
       return policy.acceptErase({ ...common, ...point(peer) });
@@ -209,7 +208,7 @@ export function createTurnRunner({ world, publish = () => {}, presence = () => {
       if (stopped || actor.closed) throw new PolicyError('SESSION_CLOSED', '참여 세션이 종료되었습니다.', { status: 410 });
       if (state.active) throw new PolicyError('TURN_BUSY', '이전 행동이 실행 중입니다. 완료를 기다리거나 취소하세요.', { status: 429, retryAfterMs: 100 });
       if (state.seen.size >= TURN_LIMITS.lifetimeTurns) throw new PolicyError('SESSION_TURN_LIMIT', '이 세션의 행동 예약 수를 모두 사용했습니다. 새 세션을 열어 주세요.', { status: 409 });
-      const active = { id: prepared.id, epoch: world.epoch, startedAt: now(), status: 'running',
+      const active = { id: prepared.id, startedAt: now(), status: 'running',
         completedActions: 0, completedSteps: 0, controller: new AbortController() };
       state.seen.set(prepared.id, prepared.fingerprint);
       state.active = active; running.add(active);

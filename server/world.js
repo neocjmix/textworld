@@ -271,6 +271,7 @@ export class World {
     // Internal proof of local continuity. Never expose the world's seam paths
     // or a map of unseen addresses through the participant interface.
     Object.defineProperty(result, 'mapping', { value: plan.point });
+    Object.defineProperty(result, 'cursorMapping', { value: plan.cursor });
     return result;
   }
   adapt(peers = [], { cooldown, seed = randomInt(0, 4294967296) } = {}) {

@@ -21,7 +21,7 @@
     "metrics:report": "node scripts/metrics-report.mjs",
     "test:measurements": "node tests/measurements-browser.mjs",
     "metrics:export": "node scripts/export-metrics.mjs",
-    "test:topology": "node tests/topology-browser.mjs && node tests/topology-transactions.mjs && node tests/topology-continuity.mjs"
+    "test:topology": "node tests/topology-browser.mjs && node tests/topology-cursor.mjs && node tests/topology-continuity.mjs"
   },
   "engines": {
     "node": ">=24"

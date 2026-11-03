@@ -148,7 +148,43 @@ export class ParticipantPolicy {
     this.recent = moved(this.recent); this.carets = moved(this.carets);
     this.origins = new Set([...this.origins].map(x => x + relocation.dx));
   }
-  acceptMove({ x, y, epoch, intent }) {
+  remap(resize, oldCursor) {
+    const recent = new Map();
+    for (const p of this.recent.values()) {
+      const mapped = resize.mapping(p.x, p.y);
+      if (!mapped) continue;
+      for (const cell of this.world.spanAt(mapped.x, mapped.y)) recent.set(cellKey(cell.x, cell.y), { x: cell.x, y: cell.y });
+    }
+    this.recent = recent;
+    while (this.recent.size > LIMITS.recentAddresses) this.recent.delete(this.recent.keys().next().value);
+    this.carets = new Map([...this.carets.values()].map(p => {
+      const next = resize.cursorMapping(p); return [cellKey(next.x, next.y), next];
+    }));
+    this.origins = new Set([...this.origins].map(x => resize.cursorMapping({ x, y: oldCursor.y }).x));
+    this.rememberOrigin(this.peer.x);
+  }
+
+  /** Internal, server-derived plan. Clients never supply its coordinates. */
+  acceptCursorPlan(plan, id) {
+    const { operation, next, native } = plan;
+    if (!operation) return this.acceptMove({ ...next.cursor, epoch: this.world.epoch }, { native });
+    const from = operation.type === 'write'
+      ? writePlan(operation.text, operation.x, operation.y, this.world, { lineStartX: operation.lineStartX }).cursor : this.peer;
+    const cost = Math.min(LIMITS.move.burst, Math.hypot(shortest(next.cursor.x - from.x, this.world.width), shortest(next.cursor.y - from.y, this.world.height)));
+    consumeTogether([this.move, this.network?.move], cost);
+    const saved = { x: this.peer.x, y: this.peer.y };
+    let result;
+    try {
+      if (operation.type === 'erase') Object.assign(this.peer, next.cursor);
+      const message = { ...operation, id, epoch: this.world.epoch, layout: 2 };
+      result = operation.type === 'write' ? this.acceptWrite(message, { native }) : this.acceptErase(message);
+    } catch (error) {
+      Object.assign(this.peer, saved); this.move.refund(cost); this.network?.move.refund(cost); throw error;
+    }
+    Object.assign(this.peer, next.cursor);
+    return { ...result, cursor: { ...next.cursor } };
+  }
+  acceptMove({ x, y, epoch, intent }, { native = false } = {}) {
     this.assertEpoch(epoch);
     const point = this.canonical(x, y);
     if (intent !== undefined && intent !== 'native-caret') throw new PolicyError('BAD_MOVE', '알 수 없는 이동 의도입니다.');
@@ -163,12 +199,15 @@ export class ParticipantPolicy {
     const cost = Math.min(distance, LIMITS.move.burst);
     consumeTogether([this.move, this.network?.move], cost);
     this.peer.x = point.x; this.peer.y = point.y;
-    if (intent !== 'native-caret') {
+    if (native) {
+      this.carets.set(cellKey(point.x, point.y), { ...point });
+      while (this.carets.size > LIMITS.recentAddresses) this.carets.delete(this.carets.keys().next().value);
+    } else if (intent !== 'native-caret') {
       this.recent.clear(); this.carets.clear(); this.rememberOrigin(point.x);
     }
     return { cursor: { ...point }, cost };
   }
-  acceptWrite(message) {
+  acceptWrite(message, { native = false } = {}) {
     const prior = this.prior(message.id);
     if (prior) return prior;
     this.assertEpoch(message.epoch);
@@ -184,7 +223,8 @@ export class ParticipantPolicy {
     if (!Array.isArray(clear)) throw new PolicyError('BAD_CLEAR', '삭제 주소는 배열이어야 합니다.');
     if (clear.length > LIMITS.clearAddresses) throw new PolicyError('TOO_LARGE', '한 번에 지울 주소 범위를 넘었습니다.', { status: 413 });
     if (!count && !clear.length) throw new PolicyError('EMPTY_EDIT', '변경할 글자가 없습니다.', { status: 422 });
-    if (!samePoint(origin, this.peer) && !this.recent.has(cellKey(origin.x, origin.y))) forbidden('현재 커서 또는 최근 입력 문맥에서만 쓸 수 있습니다.');
+    if (!samePoint(origin, this.peer) && !this.recent.has(cellKey(origin.x, origin.y))
+      && !(native && this.carets.has(cellKey(origin.x, origin.y)))) forbidden('현재 커서 또는 최근 입력 문맥에서만 쓸 수 있습니다.');
     let lineStartX = origin.x;
     if (message.lineStartX !== undefined) {
       position(message.lineStartX, origin.y); lineStartX = wrap(message.lineStartX, this.world.width);

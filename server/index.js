@@ -6,7 +6,6 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve, extname, sep } from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
 import { World, WorldError } from './world.js';
-import { WritingSession } from '../shared/writing.js';
 import { VIEW_LIMITS } from '../shared/participant-rules.js';
 import { LIMITS, NetworkBudgets, ParticipantPolicy, PolicyError } from './participant-policy.js';
 import { Observer, contains, viewRectangle, validateView } from './visibility.js';
@@ -17,7 +16,8 @@ import { createMCPAgent } from './mcp-agent.js';
 import { expire } from './expiration.js';
 import { DENSITY } from './density.js';
 import { localContinuity } from './local-continuity.js';
-import { relocateWriting } from '../shared/relocation.js';
+import { translateTrail } from '../shared/relocation.js';
+import { CursorInput, remapWriting } from '../shared/cursor-input.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
@@ -65,13 +65,18 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
         for(const actor of actors){
           const relocation = localContinuity(before.get(actor), actor.peer, result, actor.policy, actor.writing);
           if (relocation) {
-            actor.policy.relocate(relocation); relocateWriting(actor.writing, relocation);
             // Only WebSockets receive the per-view translation with an eager
             // snapshot. HTTP/MCP must retain the old baseline until their next
             // read returns a reset with the newly addressed cells.
             if (browserActors.has(actor)) actor.observer.relocate(relocation);
             relocations.set(actor, relocation); measurements.record('topology.local_preserved');
-          } else { actor.policy.resetTopology(); actor.writing.reset(actor.peer); measurements.record('topology.local_reset'); }
+          } else { measurements.record('topology.local_reset'); }
+          const oldCursor = before.get(actor).peer;
+          actor.policy.remap(result, oldCursor);
+          remapWriting(actor.writing, oldCursor, actor.peer, result);
+          actor.input.cursor = { x: actor.peer.x, y: actor.peer.y };
+          actor.input.native.remap(result, actor.peer, (x,y) => world.spanAt(x,y));
+          actor.input.nativeBase = relocation ? translateTrail(actor.input.nativeBase, relocation) : [];
         }
         for(const [socket,actor] of clients)scopedUpdate(socket,actor,{snapshot:true,reason:'density-resize',resize:{ ...result, relocation:relocations.get(actor) }});
         notify();
@@ -101,8 +106,11 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       const observation = actor.observer.read(peers(), { since: previous, force: snapshot });
       clearTimeout(actor.retry); actor.retry = null;
       if (snapshot) {
+        actor.input.cursor = { x: actor.peer.x, y: actor.peer.y };
+        measurements.record('input.snapshot_bytes', Buffer.byteLength(JSON.stringify(actor.input.snapshot())));
         send(socket, { type: 'snapshot', world: publicWorld(world), selfId: actor.peer.id,
-          cells: observation.cells, marks: observation.marks, freshness: observation.freshness, colors: observation.colors, peers: observation.peers, view: observation.view, viewRevision: observation.revision, limits, ...extra });
+          cells: observation.cells, marks: observation.marks, freshness: observation.freshness, colors: observation.colors, peers: observation.peers, view: observation.view, viewRevision: observation.revision, limits,
+          input: { sequence: actor.inputSequence, state: actor.input.snapshot() }, ...extra });
         actor.lastSnapshotEpoch = world.epoch;
       } else if (observation.revision !== previous || extra.force) send(socket, { type: 'view', world: publicWorld(world), observation });
     } catch (error) {
@@ -150,7 +158,9 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
         if (!position || typeof position !== 'object' || Array.isArray(position)) throw new PolicyError('BAD_POSITION', '셀 좌표가 필요합니다.');
         actor.policy.acceptMove({ ...position, epoch: world.epoch });
       }
-      actor.writing = new WritingSession(peer);
+      actor.input = new CursorInput(peer);
+      actor.writing = actor.input.writing;
+      actor.inputSequence = 0;
       actors.add(actor);updatePopulation();measurements.record('activity.session_created'); return actor;
     } catch (error) { world.releaseAuthor(peer.id); networks.release(network); throw error; }
   };
@@ -227,12 +237,23 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     clients.set(socket, actor); scopedUpdate(socket, actor, { snapshot: true }); presence();
     socket.on('pong', () => { actor.alive = true; });
     socket.on('message', raw => {
-      let message;
+      let message, newInput = false;
       measurements.record('ws.rx_bytes',raw.length);
       try {
+        try { message = JSON.parse(raw.toString()); }
+        catch (error) { policy.acceptRequest(); throw error; }
+        // Request throttling also consumes a valid stream ordinal, so a 429
+        // cannot create a permanent hole in subsequent input sequences.
+        newInput = message?.type === 'input' && Number.isSafeInteger(message.sequence) && message.sequence === actor.inputSequence + 1;
+        if (newInput) actor.inputSequence = message.sequence;
         policy.acceptRequest();
-        message = JSON.parse(raw.toString());
         if (!message || typeof message !== 'object' || Array.isArray(message)) throw new WorldError('BAD_MESSAGE', '잘못된 요청입니다.');
+        const mode = message.type === 'input' ? 'cursor'
+          : ['move','write','erase'].includes(message.type) || message.type === 'hello' && (message.x !== undefined || message.y !== undefined) ? 'coordinates' : null;
+        if (mode) {
+          if (actor.inputMode && actor.inputMode !== mode) throw new PolicyError('INPUT_MODE_CONFLICT', '한 연결에서 입력 프로토콜을 혼합할 수 없습니다.', { status: 409 });
+          actor.inputMode = mode;
+        }
         if (message.type === 'hello') {
           if (actor.hello) return;
           actor.hello = true;
@@ -242,6 +263,28 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
           presence();
         } else if (message.type === 'telemetry') {
           try {measurements.mergeClient(message,actor);} catch {measurements.record('telemetry.rejected');}
+        } else if (message.type === 'input') {
+          if (!Number.isSafeInteger(message.sequence) || message.sequence < 1 || message.sequence > actor.inputSequence) {
+            throw new PolicyError('BAD_SEQUENCE', '입력 순서를 확인할 수 없습니다.', { status: 409 });
+          }
+          if (!newInput) {
+            send(socket, { type: 'ack', id: message.id, inputSequence: message.sequence, duplicate: true }); return;
+          }
+          // Every attempt consumes its place in the ordered stream, including
+          // a 429. A retry cannot later execute an already refused intention.
+          actor.input.cursor = { x: peer.x, y: peer.y };
+          let plan;
+          const plannedAt = performance.now();
+          try { plan = actor.input.plan(message.action, world, world.cells); }
+          catch { throw new PolicyError('BAD_INPUT', '네이티브 입력 범위를 확인할 수 없습니다.'); }
+          measurements.record('input.plan_ms', performance.now() - plannedAt);
+          const result = policy.acceptCursorPlan(plan, `${peer.id}:input:${message.sequence}`);
+          actor.input.restore(plan.next.snapshot());
+          if (plan.operation) publish(result); else presence();
+          measurements.record('input.cursor_actions');
+          measurements.record('input.context_entries', actor.input.native.entries.length);
+          if (message.epoch !== world.epoch) measurements.record('input.after_resize');
+          send(socket, { type: 'ack', id: message.id, inputSequence: message.sequence, epoch: world.epoch, cursor: { x: peer.x, y: peer.y } });
         } else if (message.type === 'move') { policy.acceptMove(message); presence(); }
         else if (message.type === 'view') {
           actor.observer.setView({ cols: message.cols, rows: message.rows });
@@ -253,7 +296,8 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
         } else if (message.type === 'sync') scopedUpdate(socket, actor, { snapshot: true });
         else throw new WorldError('UNKNOWN_MESSAGE', '알 수 없는 요청입니다.');
       } catch (error) {
-        send(socket, { type: 'error', ...errorRecord(error), id: message?.id, requestType: message?.type, cursor: { x: peer.x, y: peer.y } });
+        send(socket, { type: 'error', ...errorRecord(error), id: message?.id, requestType: message?.type, cursor: { x: peer.x, y: peer.y },
+          ...(message?.type === 'input' ? { inputSequence: actor.inputSequence } : {}) });
         if (error.code === 'STALE_EPOCH' && actor.lastSnapshotEpoch !== world.epoch) scopedUpdate(socket, actor, { snapshot: true, reason: 'stale-epoch' });
       }
     });

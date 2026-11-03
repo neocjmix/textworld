@@ -1,0 +1,28 @@
+{
+  "nativeEdits": 60,
+  "committed": 60,
+  "peakDensity": 0.12666666666666668,
+  "finalDensity": 0.1038961038961039,
+  "world": {
+    "width": 70,
+    "height": 33,
+    "epoch": 16,
+    "seq": 75,
+    "textLayout": 2
+  },
+  "resizes": 14,
+  "protocolErrors": [],
+  "pageErrors": [],
+  "inputBytes": {
+    "count": 72,
+    "sum": 13857,
+    "max": 211,
+    "mean": 192.45833333333334
+  },
+  "contextSnapshotBytes": {
+    "count": 30,
+    "sum": 60534,
+    "max": 2937,
+    "mean": 2017.8
+  }
+}

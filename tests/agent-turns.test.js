@@ -148,15 +148,17 @@ test('a blocked Backspace preserves writing trail for the next independent attem
   assert.equal(f.actor.peer.x, 100);
 });
 
-test('world resize during a delay stops remaining steps before mutation', async t => {
+test('world resize during a delay continues paced steps at the corrected cursor', async t => {
   let f;
   f = fixture(t, { width: 128, height: 64, x: 10, y: 10, delay: async ms => {
     f.advance(ms); f.world.resize(256, 128, [f.actor.peer]);
   } });
   const result = await f.runner.run(f.actor, request('resize', [type('ABC')]));
-  assert.equal(result.status, 'blocked'); assert.equal(result.error.code, 'STALE_EPOCH');
-  assert.equal(result.error.status, 409); assert.equal(result.completedSteps, 1);
-  assert.deepEqual(f.world.snapshot().cells.map(c=>c.text),['A']);
+  assert.equal(result.status, 'completed'); assert.equal(result.completedSteps, 3);
+  assert.equal(result.epoch, f.world.epoch);
+  assert.deepEqual(f.effects.map(e => e.time), [0, 100, 200]);
+  assert.deepEqual(f.world.snapshot().cells.map(c=>c.text).sort(),['A', 'B', 'C']);
+  assert.equal(f.effects[1].result.epoch, f.world.epoch);
 });
 
 test('expired result IDs remain tombstoned and cannot accidentally execute twice', async t => {

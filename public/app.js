@@ -1,15 +1,13 @@
 import { createBrowserMeasurements } from './measurements.js';
 import { wrap, cellKey, graphemes, graphemeWidth, gpsToCell } from '/shared/world.js';
-import { WritingSession } from '/shared/writing.js';
+import { CursorInput } from '/shared/cursor-input.js';
 import { freshnessStyle } from '/shared/freshness.js';
 import { VIEW_LIMITS } from '/shared/participant-rules.js';
-import { NativeProjection } from '/shared/native-projection.js';
 import { createPanMotion } from './inertia.js';
 import { createNativeInput } from './native-input.js';
 import { projectLocalCells } from './local-world.js';
 import { createNativeSurface } from './native-surface.js';
 import { createCameraMotion } from './camera-motion.js';
-import { writingFits, relocateWriting, trailFits, translateTrail } from '/shared/relocation.js';
 
 const $ = id => document.getElementById(id);
 const app = $('app');
@@ -38,13 +36,13 @@ let viewportOrigin = { x: 0, y: 0 };
 let keyboardVisible = false, openViewportHeight = 0, viewportWidth = 0;
 const cursorVerticalFraction = () => keyboardVisible
   ? Math.max(.5, 1 - Math.max(56, dimensions().height * 1.5) / Math.max(size.height, 1)) : .43;
-const writing = new WritingSession(cursor);
-const nativeProjection = new NativeProjection(cursor);
-let nativeTrailBase = [];
+const cursorInput = new CursorInput(cursor);
+const writing = cursorInput.writing, nativeProjection = cursorInput.native;
+let nativeContext = 0;
 let zoom = 1, size = { width: 1, height: 1 }, connected = false, socket;
 let firstSnapshot = true, frame, reconnectTimer, noticeTimer;
-let id = 0, pending = new Map(), navigationRevision = 0, gpsRequest = 0;
-let moveTimer, queuedMove, lastSentPosition;
+let id = 0, pending = new Map(), actions = new Map(), navigationRevision = 0, gpsRequest = 0;
+let moveTimer, queuedMove;
 let composing = false, preedit = '', nativeInput, applyingNativeEdit = false;
 let preeditRange = null;
 let panRemainder = { x: 0, y: 0 };
@@ -118,18 +116,54 @@ function reportView({ immediate = false, force = false } = {}) {
 function flushMove() {
   clearTimeout(moveTimer); moveTimer = null;
   const next = queuedMove; queuedMove = null;
-  if (next && JSON.stringify(next) !== lastSentPosition && send(next)) lastSentPosition = JSON.stringify(next);
+  if (next) send(next);
 }
-function submit(operation) {
-  // Navigation and typing share one ordered stream. A delayed scroll frame
-  // must reach the server before the edit whose origin it established.
-  flushMove();
-  const message = { ...operation, layout: 2, id: `${selfId}:${++id}`, epoch: world.epoch };
-  if (!send(message)) return false;
-  browserMeasurements.begin(message.id);
-  pending.set(message.id, message);
+function perform(action, { defer = false } = {}) {
+  if (!connected || !world || socket.readyState !== WebSocket.OPEN) return false;
+  if (!defer) flushMove();
+  cursorInput.cursor = { ...cursor };
+  let plan;
+  try { plan = cursorInput.plan(action, world, localCells); } catch { return false; }
+  let message;
+  if (defer && queuedMove && action.kind === 'move' && queuedMove.action.kind === 'move'
+    && action.newOrigin === queuedMove.action.newOrigin) {
+    message = queuedMove;
+    message.action = { ...action, dx: message.action.dx + action.dx, dy: message.action.dy + action.dy };
+  } else {
+    flushMove();
+    message = { type: 'input', id: `${selfId}:${++id}`, sequence: id, epoch: world.epoch, action };
+    actions.set(message.sequence, message);
+    if (defer) queuedMove = message;
+    else send(message);
+  }
+  cursorInput.restore(plan.next.snapshot()); cursor = { ...cursorInput.cursor };
+  Object.defineProperty(message, 'prediction', { value: { ...cursor }, configurable: true });
+  if (plan.operation) {
+    pending.set(message.id, { ...plan.operation, id: message.id });
+    browserMeasurements.begin(message.id);
+  }
+  if (defer && !moveTimer) moveTimer = setTimeout(flushMove, 40);
   refreshLocalCells();
   return true;
+}
+
+function reconcileInput(inputState) {
+  cursorInput.restore(inputState.state);
+  for (const [sequence, action] of actions) if (sequence <= inputState.sequence) {
+    actions.delete(sequence); pending.delete(action.id);
+  }
+  pending.clear();
+  let predicted = cells;
+  for (const message of actions.values()) {
+    const plan = cursorInput.plan(message.action, world, predicted);
+    cursorInput.restore(plan.next.snapshot());
+    Object.defineProperty(message, 'prediction', { value: { ...cursorInput.cursor }, configurable: true });
+    if (plan.operation) {
+      const op = { ...plan.operation, id: message.id };
+      pending.set(message.id, op); predicted = projectLocalCells(predicted, [op], world);
+    }
+  }
+  cursor = { ...cursorInput.cursor };
 }
 const shortest = (distance, extent) => wrap(distance + extent / 2, extent) - extent / 2;
 function center({ immediate = false, residual = false, direct = false, timeConstant = 80, viewportChange = false } = {}) {
@@ -187,6 +221,7 @@ function updateNativeSurface() {
 function cancelMove() {
   clearTimeout(moveTimer);
   moveTimer = null;
+  if (queuedMove && queuedMove.sequence === id) { actions.delete(id); id--; }
   queuedMove = null;
 }
 function stopPan() {
@@ -202,32 +237,26 @@ function grabCamera() {
     y: camera.y - (cameraAnchor.y + .5 - v.rows * cursorVerticalFraction() + panRemainder.y),
   } : { x: 0, y: 0 };
 }
-function queueMove(intent) {
-  queuedMove = { type: 'move', ...cursor, epoch: world.epoch, ...(intent ? { intent } : {}) };
-  if (moveTimer) return;
-  moveTimer = setTimeout(flushMove, 40);
-}
 function cancelComposition() {
   if (applyingNativeEdit) return;
   nativeInput?.cancel();
   preedit = ''; preeditRange = null;
   schedule();
 }
-function move(x, y, { manual = true, resetPan = true, newOrigin = true, caret = false, preserveMotion = false, cameraImmediate = false, panView = false } = {}) {
+function move(x, y, { manual = true, resetPan = true, newOrigin = true, preserveMotion = false, cameraImmediate = false, panView = false, relative = false, home = false } = {}) {
   if (!world) return;
   if (!preserveMotion) motion.cancel();
   const next = { x: wrap(x, world.width), y: wrap(y, world.height) };
   // A new navigation context resets both the native DOM and its spatial ledger,
   // even when a hash/GPS target wraps back onto the current address.
   cancelComposition();
-  cursor = next;
-  if (newOrigin) writing.reset(cursor);
-  else if (caret) writing.reposition(cursor);
-  if (!applyingNativeEdit) resetNativeProjection();
+  const action = home ? { kind: 'home', newOrigin: false } : relative
+    ? { kind: 'move', dx: x - cursor.x, dy: y - cursor.y, newOrigin }
+    : { kind: 'goto', ...next };
+  if (!perform(action, { defer: true })) return;
   if (manual) navigationRevision++;
   if (resetPan) panRemainder = { x: 0, y: 0 };
   center({ immediate: cameraImmediate, residual: panView, direct: panView && cameraImmediate, timeConstant: panView ? 50 : 80 });
-  queueMove();
 }
 function pan(dx, dy) {
   if (!world) return;
@@ -243,7 +272,7 @@ function pan(dx, dy) {
   if (!x && !y) { center({ immediate: direct, residual: true, direct, timeConstant: 50 }); return; }
   panRemainder.x -= x;
   panRemainder.y -= y;
-  move(cursor.x + x, cursor.y + y, { resetPan: false, preserveMotion: true, cameraImmediate: direct, panView: true });
+  move(cursor.x + x, cursor.y + y, { resetPan: false, preserveMotion: true, cameraImmediate: direct, panView: true, relative: true });
 }
 function setZoom(value) {
   motion.cancel();
@@ -409,8 +438,8 @@ function focusInput() {
   if (connected) input.focus({ preventScroll: true });
 }
 function resetNativeProjection() {
-  nativeProjection.reset(cursor);
-  nativeTrailBase = writing.trail.slice();
+  cursorInput.cursor = { ...cursor };
+  cursorInput.resetNative(++nativeContext);
 }
 function write(text) {
   stopPan();
@@ -420,17 +449,8 @@ function write(text) {
   if (text.length > 4096 || /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u.test(text) || graphemes(text.replace(/\t/g, '    ')).length > 64) {
     notice('한 번에 64자까지 확정할 수 있습니다. 긴 글은 나누어 입력해 주세요.'); return false;
   }
-  const plan = writing.plan(text, cursor, world);
-  // Returns move presence; they do not create blank characters or database edits.
-  if (!plan.cells.length) {
-    writing.accept(plan);
-    move(plan.cursor.x, plan.cursor.y, { newOrigin: false });
-    return true;
-  }
-  if (submit({ type: 'write', ...cursor, text, lineStartX: writing.lineStartX })) {
-    lastSentPosition = null;
-    writing.accept(plan);
-    cursor = plan.cursor; navigationRevision++;
+  if (perform({ kind: 'type', text })) {
+    navigationRevision++;
     panRemainder = { x: 0, y: 0 }; center();
     return true;
   }
@@ -439,14 +459,7 @@ function write(text) {
 function erase(backward) {
   stopPan();
   if (!connected || !world || socket.readyState !== WebSocket.OPEN) return;
-  flushMove();
-  if (backward) {
-    const action = writing.backspace(cursor, world, localCells);
-    move(action.cursor.x, action.cursor.y, { newOrigin: false });
-    if (!action.erase) return;
-  }
-  cancelMove(); lastSentPosition = null;
-  submit({ type: 'erase', ...cursor, ...(backward ? { intent: 'backspace' } : {}) });
+  if (perform({ kind: backward ? 'backspace' : 'delete' })) { navigationRevision++; center(); }
 }
 function unsupportedInput(type) {
   const message = type === 'selection'
@@ -482,18 +495,10 @@ nativeInput = createNativeInput(input, {
     }
     applyingNativeEdit = true;
     try {
-      flushMove(); lastSentPosition = null;
-      const mutatesCells = plan.changed && (plan.clear.length > 0 || plan.steps.some(step => step.kind === 'write'));
-      if (mutatesCells) {
-        if (!submit({ type: 'write',
-          x: plan.x, y: plan.y, text: plan.text, clear: plan.clear, lineStartX: writing.lineStartX })) return false;
-      }
-      nativeProjection.accept(plan);
-      writing.trail = [...(plan.connectsToBase ? nativeTrailBase : []), ...plan.historyToCursor].slice(-4096);
-      writing.active = true;
-      cursor = { ...plan.cursor }; navigationRevision++;
+      const { start, end, text, selectionStart, selectionEnd } = edit;
+      if (!perform({ kind: 'native', context: nativeContext, edit: { start, end, text, selectionStart, selectionEnd } })) return false;
+      navigationRevision++;
       panRemainder = { x: 0, y: 0 }; center();
-      if (!mutatesCells || plan.writeCursor?.x !== cursor.x || plan.writeCursor?.y !== cursor.y) queueMove('native-caret');
       return true;
     } finally { applyingNativeEdit = false; }
   },
@@ -523,8 +528,8 @@ input.addEventListener('keydown', event => {
   }
   if (event.metaKey || event.ctrlKey || event.altKey) return;
   const delta = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
-  if (delta) { event.preventDefault(); move(cursor.x + delta[0], cursor.y + delta[1], { newOrigin: false, caret: true }); }
-  else if (event.key === 'Home') { event.preventDefault(); move(writing.lineStartX, cursor.y, { newOrigin: false, caret: true }); }
+  if (delta) { event.preventDefault(); move(cursor.x + delta[0], cursor.y + delta[1], { newOrigin: false, relative: true }); }
+  else if (event.key === 'Home') { event.preventDefault(); move(writing.lineStartX, cursor.y, { newOrigin: false, home: true }); }
   else if (event.key === 'End') { event.preventDefault(); unsupportedInput('lineEnd'); }
   else if (event.key === 'Escape') { event.preventDefault(); cancelComposition(); input.blur(); }
 });
@@ -638,20 +643,13 @@ function connect() {
     const message = JSON.parse(event.data);
     if (message.type === 'snapshot') {
       const wasConnected = connected, previousCursor = { ...cursor }, oldEpoch = world?.epoch;
-      if(oldEpoch && oldEpoch !== message.world.epoch){motion.cancel();cameraMotion.cancel();panRemainder={x:0,y:0};drag=null;pinch=null;pointers.clear();dragCameraOffset=null;}
-      const nextMe = message.peers.find(peer => peer.id === message.selfId);
-      const relocation = message.resize?.relocation;
-      const keepPlace = wasConnected && message.reason === 'density-resize' && relocation && message.world.epoch === oldEpoch + 1
-        && pending.size === 0 && selfId === message.selfId && nextMe?.x === previousCursor.x + relocation.dx && nextMe?.y === previousCursor.y + relocation.dy;
-      const keepNativeContext = keepPlace && nativeProjection.canRelocate(relocation)
-        && writingFits(writing, relocation) && trailFits(nativeTrailBase, relocation);
-      if (keepNativeContext) {
-        nativeProjection.relocate(relocation); relocateWriting(writing, relocation);
-        nativeTrailBase = translateTrail(nativeTrailBase, relocation);
-      }
-      const cameraShift = keepPlace && cameraAnchor ? { x: nextMe.x - cameraAnchor.x, y: nextMe.y - cameraAnchor.y } : null;
-      const keepWriting = keepNativeContext || (!firstSnapshot && !wasConnected && oldEpoch === message.world.epoch && pending.size === 0);
-      cancelMove(); lastSentPosition = null; world = message.world; selfId = message.selfId;
+      const sameSession = selfId === message.selfId;
+      const resized = wasConnected && sameSession && oldEpoch !== message.world.epoch;
+      // Drag/wheel deltas are pixels, independent of topology. Keep their
+      // remaining motion and apply it relative to the corrected cursor.
+      if (resized) cameraMotion.cancel();
+      if (!sameSession) { cancelMove(); actions.clear(); pending.clear(); id = 0; }
+      world = message.world; selfId = message.selfId;
       freshnessBands = message.freshness || {};
       colorBands = message.colors || {};
       freshnessMarks = new Map((message.marks || []).map(m => [cellKey(m.x, m.y), m.version]));
@@ -661,31 +659,31 @@ function connect() {
       peers = message.peers;
       const me = peers.find(p => p.id === selfId);
       input.style.setProperty("--author-color", me?.color || "#314137");
-      cursor = me ? { x: me.x, y: me.y } : { x: 0, y: 0 };
-      if (pending.size) { notice('세계를 갱신했습니다. 전송 중이던 글자를 확인해 주세요.'); pending.clear(); }
+      try { reconcileInput(message.input); }
+      catch { actions.clear(); pending.clear(); cursorInput.restore(message.input.state); cursor = { ...cursorInput.cursor }; }
+      if (sameSession && nativeInput.text === '' && nativeContext !== cursorInput.context) cursorInput.resetNative(nativeContext);
+      // Topology never edits the browser-owned DOM. Rebase the spatial ledger
+      // and replay unacknowledged intentions locally, without retransmitting.
+      if (!sameSession || nativeInput.text !== nativeProjection.text) resetComposition();
       refreshLocalCells();
-      // A proved rigid local translation keeps native UTF-16 ranges, IME draft,
-      // and text pixels in place. Uncertain writes still invalidate context.
-      if (!keepNativeContext) resetComposition();
       connection(true);
       reportView({ immediate: true });
-      if (!keepWriting) writing.reset(cursor);
-      if (!keepNativeContext) resetNativeProjection();
       if (firstSnapshot) {
         firstSnapshot = false;
         if (!goToHash()) locate(true);
         notice(isDesktop() ? '지도를 움직여 자리를 고르고, 바로 입력하세요.' : '지도를 움직여 자리를 고르고, 탭해서 입력하세요.');
         if (isDesktop()) focusInput();
       } else if (!wasConnected) {
-        move(previousCursor.x, previousCursor.y, { manual: false, newOrigin: !keepWriting });
+        move(previousCursor.x, previousCursor.y, { manual: false });
         notice('다시 연결했습니다. 이전 위치에서 계속하세요.');
-      } else if (oldEpoch !== world.epoch && !keepNativeContext) notice('세계 크기가 바뀌어 글과 자리가 재배치됐습니다. 새 자리에서 입력하세요.');
-      if (cameraShift) {
-        dotOrigin.x += cameraShift.x; dotOrigin.y += cameraShift.y;
+      }
+      if (resized && cameraAnchor) {
+        const shift = { x: cursor.x - cameraAnchor.x, y: cursor.y - cameraAnchor.y };
+        dotOrigin.x += shift.x; dotOrigin.y += shift.y;
         cameraAnchor = { ...cursor }; cameraEpoch = world.epoch;
-        cameraMotion.jump({ x: camera.x + cameraShift.x, y: camera.y + cameraShift.y });
-      } else if (oldEpoch !== world.epoch) dotOrigin = { x: 0, y: 0 };
-      center();
+        cameraMotion.jump({ x: camera.x + shift.x, y: camera.y + shift.y });
+      }
+      center({ residual: resized && (motion.active || !!drag?.moved), direct: resized && !!drag?.moved });
       if (!wasConnected && isDesktop()) focusInput();
     } else if (message.type === 'view') {
       if (message.world?.epoch !== world?.epoch) return;
@@ -706,10 +704,17 @@ function connect() {
       refreshLocalCells();
     } else if (message.type === 'ack') {
       browserMeasurements.ack(message.id);
+      const predicted = actions.get(message.inputSequence)?.prediction;
+      if (message.epoch === world.epoch && predicted && message.cursor
+        && (predicted.x !== message.cursor.x || predicted.y !== message.cursor.y)) send({ type: 'sync' });
+      if (message.inputSequence) actions.delete(message.inputSequence);
       if (pending.delete(message.id)) refreshLocalCells();
     }
     else if (message.type === 'error') {
       pending.delete(message.id);
+      for (const [sequence, action] of actions) if (sequence <= message.inputSequence) {
+        actions.delete(sequence); pending.delete(action.id);
+      }
       refreshLocalCells();
       const observationOnly = message.requestType === 'view';
       if (!observationOnly && message.code !== 'STALE_EPOCH') {
@@ -738,7 +743,7 @@ function connect() {
     cancelMove(); connection(false); resetComposition(); schedule();
     notice(pending.size ? '연결이 끊겼습니다. 전송 중이던 글자는 다시 연결한 뒤 확인해 주세요.' : '다시 연결하고 있습니다.');
     if (pending.size) writing.reset(cursor);
-    pending.clear(); refreshLocalCells(); clearTimeout(reconnectTimer); reconnectTimer = setTimeout(connect, 1000);
+    pending.clear(); actions.clear(); refreshLocalCells(); clearTimeout(reconnectTimer); reconnectTimer = setTimeout(connect, 1000);
   };
   socket.onerror = () => socket.close();
 }

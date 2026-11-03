@@ -22,7 +22,8 @@ async function centered(page) {
   });
   const s = await state(page);
   for (const [axis, span, extent] of [['x', s.viewport.cols, s.world.width], ['y', s.viewport.rows, s.world.height]]) {
-    const distance = s.camera[axis] + span * (axis === 'y' ? .43 : .5) - s.cursor[axis] - .5;
+    const vertical = s.keyboardVisible ? Math.max(.5, 1 - 56 / (s.viewport.rows * 26 * s.zoom)) : .43;
+    const distance = s.camera[axis] + span * (axis === 'y' ? vertical : .5) - s.cursor[axis] - .5;
     const wrapped = ((distance + extent / 2) % extent + extent) % extent - extent / 2;
     assert.ok(Math.abs(wrapped) < 1e-6, `${axis} cursor must remain at the map center`);
   }
@@ -319,7 +320,8 @@ try {
     for (const glyph of ['한', '한', '中', 'あ', 'Ａ']) assert.ok(Math.abs(metrics.widths[glyph] - 18) < .01, `${glyph} must advance 18px`);
     assert.ok(metrics.paints.length > 30); assert.ok(metrics.paints.every(paint => /^18px /.test(paint.font) && paint.argumentCount === 3), 'new glyphs must use natural 18px Sarasa advances without fillText maxWidth');
     assert.equal(metrics.input.x + metrics.input.width / 2, metrics.viewport.width / 2);
-    assert.equal(metrics.input.y + metrics.input.height / 2, metrics.viewport.height * .43);
+    // Chromium layout quantizes CSS positions to 1/64px (e.g. 362.92px).
+    assert.ok(Math.abs(metrics.input.y + metrics.input.height / 2 - metrics.viewport.height * .43) <= 1 / 64);
     delete metrics.paints; measurements.push(metrics);
     await centered(page);
   }

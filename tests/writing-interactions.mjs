@@ -360,7 +360,7 @@ await page.locator('#field').dispatchEvent('wheel', { deltaY: -100, ctrlKey: tru
     assert.equal(cell(app, 9, 9), ''); assert.equal(cell(app, 12, 8), 'C');
   }, { seed: [{ x: 9, y: 9, text: 'N' }] });
 
-  await scenario('Settled same-epoch reconnect preserves the local margin and return route', async ({ app, page, observer }) => {
+  await scenario('A new connection restores position but starts a fresh server-owned writing context', async ({ app, page, observer }) => {
     await type(page, 'ABC'); await page.keyboard.press('Enter'); await at(page, 10, 9);
     await observer.waitForFunction(() => window.textworld.inspect().peers.some(p => p.x === 10 && p.y === 9));
     const seq = app.world.seq;
@@ -369,9 +369,10 @@ await page.locator('#field').dispatchEvent('wheel', { deltaY: -100, ctrlKey: tru
     await page.waitForFunction(() => window.textworld.inspect().connected);
     await observer.waitForFunction(() => window.textworld.inspect().connected);
     await at(page, 10, 9);
-    await page.keyboard.press('Backspace'); await at(page, 13, 8);
-    assert.equal(app.world.seq, seq);
-    await page.keyboard.press('Enter'); await at(page, 10, 9);
+    await page.keyboard.press('Backspace'); await at(page, 9, 9);
+    assert.equal(app.world.seq, seq + 1);
+    assert.equal(cell(app, 12, 8), 'C', 'a new session does not retrace the old writing path');
+    await page.keyboard.press('Enter'); await at(page, 9, 10);
   });
 
   await scenario('Undo and range-less word deletion are rejected while a target-range replacement rewrites only its cells', async ({ app, page, observer }) => {

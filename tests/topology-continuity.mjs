@@ -40,5 +40,5 @@ try {
   assert.equal(app.world.getCell(near.cursor.x,near.cursor.y).text,'새');
   await mkdir('artifacts',{recursive:true});await a.screenshot({path:'artifacts/topology-local-continuity.png'});
   assert.deepEqual(errors,[]);
-  console.log('PASS two browsers: remote resize preserves text pixels, active Korean composition and reconversion; crossed seam resets safely');
+  console.log('PASS two browsers: remote resize preserves text pixels, active Korean composition and reconversion; a crossed seam corrects the cursor');
 } finally {await browser.close();await app.close();}
