@@ -1,0 +1,76 @@
+{
+  "at": "2026-11-03T14:55:28.448Z",
+  "revision": "fa78bf77225e07eed7d91d546a4d4279c2100d0f",
+  "pageErrors": [],
+  "protocolErrors": [],
+  "nativeOperations": 3,
+  "sourceMatches": [
+    "app.js",
+    "native-input.js",
+    "shared/cursor-input.js",
+    "shared/native-context.js"
+  ],
+  "before": {
+    "world": {
+      "width": 32,
+      "height": 16,
+      "epoch": 154,
+      "textLayout": 2
+    },
+    "visiblePeers": 2,
+    "visibleCells": 0
+  },
+  "twoWayText": true,
+  "koreanReconversion": true,
+  "cleanup": [
+    "Public view does not expose authorship; left the four test glyphs to ordinary expiration."
+  ],
+  "after": {
+    "world": {
+      "width": 32,
+      "height": 16,
+      "epoch": 154,
+      "textLayout": 2
+    },
+    "pending": 0,
+    "fontReady": true
+  },
+  "metrics": [
+    {
+      "metric": "input.context_entries",
+      "count": 7,
+      "min": 0,
+      "max": 2
+    },
+    {
+      "metric": "input.cursor_actions",
+      "count": 7,
+      "min": 1,
+      "max": 1
+    },
+    {
+      "metric": "input.plan_ms",
+      "count": 7,
+      "min": 0.06977899999765214,
+      "max": 2.6773769999999786
+    },
+    {
+      "metric": "input.snapshot_bytes",
+      "count": 2,
+      "min": 241,
+      "max": 241
+    }
+  ],
+  "collectorFailures": 0,
+  "health": {
+    "ok": true,
+    "world": {
+      "width": 32,
+      "height": 16,
+      "epoch": 154,
+      "textLayout": 2
+    },
+    "peers": 0
+  },
+  "status": "passed"
+}

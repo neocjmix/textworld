@@ -180,3 +180,14 @@ Railway의 [공개 네트워킹 기술 명세](https://docs.railway.com/networki
 전환 중 health 요청 한 건은 502를 받았다. SUCCESS 이후 공개 `/health` 정상, 배포된 `/app.js`와 로컬 파일의 일치, 데스크톱·모바일 Chromium의 두 참여자 presence, 글꼴·pending 0·페이지/프로토콜 오류 0을 확인했다. 쓰기 없는 25초 동안 32×16·epoch110이 유지됐고 검증 중 추가 쓰기는 0건이다. 단일 프로세스/볼륨의 이 배포가 무중단이었다고 주장하지 않는다.
 
 새 revision에서 `density.actual/projected/target_area/above_band/at_limit/net_growth_cells_per_second/net_decay_cells_per_second` 각각 59회와 `observer.ink_density` 11회가 분 집계로 영속화됐고 collector failures는 0이었다. 공개 관측 당시 빈 세계라 실제 성장·축소 부하 검증은 별도의 로컬 실시간 두 브라우저와 가속 시계 엔진 실험에 근거한다. `artifacts/density-public-verification.json`, `density-public-desktop.png`, `density-public-mobile.png`에 근거를 남겼다.
+
+
+### 커서 기준 연속 입력 — 2026-11-03
+
+구현 `fa78bf77225e07eed7d91d546a4d4279c2100d0f`를 배포 `e59bd59e-4970-420d-adad-292835ee9a68`로 반영했다. Railway가 2026-11-03 14:54:09 UTC에 SUCCESS를 반환했다. 기존 서비스·영구 볼륨·단일 writer 설정을 유지했다.
+
+공개 HTTPS의 app/native-input/cursor-input/native-context 소스 네 파일이 해당 로컬 커밋과 동일했다. 실제 Chromium 데스크톱·모바일 두 context에서 서로의 커서와 한글·중국어 입력을 보았고, 한글 첫 글자의 native 재변환도 상대 화면에 반영됐다. 확정 native 작업 3건, 페이지·프로토콜 오류 0건, 종료 후 pending 0·health 정상·참여자 0이었다. 공개 시야에는 작성자 식별자가 없어 조건부 소유 확인 후 삭제는 생략하고 테스트 글자 4개를 일반 3분 만료에 맡겼다. 운영 중 임의 확장·축소나 부하 주입은 하지 않았다.
+
+새 revision의 `input.cursor_actions` 7개, `input.context_entries` 7개, 계획 시간 7개, 초기 개인 snapshot 크기 2개가 실제 집계 DB에 저장됐고 collector failures는 0이었다. [운영 확인 자료](measurements/cursor-public-2026-11-03.json). 입력 계획 시간의 이번 7개 표본은 최대 2.68ms이며 처리량이나 SLA를 뜻하지 않는다.
+
+서비스는 구현 SHA에 고정돼 있다. 뒤이은 검증 문서 커밋은 배포 코드를 바꾸지 않는다. 공개 페이지를 새로고침하면 새 커서 입력 프로토콜을 사용한다.
