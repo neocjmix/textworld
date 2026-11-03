@@ -203,7 +203,7 @@ function updateCursorSurface() {
   app.style.setProperty('--cursor-y', `${y}px`);
   const position = cursorMotion.position;
   const far = Math.hypot(x - position.x, y - position.y) > Math.max(size.width, size.height) / 2;
-  cursorMotion.setTarget({ x, y }, { immediate: !cursorPositionReady || far || composing, timeConstant: 110 });
+  cursorMotion.setTarget({ x, y }, { immediate: !cursorPositionReady || far || composing, timeConstant: 90 });
   cursorPositionReady = true;
   updateNativeSurface();
 }
