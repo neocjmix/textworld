@@ -28,7 +28,7 @@ const wrap = (value, size) => ((value % size) + size) % size;
 
 async function centered(page) {
   await page.waitForFunction(() => {
-    const s = window.textworld.inspect(); return !s.cameraActive && !s.motionActive && document.querySelector('#cursor').getAnimations().length === 0;
+    const s = window.textworld.inspect(); return !s.cameraActive && !s.motionActive && !s.cursorActive;
   });
   const snapshot = await state(page);
   for (const [axis, extent, span] of [

@@ -55,6 +55,11 @@ const cameraMotion = createCameraMotion({ reducedMotion, onUpdate(position) {
   draw();
 } });
 const motion = createPanMotion({ pan, reducedMotion, onRest: () => center() });
+let cursorPositionReady = false;
+const cursorMotion = createCameraMotion({ reducedMotion, onUpdate(position) {
+  $('cursor').style.left = `${position.x}px`;
+  $('cursor').style.top = `${position.y}px`;
+} });
 
 const dimensions = () => ({ width: baseCell.width * zoom, height: baseCell.height * zoom });
 const visible = () => {
@@ -125,11 +130,8 @@ const shortest = (distance, extent) => wrap(distance + extent / 2, extent) - ext
 function center({ immediate = false, residual = false, direct = false, timeConstant = 80, viewportChange = false } = {}) {
   if (!world) return;
   const v = visible(), d = dimensions();
-  const cursorElement = $('cursor');
-  const previousRect = cameraAnchor && !cursorElement.hidden ? cursorElement.getBoundingClientRect() : null;
-  const previousAnchor = cameraAnchor ? { ...cameraAnchor } : null;
   if (!cameraAnchor || cameraEpoch !== world.epoch) {
-    cameraAnchor = { ...cursor }; cameraEpoch = world.epoch; immediate = true;
+    cameraAnchor = { ...cursor }; cameraEpoch = world.epoch; immediate = true; cursorPositionReady = false;
   } else {
     cameraAnchor.x += shortest(cursor.x - wrap(cameraAnchor.x, world.width), world.width);
     cameraAnchor.y += shortest(cursor.y - wrap(cameraAnchor.y, world.height), world.height);
@@ -151,29 +153,19 @@ function center({ immediate = false, residual = false, direct = false, timeConst
   cameraMotion.setTarget(target, { immediate, scale: { x: d.width, y: d.height }, timeConstant });
   if (cameraMotion.active && frame) { cancelAnimationFrame(frame); frame = null; }
   updateCursorSurface();
-  if ((!direct && immediate) || composing || reducedMotion()) {
-    for (const animation of cursorElement.getAnimations()) animation.cancel();
-  }
-  // Animate the marker's displacement independently of the logical cell and
-  // camera. The native input and authoritative position remain immediate.
-  if (previousRect && previousAnchor && (direct || !immediate) && !composing && !reducedMotion()
-      && (direct || previousAnchor.x !== cameraAnchor.x || previousAnchor.y !== cameraAnchor.y)) {
-    for (const animation of cursorElement.getAnimations()) animation.cancel();
-    const nextRect = cursorElement.getBoundingClientRect();
-    const dx = previousRect.left - nextRect.left, dy = previousRect.top - nextRect.top;
-    if (Math.hypot(dx, dy) > .1 && Math.hypot(dx, dy) < Math.max(size.width, size.height) / 2) {
-      cursorElement.animate([
-        { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))` },
-        { transform: 'translate(-50%, -50%)' },
-      ], { duration: direct ? 80 : 120, easing: 'ease-out' });
-    }
-  }
+
 }
 function updateCursorSurface() {
   if (!cameraAnchor) return;
   const d = dimensions();
-  app.style.setProperty('--cursor-x', `${(cameraAnchor.x + .5 - camera.x) * d.width}px`);
-  app.style.setProperty('--cursor-y', `${(cameraAnchor.y + .5 - camera.y) * d.height}px`);
+  const x = (cameraAnchor.x + .5 - camera.x) * d.width;
+  const y = (cameraAnchor.y + .5 - camera.y) * d.height;
+  app.style.setProperty('--cursor-x', `${x}px`);
+  app.style.setProperty('--cursor-y', `${y}px`);
+  const position = cursorMotion.position;
+  const far = Math.hypot(x - position.x, y - position.y) > Math.max(size.width, size.height) / 2;
+  cursorMotion.setTarget({ x, y }, { immediate: !cursorPositionReady || far || composing, timeConstant: 110 });
+  cursorPositionReady = true;
   updateNativeSurface();
 }
 function updateNativeSurface() {
@@ -732,4 +724,4 @@ document.fonts.load(`18px ${mapFont}`, '한글日本語中文iWM').then(faces =>
   notice('지도 글꼴을 불러오지 못했습니다. 페이지를 새로고침해 주세요.');
 });
 // Read-only browser diagnostics for verifying spatial invariants.
-window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), observedView, viewRevision, freshnessMarks: [...freshnessMarks], freshness: freshnessBands, peers: structuredClone(peers), cells: [...cells.values()], localCells: [...localCells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, cameraActive: cameraMotion.active, fontReady }) };
+window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), observedView, viewRevision, freshnessMarks: [...freshnessMarks], freshness: freshnessBands, peers: structuredClone(peers), cells: [...cells.values()], localCells: [...localCells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, cameraActive: cameraMotion.active, cursorActive: cursorMotion.active, fontReady }) };
