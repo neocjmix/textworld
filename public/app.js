@@ -151,21 +151,21 @@ function center({ immediate = false, residual = false, direct = false, timeConst
   cameraMotion.setTarget(target, { immediate, scale: { x: d.width, y: d.height }, timeConstant });
   if (cameraMotion.active && frame) { cancelAnimationFrame(frame); frame = null; }
   updateCursorSurface();
-  if (immediate || direct || composing || reducedMotion()) {
+  if ((!direct && immediate) || composing || reducedMotion()) {
     for (const animation of cursorElement.getAnimations()) animation.cancel();
   }
   // Animate the marker's displacement independently of the logical cell and
   // camera. The native input and authoritative position remain immediate.
-  if (previousRect && previousAnchor && !immediate && !direct && !composing && !reducedMotion()
-      && (previousAnchor.x !== cameraAnchor.x || previousAnchor.y !== cameraAnchor.y)) {
+  if (previousRect && previousAnchor && (direct || !immediate) && !composing && !reducedMotion()
+      && (direct || previousAnchor.x !== cameraAnchor.x || previousAnchor.y !== cameraAnchor.y)) {
     for (const animation of cursorElement.getAnimations()) animation.cancel();
     const nextRect = cursorElement.getBoundingClientRect();
     const dx = previousRect.left - nextRect.left, dy = previousRect.top - nextRect.top;
-    if (Math.hypot(dx, dy) < Math.max(size.width, size.height) / 2) {
+    if (Math.hypot(dx, dy) > .1 && Math.hypot(dx, dy) < Math.max(size.width, size.height) / 2) {
       cursorElement.animate([
         { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))` },
         { transform: 'translate(-50%, -50%)' },
-      ], { duration: 120, easing: 'ease-out' });
+      ], { duration: direct ? 80 : 120, easing: 'ease-out' });
     }
   }
 }
