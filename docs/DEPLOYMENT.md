@@ -2,6 +2,8 @@
 
 Textworld는 하나의 Node.js 프로세스가 SQLite와 메모리 세계를 함께 관리한다. 초기 배포는 별도 PostgreSQL·Redis 없이 Railway 앱 서비스 하나와 영구 볼륨 하나를 사용한다.
 
+다음 분산 구조의 실제 서비스/인스턴스 배치는 [Railway 수평 확장 설계](RAILWAY_SCALE_OUT.md)를 참고한다. 아래는 현재 단일 서비스의 운영 기록이며, 분산 배포가 이미 적용되었다는 의미가 아니다.
+
 ## 대상
 
 - 공개 URL: **https://textworld-production-987c.up.railway.app**
