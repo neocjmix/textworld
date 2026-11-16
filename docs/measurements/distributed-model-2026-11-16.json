@@ -1,0 +1,27 @@
+{
+  "at": "2026-11-16T12:47:13.586Z",
+  "kind": "semantic toy model; no distributed runtime or performance validation",
+  "passed": 9,
+  "checks": [
+    "all delivery orders and duplicates converge to the same winning slots",
+    "partial overwrite removes the entire old wide glyph, without resurrecting older glyphs",
+    "grouped reduction is associative, commutative and idempotent",
+    "retiring an old cohort preserves a newer overwrite and rejects delayed expired records",
+    "a receiver with only half a wide operation displays neither half",
+    "alternating scattered x/y growth and shrink retains a rectangular torus and stable data addresses",
+    "a removed cursor redirects to a surviving neighbour and the next input uses that place",
+    "a cut wide glyph stays destroyed even if its slots become adjacent again later",
+    "fully occupied rows still admit growth and forced removal"
+  ],
+  "geometryChanges": 200,
+  "cursorCorrections": 9,
+  "initialPlaces": 128,
+  "remainingOriginalPlaces": 21,
+  "limitations": [
+    "dense in-process geometry directory; no distributed index implementation",
+    "scalar stamps stand in for server-issued HLC/order keys",
+    "cohort admission floor is assumed agreed and is not a consensus implementation",
+    "geometry fracture detection is explicit; incremental distributed detection is unimplemented",
+    "no network partitions, lease handover, real browser, GPS projection or throughput validation"
+  ]
+}

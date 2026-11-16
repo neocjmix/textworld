@@ -1,0 +1,185 @@
+{
+  "at": "2026-11-16T12:26:10.833Z",
+  "revision": "29045ba95c0f2031cfd726a6dbb5971b71c8c058",
+  "node": "v24.22.1",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "cpuQuota": "400000 100000",
+  "scope": "Local engine, on-disk SQLite; growth excludes participant correction, observation fanout, sockets and browsers. Row-seeded ASCII at 1/7 density. History uses 5000 single Korean glyph overwrites of one address.",
+  "growth": [
+    {
+      "trial": 0,
+      "from": [
+        128,
+        64
+      ],
+      "occupied": 1171,
+      "to": [
+        144,
+        64
+      ],
+      "elapsedMs": 28.23481099999998,
+      "cpuMs": 58.246,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 49963008
+    },
+    {
+      "trial": 1,
+      "from": [
+        128,
+        64
+      ],
+      "occupied": 1171,
+      "to": [
+        144,
+        64
+      ],
+      "elapsedMs": 19.89300099999997,
+      "cpuMs": 34.826,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 56516608
+    },
+    {
+      "trial": 2,
+      "from": [
+        128,
+        64
+      ],
+      "occupied": 1171,
+      "to": [
+        144,
+        64
+      ],
+      "elapsedMs": 10.835059999999999,
+      "cpuMs": 15.739,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 58875904
+    },
+    {
+      "trial": 0,
+      "from": [
+        512,
+        256
+      ],
+      "occupied": 18725,
+      "to": [
+        576,
+        256
+      ],
+      "elapsedMs": 166.595414,
+      "cpuMs": 229.825,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 92942336
+    },
+    {
+      "trial": 1,
+      "from": [
+        512,
+        256
+      ],
+      "occupied": 18725,
+      "to": [
+        576,
+        256
+      ],
+      "elapsedMs": 113.01027599999998,
+      "cpuMs": 151.346,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 118874112
+    },
+    {
+      "trial": 2,
+      "from": [
+        512,
+        256
+      ],
+      "occupied": 18725,
+      "to": [
+        576,
+        256
+      ],
+      "elapsedMs": 147.58031699999992,
+      "cpuMs": 155.826,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 141938688
+    },
+    {
+      "trial": 0,
+      "from": [
+        896,
+        448
+      ],
+      "occupied": 57344,
+      "to": [
+        1008,
+        448
+      ],
+      "elapsedMs": 433.29081499999984,
+      "cpuMs": 459.782,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 217899008
+    },
+    {
+      "trial": 1,
+      "from": [
+        896,
+        448
+      ],
+      "occupied": 57344,
+      "to": [
+        1008,
+        448
+      ],
+      "elapsedMs": 414.8583060000001,
+      "cpuMs": 440.27,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 254263296
+    },
+    {
+      "trial": 2,
+      "from": [
+        896,
+        448
+      ],
+      "occupied": 57344,
+      "to": [
+        1008,
+        448
+      ],
+      "elapsedMs": 282.5640460000004,
+      "cpuMs": 301.859,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 253575168
+    }
+  ],
+  "retention": {
+    "writes": 5000,
+    "liveGlyphsBeforeExpiry": 1,
+    "liveGlyphsAfterExpiry": 0,
+    "deletedCells": 2,
+    "retainedHistoryRows": 10002,
+    "retainedOperationRows": 5001,
+    "beforeBytes": 61440,
+    "afterWriteBytes": 6246400,
+    "afterExpiryBytes": 6246400,
+    "bytesPerWrite": 1236.992,
+    "writeMs": 2181.445009
+  }
+}

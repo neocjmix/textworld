@@ -79,3 +79,9 @@ HTTP는 `GET /api/metrics?period=60|3600&since=...&before=...&limit=...`, Bearer
 `input.cursor_actions`는 성공한 커서 행동 수, `input.after_resize`는 클라이언트의 epoch 표식과 현재 세계가 다른 상태에서 성공한 행동 수다. `input.plan_ms`는 서버의 주소 계산 시간, `input.context_entries`는 참여자의 임시 native grapheme 항목 수, `input.snapshot_bytes`는 개인 입력 state의 압축 전 JSON 바이트 수다. 이름은 수집기의 고정 허용 목록에 등록했으며 실제 프로토콜 실행 후 SQLite 집계에 저장되는지 검사한다. 본문·좌표·개인 문맥을 측정 로그에 남기지 않는다.
 
 실시간 두 Chromium 창의 한·중 입력 60건과 자동 resize 14회에서 입력 거부 0건을 관측했다. 일반 행동 메시지 72개는 평균 192.46바이트, 개인 입력 snapshot 필드 30개는 평균 2,017.8바이트였다. snapshot 필드에는 state 외에 처리 순번도 포함된다. [원 집계](measurements/cursor-continuity-2026-11-03.json), [조건과 설계](CURSOR_CONTINUITY.md)를 보존한다. 단일 로컬 실행이며 운영 처리량·플랫폼 청구 비용을 나타내지 않는다.
+
+## 현재 코드의 수용 규모 조사 — 2026-11-16
+
+[조사 보고서](CAPACITY_2026_11_16.md)에 현재 배포 코드의 72개 microbenchmark, 실제 WebSocket 10개 실행, 자동 확장 9회, 이력 저장량과 Railway 7일 자원 표본을 기록했다. `node experiments/capacity.mjs`는 별도 서버/발생기·실제 파일 SQLite·정해진 송신 빈도를 사용한다. ACK를 기다리며 부하 자체를 낮추지 않고 예정/실제 송신 지연과 종료 시 미처리량을 기록한다. `node experiments/world-cost.mjs`는 자동 확장과 만료 후 남은 이력을 측정한다. 두 스크립트는 로컬 전용이며 운영을 변경하지 않는다. 정상 상태 실험의 고정 세계 시계, 실제 OS/네트워크/resize 부하 제외, 짧은 표본 등의 한계를 지원 인원과 구분한다.
+
+새 구조의 작업량 모델과 분산 검증 목표는 [분산 세계 설계](DISTRIBUTED_WORLD_DESIGN.md)에 있다. `node experiments/distributed-model.mjs`는 병합·만료·배치/주소 분리의 의미 모형이며 성능 벤치마크가 아니다. 이 모형의 통과를 선형 확장의 실측 증거로 해석하지 않는다.

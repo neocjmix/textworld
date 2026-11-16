@@ -1,0 +1,57 @@
+{
+  "at": "2026-11-16T12:26:54.594Z",
+  "source": "Railway get_service_metrics",
+  "windowHours": 168,
+  "sampleSeconds": 3600,
+  "metrics": [
+    {
+      "measurement": "CPU_USAGE",
+      "current": 0.0012445427777777777,
+      "average": 0.002858401972386588,
+      "min": 0,
+      "max": 0.0077255894444444445,
+      "sampleCount": 169
+    },
+    {
+      "measurement": "MEMORY_USAGE_GB",
+      "current": 0.09273080035555555,
+      "average": 0.09621666735944728,
+      "min": 0.058799595520000005,
+      "max": 0.1600021315918367,
+      "sampleCount": 169
+    },
+    {
+      "measurement": "MEMORY_LIMIT_GB",
+      "current": 8,
+      "average": 8,
+      "min": 8,
+      "max": 8,
+      "sampleCount": 169
+    },
+    {
+      "measurement": "CPU_LIMIT",
+      "current": 8,
+      "average": 8,
+      "min": 8,
+      "max": 8,
+      "sampleCount": 169
+    },
+    {
+      "measurement": "DISK_USAGE_GB",
+      "current": 0.06233147164444444,
+      "average": 0.06041924802544812,
+      "min": 0.05878013207272727,
+      "max": 0.06233147164444444,
+      "sampleCount": 169
+    },
+    {
+      "measurement": "NETWORK_TX_GB",
+      "current": 5.67e-7,
+      "average": 0.00004960626627218935,
+      "min": 0,
+      "max": 0.008219693,
+      "sampleCount": 169
+    }
+  ],
+  "notes": "Coarse samples; not peak instantaneous usage or a load/capacity test. Private app metrics unavailable in this workspace: admin token configured, OAuth variable values redacted."
+}
