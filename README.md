@@ -2,7 +2,9 @@
 
 공개 실험: **https://textworld-production-987c.up.railway.app** · [Railway 운영 안내](docs/DEPLOYMENT.md) · [UI 명칭 사전](docs/UI_GLOSSARY.md) · [에이전트 API](docs/AGENT_API.md) · [MCP 연결](docs/MCP.md)
 
-다음 구조: [한국어 최종 설계 제안과 대안 비교](docs/FINAL_ARCHITECTURE_PROPOSAL.md) — 현재 운영 구현과 구분한 설계 문서입니다.
+구현 순서: [트래픽 수준별 단계](docs/SCALING_ROADMAP.md) — 지금은 단일 서버를 유지하고, 측정된 병목에 따라 접속 처리·세계 처리를 분리합니다.
+
+성장 이후 구조: [한국어 최종 설계 제안과 대안 비교](docs/FINAL_ARCHITECTURE_PROPOSAL.md) — 현재 운영 구현과 구분한 설계 문서입니다.
 
 A shared, spatial, real-time text world. People inhabit a 2D character grid as visible cursors, move, read, and overwrite cells together.
 
