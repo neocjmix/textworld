@@ -85,3 +85,9 @@ HTTP는 `GET /api/metrics?period=60|3600&since=...&before=...&limit=...`, Bearer
 [조사 보고서](CAPACITY_2026_11_16.md)에 현재 배포 코드의 72개 microbenchmark, 실제 WebSocket 10개 실행, 자동 확장 9회, 이력 저장량과 Railway 7일 자원 표본을 기록했다. `node experiments/capacity.mjs`는 별도 서버/발생기·실제 파일 SQLite·정해진 송신 빈도를 사용한다. ACK를 기다리며 부하 자체를 낮추지 않고 예정/실제 송신 지연과 종료 시 미처리량을 기록한다. `node experiments/world-cost.mjs`는 자동 확장과 만료 후 남은 이력을 측정한다. 두 스크립트는 로컬 전용이며 운영을 변경하지 않는다. 정상 상태 실험의 고정 세계 시계, 실제 OS/네트워크/resize 부하 제외, 짧은 표본 등의 한계를 지원 인원과 구분한다.
 
 새 구조의 작업량 모델과 분산 검증 목표는 [분산 세계 설계](DISTRIBUTED_WORLD_DESIGN.md)에 있다. `node experiments/distributed-model.mjs`는 병합·만료·배치/주소 분리의 의미 모형이며 성능 벤치마크가 아니다. 이 모형의 통과를 선형 확장의 실측 증거로 해석하지 않는다.
+
+## 변경 묶음과 수신 계약 실험 — 2026-11-16
+
+`node experiments/replication-batching.mjs`는 모든 변경을 보존하는 묶음 전송, 순번 누락 감지·중복 제거·짧은 로그 이어받기를 검사한다. 실제 루프백 WebSocket 연결은 2개이며 각자 128개 기록을 4개 묶음으로 받았다. 큰 관측자 수에 따른 전송 횟수와 JSON 바이트는 같은 시야의 결정적 작업량 모형이다. 부하 시험 인원이나 처리량 개선 배수로 읽지 않는다. [계약·결과·한계](REPLICATION_BATCHING.md), [원자료](measurements/replication-batching-2026-11-16.json).
+
+다음 분산 구현에서는 입력 수락 수와 관측 기록 적용 수, 묶음 수·크기, 공유 인코딩 횟수·시간, ACK/관측 지연, 압축 후 egress, 재전송/reset, 큐 크기와 브라우저 비용을 분리해 측정한다. 이는 추가할 측정 계획이며 현재 운영 서버에 이미 존재하는 지표가 아니다. 특히 공유 스트림의 시야 필터링으로 제외한 기록과 전송 누락을 혼동하지 않는다. 정상 연결의 변경을 버리거나 묶음 간격을 몰래 늘려 처리량이 개선됐다고 계산하지 않는다.

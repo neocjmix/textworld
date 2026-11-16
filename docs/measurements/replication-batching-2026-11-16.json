@@ -1,0 +1,187 @@
+{
+  "at": "2026-11-16T13:23:15.649Z",
+  "kind": "lossless batching protocol experiment + deterministic work model",
+  "passed": 9,
+  "checks": [
+    "lossless batches keep every same-cell overwrite and every cursor position",
+    "duplicate and overlapping replay does not apply an event twice",
+    "a missing frame is detected; replay recovers all events without skipping",
+    "bounded history reports a gap explicitly instead of silently claiming complete delivery",
+    "different partitions can be interleaved without a global ordering barrier",
+    "latest-state coalescing is different from lossless batching",
+    "two real loopback WebSocket clients receive all 128 accepted records in batches",
+    "fixed writer count scales deliveries and bytes linearly with viewers in this model",
+    "batching retains all records; growing all-writer hotspots still grow event bytes per viewer"
+  ],
+  "transport": {
+    "clients": 2,
+    "recordsPerClient": 128,
+    "receivedPerClient": [
+      128,
+      128
+    ],
+    "sharedFrames": 4,
+    "frameDeliveries": 8,
+    "payloadBytesPerClient": 11652,
+    "tickMs": 50,
+    "acceptToFlushP95Ms": 51.688531,
+    "errors": [],
+    "note": "Local transport check, not application ACK latency, browser rendering or a capacity measurement."
+  },
+  "fixedWriters": [
+    {
+      "viewers": 100,
+      "active": 100,
+      "actionsPerActiveSecond": 2,
+      "durationMs": 2000,
+      "tickMs": 50,
+      "acceptedRecords": 400,
+      "verifiedRecordsPerReceiver": 400,
+      "immediate": {
+        "sharedFrames": 400,
+        "frameDeliveries": 40000,
+        "applicationBytes": 5532500
+      },
+      "batched": {
+        "sharedFrames": 40,
+        "frameDeliveries": 4000,
+        "applicationBytes": 3680100,
+        "nonemptyTicks": 40,
+        "logicalTickDeliveries": 4000,
+        "largestFrameBytes": 976
+      },
+      "eventPayloadCopies": 40000
+    },
+    {
+      "viewers": 1000,
+      "active": 100,
+      "actionsPerActiveSecond": 2,
+      "durationMs": 2000,
+      "tickMs": 50,
+      "acceptedRecords": 400,
+      "verifiedRecordsPerReceiver": 400,
+      "immediate": {
+        "sharedFrames": 400,
+        "frameDeliveries": 400000,
+        "applicationBytes": 55325000
+      },
+      "batched": {
+        "sharedFrames": 40,
+        "frameDeliveries": 40000,
+        "applicationBytes": 36801000,
+        "nonemptyTicks": 40,
+        "logicalTickDeliveries": 40000,
+        "largestFrameBytes": 976
+      },
+      "eventPayloadCopies": 400000
+    },
+    {
+      "viewers": 10000,
+      "active": 100,
+      "actionsPerActiveSecond": 2,
+      "durationMs": 2000,
+      "tickMs": 50,
+      "acceptedRecords": 400,
+      "verifiedRecordsPerReceiver": 400,
+      "immediate": {
+        "sharedFrames": 400,
+        "frameDeliveries": 4000000,
+        "applicationBytes": 553250000
+      },
+      "batched": {
+        "sharedFrames": 40,
+        "frameDeliveries": 400000,
+        "applicationBytes": 368010000,
+        "nonemptyTicks": 40,
+        "logicalTickDeliveries": 400000,
+        "largestFrameBytes": 976
+      },
+      "eventPayloadCopies": 4000000
+    }
+  ],
+  "allWriters": [
+    {
+      "viewers": 100,
+      "active": 100,
+      "actionsPerActiveSecond": 2,
+      "durationMs": 2000,
+      "tickMs": 50,
+      "acceptedRecords": 400,
+      "verifiedRecordsPerReceiver": 400,
+      "immediate": {
+        "sharedFrames": 400,
+        "frameDeliveries": 40000,
+        "applicationBytes": 5532500
+      },
+      "batched": {
+        "sharedFrames": 40,
+        "frameDeliveries": 4000,
+        "applicationBytes": 3680100,
+        "nonemptyTicks": 40,
+        "logicalTickDeliveries": 4000,
+        "largestFrameBytes": 976
+      },
+      "eventPayloadCopies": 40000
+    },
+    {
+      "viewers": 1000,
+      "active": 1000,
+      "actionsPerActiveSecond": 2,
+      "durationMs": 2000,
+      "tickMs": 50,
+      "acceptedRecords": 4000,
+      "verifiedRecordsPerReceiver": 4000,
+      "immediate": {
+        "sharedFrames": 4000,
+        "frameDeliveries": 4000000,
+        "applicationBytes": 573651000
+      },
+      "batched": {
+        "sharedFrames": 40,
+        "frameDeliveries": 40000,
+        "applicationBytes": 362004000,
+        "nonemptyTicks": 40,
+        "logicalTickDeliveries": 40000,
+        "largestFrameBytes": 9250
+      },
+      "eventPayloadCopies": 4000000
+    },
+    {
+      "viewers": 10000,
+      "active": 10000,
+      "actionsPerActiveSecond": 2,
+      "durationMs": 2000,
+      "tickMs": 50,
+      "acceptedRecords": 40000,
+      "verifiedRecordsPerReceiver": 40000,
+      "immediate": {
+        "sharedFrames": 40000,
+        "frameDeliveries": 400000000,
+        "applicationBytes": 60319130000
+      },
+      "batched": {
+        "sharedFrames": 240,
+        "frameDeliveries": 2400000,
+        "applicationBytes": 38274330000,
+        "nonemptyTicks": 40,
+        "logicalTickDeliveries": 400000,
+        "largestFrameBytes": 16384
+      },
+      "eventPayloadCopies": 400000000
+    }
+  ],
+  "assumptions": [
+    "same bounded view for every receiver",
+    "all accepted observable records retained within each batch; no coalescing",
+    "16 KiB application-frame cap; no whole-world sequence",
+    "50 ms batching; no dependency on reader ACK for input processing"
+  ],
+  "limitations": [
+    "not the production Textworld protocol or a distributed server",
+    "only two loopback WebSocket clients were actually connected",
+    "large viewer counts multiply model bytes; they are NOT connected load-test users",
+    "no TLS, kernel framing, compression, CJK slot semantics, resizing, expiry, durable log, admission or browser test",
+    "bounded replay requires an explicit reset on history loss; infinite lossless offline catchup is not provided",
+    "not a CPU benchmark or scaling-efficiency measurement"
+  ]
+}
