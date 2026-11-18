@@ -1,6 +1,8 @@
+import { firstFreshVersion, indexMaintenance } from './retention.js';
 import { remesh } from './topology.js';
-import { coherentSeams } from './coherent-seams.js';
-import { DENSITY, DensityController, inkArea } from './density.js';
+import { selectResize } from './resize-plan.js';
+import { recoverResizeTables } from './resize-staging.js';
+import { DensityController, inkArea } from './density.js';
 import { DatabaseSync } from 'node:sqlite';
 import { randomUUID, randomInt } from 'node:crypto';
 import { closeSync, fsyncSync, mkdirSync, openSync } from 'node:fs';
@@ -16,6 +18,7 @@ export class World {
   constructor({ width = 128, height = 64, storagePath = ':memory:', now = Date.now } = {}) {
     if (storagePath !== ':memory:') mkdirSync(dirname(storagePath), { recursive: true });
     this.db = new DatabaseSync(storagePath);
+    recoverResizeTables(this.db);
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;
       CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS author_colors (author TEXT PRIMARY KEY, color TEXT NOT NULL UNIQUE);
@@ -76,7 +79,9 @@ export class World {
       UPDATE cells SET updatedAt=0 WHERE updatedAt!=0;
       UPDATE history SET updatedAt=0 WHERE updatedAt!=0;
       COMMIT;`);
+    indexMaintenance(this.db);
     this.now = now;
+    this.reservedAuthors = new Set();
     this.authorColors = new Map(this.db.prepare("SELECT author,color FROM author_colors").all().map(row => [row.author,row.color]));
     this.usedColors = new Set(this.authorColors.values());
     this.persistedAuthors = new Set(this.authorColors.keys());
@@ -184,13 +189,16 @@ export class World {
       this.ink += inkArea(cell) - inkArea(this.cells.get(key));
       this.cells.set(key, cell);
     }
+    this.resizeJob?.capture(cells);
     return result;
   }
   reserveAuthor(author, color) {
+    this.reservedAuthors.add(author);
     this.authorColors.set(author, color);
     this.usedColors.add(color);
   }
   releaseAuthor(author) {
+    this.reservedAuthors.delete(author);
     if (!this.persistedAuthors.has(author)) {
       this.usedColors.delete(this.authorColors.get(author));
       this.authorColors.delete(author);
@@ -206,14 +214,9 @@ export class World {
     this.persistedAuthors.add(author);
   }
   expiredCandidates(before, limit = 500) {
-    const result = [];
-    for (const cell of this.cells.values()) {
-      if (cell.text && cell.updatedAt <= before) {
-        result.push({ x: cell.x, y: cell.y, version: cell.version });
-        if (result.length >= limit) break;
-      }
-    }
-    return result;
+    const fence = firstFreshVersion(this, before);
+    return this.db.prepare(`SELECT x,y,version FROM cells
+      WHERE version<? AND text!='' ORDER BY version LIMIT ?`).all(fence, limit);
   }
   evidence({ before = this.now(), limit = 500 } = {}) {
     return this.db.prepare(`SELECT c.x,c.y,c.text,c.width,c.leadX,c.version,c.author,t.updatedAt,c.groupId AS "group",
@@ -241,28 +244,31 @@ export class World {
     }
     return this.commit([...changes.values()], { author, id, reason: 'expire', cursor: null });
   }
-  resize(width, height, peers = [], { seed = randomInt(0, 4294967296), seams } = {}) {
+  resize(width, height, peers = [], { seed = randomInt(0, 4294967296), seams, prepared } = {}) {
     if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width < 32 || height < 16 || width > 1024 || height > 512) {
       throw new WorldError('BAD_EXTENT', '세계 크기가 실험 범위를 벗어났습니다.');
     }
     if (width === this.width && height === this.height) return { changed: false, reason: 'unchanged' };
     if(!Number.isSafeInteger(seed)||seed<0||seed>4294967295)throw new WorldError('BAD_SEED','Invalid topology seed.');
     const from = { width: this.width, height: this.height };
-    const plan = remesh(this.cells, from, { width, height }, seed, { seams });
+    const plan = prepared ?? remesh(this.cells, from, { width, height }, seed, { seams });
     const next = { width, height, epoch: this.epoch + 1, seq: this.seq + 1 };
     const relocated = peers.map(peer => plan.cursor(peer));
     this.db.exec('BEGIN IMMEDIATE');
     try {
       this.db.exec(`CREATE TABLE IF NOT EXISTS topology_events (seq INTEGER PRIMARY KEY, fromWidth INTEGER, fromHeight INTEGER, toWidth INTEGER, toHeight INTEGER, seed INTEGER, summary TEXT)`);
       this.db.prepare('INSERT INTO topology_events VALUES (?,?,?,?,?,?,?)').run(next.seq, from.width, from.height, width, height, seed, JSON.stringify({ ...plan.summary, ...(seams ? { seams } : {}) }));
-      this.db.exec('DELETE FROM cells');
-      const insert = this.db.prepare('INSERT INTO cells (x,y,text,version,author,updatedAt,groupId,width,leadX) VALUES (?,?,?,?,?,?,?,?,?)');
-      for (const cell of plan.cells.values()) insert.run(cell.x, cell.y, cell.text, cell.version, cell.author, 0, cell.group, cell.width, cell.leadX);
+      if (prepared) prepared.install();
+      else {
+        this.db.exec('DELETE FROM cells');
+        const insert = this.db.prepare('INSERT INTO cells (x,y,text,version,author,updatedAt,groupId,width,leadX) VALUES (?,?,?,?,?,?,?,?,?)');
+        for (const cell of plan.cells.values()) insert.run(cell.x, cell.y, cell.text, cell.version, cell.author, 0, cell.group, cell.width, cell.leadX);
+      }
       this.db.prepare("INSERT OR REPLACE INTO meta (key,value) VALUES ('world',?)").run(JSON.stringify(next));
       this.db.exec('COMMIT');
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
     this.cells = plan.cells;
-    this.ink = [...this.cells.values()].reduce((sum, cell) => sum + inkArea(cell), 0);
+    this.ink = plan.ink ?? [...this.cells.values()].reduce((sum, cell) => sum + inkArea(cell), 0);
     this.densityController.resized(this.ink, width * height);
     Object.assign(this, next);
     peers.forEach((peer, index) => Object.assign(peer, relocated[index]));
@@ -278,42 +284,10 @@ export class World {
     const control = this.densityController.decide({ now: this.now(), occupied: this.ink,
       width: this.width, height: this.height, lastResize: this.lastResize, cooldown });
     if (control.reason !== 'due') return control;
-    const grow = control.mode === 'grow', from = { width: this.width, height: this.height };
-    const preferWidth = grow ? this.width / this.height <= 2 : this.width / this.height > 2;
-    const dimensions = [
-      { axis: 'width', other: this.height, size: this.width, min: DENSITY.minWidth, max: DENSITY.maxWidth },
-      { axis: 'height', other: this.width, size: this.height, min: DENSITY.minHeight, max: DENSITY.maxHeight },
-    ].filter(d => grow ? d.size < d.max : d.size > d.min)
-      .sort((a, b) => Number(b.axis === (preferWidth ? 'width' : 'height')) - Number(a.axis === (preferWidth ? 'width' : 'height')));
-    let best, candidate = 0;
-    for (const d of dimensions) {
-      const goal = Math.ceil(control.targetArea / d.other);
-      // Blank preservation must not turn a 2D world into an ever longer strip.
-      const min = Math.max(d.min, d.axis === 'width' ? d.other : Math.ceil(d.other / 4));
-      const max = Math.min(d.max, d.axis === 'width' ? d.other * 4 : d.other);
-      const room = grow ? max - d.size : d.size - min;
-      if (room <= 0) continue;
-      const requested = Math.min(room, Math.max(1, Math.floor(d.size * DENSITY.stepFraction)), Math.max(1, Math.abs(goal - d.size)));
-      // A large blank deletion may not fit where several smaller ones would.
-      // Exhaust smaller blank steps before forcing deletion; growth of a band
-      // has the same cut locations regardless of its inserted width.
-      for (let step = requested; step >= 1; step = grow || step === 1 ? 0 : Math.max(1, Math.floor(step / 2))) {
-        const to = { ...from, [d.axis]: d.size + (grow ? step : -step) };
-        for (let attempt = 0; attempt < 2; attempt++) {
-          const candidateSeed = (seed + candidate++ * 0x9e3779b9) >>> 0;
-          const seams = coherentSeams(this.cells, from, d.axis, grow ? step : -step, candidateSeed);
-          const plan = remesh(this.cells, from, to, candidateSeed, { seams });
-          if (plan.preservesText) return { ...control, ...this.resize(to.width, to.height, peers, { seed: candidateSeed, seams }), preservation: 'text' };
-          // Forced progress must still provide the requested capacity, not an
-          // arbitrarily tiny safe-looking change that cannot catch up to input.
-          if (step !== requested) continue;
-          const score = plan.summary.lostTextCells * (2 * this.width * this.height + 1) + plan.summary.brokenAdjacencies;
-          if (!best || score < best.score) best = { to, seed: candidateSeed, seams, score };
-        }
-      }
-    }
-    if (!best) return { ...control, reason: 'limit' };
-    return { ...control, ...this.resize(best.to.width, best.to.height, peers, { seed: best.seed, seams: best.seams }), preservation: 'forced' };
+    const selected = selectResize(this.cells, this.metadata(), control, seed);
+    if (!selected) return { ...control, reason: 'limit' };
+    const { to, preservation } = selected;
+    return { ...control, ...this.resize(to.width, to.height, peers, selected), preservation };
   }
   close() { this.db.close(); }
 }

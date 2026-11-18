@@ -5,16 +5,20 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve, extname, sep } from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
+import { createViewDelivery } from './view-delivery.js';
 import { World, WorldError } from './world.js';
 import { VIEW_LIMITS } from '../shared/participant-rules.js';
 import { LIMITS, NetworkBudgets, ParticipantPolicy, PolicyError } from './participant-policy.js';
 import { Observer, contains, viewRectangle, validateView } from './visibility.js';
+import { SpatialSubscriptions } from './spatial-subscriptions.js';
 import { createTurnRunner } from './agent-turns.js';
 import { createAgentHTTP } from './agent-http.js';
 import { Measurements, route as measurementRoute } from './measurements.js';
 import { createMCPAgent } from './mcp-agent.js';
-import { expire } from './expiration.js';
+import { expire, EXPIRY_BATCH } from './expiration.js';
+import { pruneRecords } from './retention.js';
 import { DENSITY } from './density.js';
+import { adaptOnline, stopResize } from './resize-online.js';
 import { localContinuity } from './local-continuity.js';
 import { translateTrail } from '../shared/relocation.js';
 import { CursorInput, remapWriting } from '../shared/cursor-input.js';
@@ -78,32 +82,67 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
           actor.input.native.remap(result, actor.peer, (x,y) => world.spanAt(x,y));
           actor.input.nativeBase = relocation ? translateTrail(actor.input.nativeBase, relocation) : [];
         }
+        for (const actor of actors) spatial.update(actor);
         for(const [socket,actor] of clients)scopedUpdate(socket,actor,{snapshot:true,reason:'density-resize',resize:{ ...result, relocation:relocations.get(actor) }});
         notify();
       }
       return result;
     } finally {measurements.record('topology.ms',performance.now()-started);}
   };
-  const clients = new Map(), actors = new Set(), listeners = new Set();
+  const clients = new Map(), actors = new Set(), listeners = new Map();
+  const spatial = new SpatialSubscriptions(world);
   const networks = new NetworkBudgets({ now: policyNow });
   let closing = false, population=0,lastPopulationAt=performance.now();
   const updatePopulation=()=>{const time=performance.now();measurements.record('activity.peer_ms',(time-lastPopulationAt)*population);population=actors.size;lastPopulationAt=time;};
   const limits = { ...LIMITS, view: VIEW_LIMITS, turn: { maxActions: 16, maxGraphemes: 256, maxUtf16: 4096,
     maxDurationMs: 30000, typingPerSecond: 10, movementPerSecond: 160 }, sessionIdleMs: 120000, maxWaitMs: 25000 };
   const peers = () => [...actors].filter(actor => !actor.closed).map(actor => actor.peer);
-  const send = (socket, message) => {
+  // Scoped to a synchronous input handler. Other producers (expiry, HTTP,
+  // topology) start their delivery clock when they enqueue their view.
+  let inputStarted;
+  function writeEncoded(socket, encoded, fragmentBytes) {
     if (socket.readyState !== WebSocket.OPEN) return false;
-    if (socket.bufferedAmount > 2 * 1024 * 1024) { measurements.record('ws.slow_disconnects'); socket.close(1013, 'Slow client; reconnect for current view'); return false; }
-    const encoded = JSON.stringify(message);
-    measurements.record('ws.tx_bytes',Buffer.byteLength(encoded));measurements.record('ws.buffered_bytes',socket.bufferedAmount);
-    if(message.type==='error')measurements.record(message.status===429?'ws.error_429':'ws.error_other');
-    socket.send(encoded); return true;
+    if (socket.bufferedAmount > 2 * 1024 * 1024) {
+      measurements.record('ws.slow_disconnects');
+      socket.close(1013, 'Slow client; reconnect for current view');
+      return false;
+    }
+    const bytes = Buffer.byteLength(encoded);
+    measurements.record('ws.tx_bytes', bytes);
+    measurements.record('ws.buffered_bytes', socket.bufferedAmount);
+    if (fragmentBytes && bytes > fragmentBytes) {
+      const data = Buffer.from(encoded);
+      for (let offset = 0; offset < bytes; offset += fragmentBytes) {
+        const end = Math.min(bytes, offset + fragmentBytes);
+        socket.send(data.subarray(offset, end), { binary: false, fin: end === bytes });
+      }
+    } else socket.send(encoded);
+    return true;
+  }
+  const delivery = createViewDelivery({ write: writeEncoded, record: (name, value) => measurements.record(name, value) });
+  const send = (socket, message) => {
+    if (socket.textworldBatchVersion === 1 && message.type === 'view') {
+      delivery.enqueue(socket, message, inputStarted ?? performance.now());
+      return;
+    }
+    // ACKs may overtake observations. Snapshots and error recovery are
+    // barriers: the client applies any preceding changes first.
+    if (message.type !== 'ack') delivery.flush(socket);
+    if (message.type === 'error') measurements.record(message.status === 429 ? 'ws.error_429' : 'ws.error_other');
+    return writeEncoded(socket, JSON.stringify(message));
   };
-  const notify = () => { for (const listener of listeners) listener(); };
-  const scopedUpdate = (socket, actor, { snapshot = false, ...extra } = {}) => {
+  const notify = () => { for (const listener of listeners.values()) listener(); };
+  const scopedUpdate = (socket, actor, { snapshot = false, delta, ...extra } = {}) => {
     try {
       const previous = actor.observer.revision;
-      const observation = actor.observer.read(peers(), { since: previous, force: snapshot });
+      if (actor.retry) {
+        if (delta) return;
+        snapshot = true;
+      }
+      const observation = delta && socket.textworldBatchVersion === 1
+        ? actor.observer.change(delta, () => spatial.peersFor(actor))
+        : actor.observer.read(spatial.peersFor(actor), { since: previous, force: snapshot });
+      if (!observation) return;
       clearTimeout(actor.retry); actor.retry = null;
       if (snapshot) {
         actor.input.cursor = { x: actor.peer.x, y: actor.peer.y };
@@ -118,18 +157,42 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
         send(socket, { type: 'error', ...errorRecord(error), requestType: 'view', cursor: { x: actor.peer.x, y: actor.peer.y } });
         if (error.status === 429) actor.retry = setTimeout(() => {
           actor.retry = null;
-          if (!actor.closed) scopedUpdate(socket, actor, { snapshot: actor.lastSnapshotEpoch !== world.epoch, reason: 'observation-retry' });
+          if (!actor.closed) scopedUpdate(socket, actor, { snapshot: true, reason: 'observation-retry' });
         }, Math.max(1, error.retryAfterMs));
       }
     }
   };
-  const presence = () => {
+  const dispatch = (actor, cells, acknowledge) => {
+    const previous = actor && spatial.update(actor);
     if (closing) return;
-    const started=performance.now();
-    for (const [socket, actor] of clients) scopedUpdate(socket, actor);
-    notify();measurements.record('presence.ms',performance.now()-started);measurements.record('presence.recipients',clients.size);
+    const started = performance.now();
+    const delta = { cells, peer: actor?.peer, removed: actor?.closed };
+    let recipients = 0;
+    if (actor?.socket && !actor.closed) {
+      scopedUpdate(actor.socket, actor, { delta });
+      recipients++;
+    }
+    // The author's revision covers its own confirmed input. A slow spectator
+    // or a legacy client requiring a full read must not delay this ACK.
+    acknowledge?.();
+    const interested = new Set();
+    if (previous) spatial.collect(previous, interested);
+    if (actor && !actor.closed) spatial.collect(actor.peer, interested);
+    for (const cell of cells) spatial.collect(cell, interested);
+    if (actor?.socket) interested.delete(actor);
+    for (const observer of interested) {
+      if (observer.socket) {
+        scopedUpdate(observer.socket, observer, { delta });
+        recipients++;
+      } else {
+        listeners.get(observer)?.();
+      }
+    }
+    measurements.record('presence.ms', performance.now() - started);
+    measurements.record('presence.recipients', recipients);
   };
-  const publish = result => { if (!result.duplicate) presence(); };
+  const presence = actor => dispatch(actor, []);
+  const publish = (result, actor) => { if (!result.duplicate) dispatch(actor, result.cells); };
   const runner = createTurnRunner({ world, publish, presence, now: policyNow });
   const runTurn=runner.run.bind(runner);runner.run=async(...args)=>{const started=performance.now();try{const result=await runTurn(...args);measurements.record('turn.'+result.status);measurements.record('turn.steps',result.completedSteps);return result;}catch(error){measurements.record('turn.error');throw error;}finally{measurements.record('turn.ms',performance.now()-started);}};
   const createActor = (req, { name, view, position } = {}) => {
@@ -161,17 +224,29 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       actor.input = new CursorInput(peer);
       actor.writing = actor.input.writing;
       actor.inputSequence = 0;
-      actors.add(actor);updatePopulation();measurements.record('activity.session_created'); return actor;
+      actors.add(actor);
+      spatial.update(actor);
+      updatePopulation();
+      measurements.record('activity.session_created');
+      return actor;
     } catch (error) { world.releaseAuthor(peer.id); networks.release(network); throw error; }
   };
   const removeActor = actor => {
     if (actor.closed) return;
     actor.closed = true; clearTimeout(actor.retry); runner.cancel(actor);
-    actors.delete(actor);world.releaseAuthor(actor.peer.id);updatePopulation();measurements.record('activity.session_closed'); networks.release(actor.network); presence();
+    actors.delete(actor);
+    world.releaseAuthor(actor.peer.id);
+    updatePopulation();
+    measurements.record('activity.session_closed');
+    networks.release(actor.network);
+    presence(actor);
   };
   const agentHTTP = createAgentHTTP({ world, createActor: (req, options) => {
-    const actor = createActor(req, options); queueMicrotask(presence); return actor;
-  }, removeActor, peers, runner, limits, subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener); } });
+    const actor = createActor(req, options); queueMicrotask(() => { if (!actor.closed) presence(actor); }); return actor;
+  }, removeActor, peers: actor => spatial.peersFor(actor), runner, limits, subscribe: (listener, actor) => {
+    listeners.set(actor, listener);
+    return () => listeners.delete(actor);
+  } });
   const mcp = createMCPAgent({ agentHTTP,
     acceptRequest: req => networks.get(networkKey(req, trustProxy)).request.spend() });
   const json = (res, status, value) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)); };
@@ -234,9 +309,13 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   });
   wss.on('connection', (socket, actor) => {
     const { peer, policy } = actor;
-    clients.set(socket, actor); scopedUpdate(socket, actor, { snapshot: true }); presence();
+    actor.socket = socket;
+    clients.set(socket, actor);
+    scopedUpdate(socket, actor, { snapshot: true });
+    presence(actor);
     socket.on('pong', () => { actor.alive = true; });
     socket.on('message', raw => {
+      inputStarted = performance.now();
       let message, newInput = false;
       measurements.record('ws.rx_bytes',raw.length);
       try {
@@ -257,10 +336,12 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
         if (message.type === 'hello') {
           if (actor.hello) return;
           actor.hello = true;
-          if (message.view) actor.observer.setView(message.view);
-          if (typeof message.name === 'string') peer.name = message.name.replace(/[\u0000-\u001F\u007F]/g, '').slice(0, 24) || peer.name;
+          if (message.batchVersion === 1) socket.textworldBatchVersion = 1;
+          const view = message.view && validateView(message.view);
           if (message.x !== undefined || message.y !== undefined) policy.acceptMove({ x: message.x, y: message.y, epoch: world.epoch });
-          presence();
+          if (view) actor.observer.setView(view);
+          if (typeof message.name === 'string') peer.name = message.name.replace(/[\u0000-\u001F\u007F]/g, '').slice(0, 24) || peer.name;
+          presence(actor);
         } else if (message.type === 'telemetry') {
           try {measurements.mergeClient(message,actor);} catch {measurements.record('telemetry.rejected');}
         } else if (message.type === 'input') {
@@ -280,19 +361,22 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
           measurements.record('input.plan_ms', performance.now() - plannedAt);
           const result = policy.acceptCursorPlan(plan, `${peer.id}:input:${message.sequence}`);
           actor.input.restore(plan.next.snapshot());
-          if (plan.operation) publish(result); else presence();
           measurements.record('input.cursor_actions');
           measurements.record('input.context_entries', actor.input.native.entries.length);
           if (message.epoch !== world.epoch) measurements.record('input.after_resize');
-          send(socket, { type: 'ack', id: message.id, inputSequence: message.sequence, epoch: world.epoch, cursor: { x: peer.x, y: peer.y } });
-        } else if (message.type === 'move') { policy.acceptMove(message); presence(); }
+          dispatch(actor, result.cells || [], () => send(socket, { type: 'ack', id: message.id, inputSequence: message.sequence, seq: result.seq,
+            viewRevision: actor.observer.revision + Number(!!actor.retry), epoch: world.epoch, cursor: { x: peer.x, y: peer.y } }));
+        } else if (message.type === 'move') { policy.acceptMove(message); presence(actor); }
         else if (message.type === 'view') {
           actor.observer.setView({ cols: message.cols, rows: message.rows });
+          spatial.update(actor);
           scopedUpdate(socket, actor, { force: true });
         } else if (message.type === 'write' || message.type === 'erase') {
-          const result = message.type === 'write' ? policy.acceptWrite(message) : policy.acceptErase(message);
-          publish(result);
-          send(socket, { type: 'ack', id: message.id, seq: result.seq, epoch: result.epoch, cursor: result.cursor, duplicate: !!result.duplicate });
+          const result = policy.acceptCoordinateEdit(message);
+          const acknowledge = () => send(socket, { type: 'ack', id: message.id, seq: result.seq,
+            epoch: result.epoch, cursor: result.cursor, duplicate: !!result.duplicate });
+          if (result.duplicate) acknowledge();
+          else dispatch(actor, result.cells, acknowledge);
         } else if (message.type === 'sync') scopedUpdate(socket, actor, { snapshot: true });
         else throw new WorldError('UNKNOWN_MESSAGE', '알 수 없는 요청입니다.');
       } catch (error) {
@@ -300,7 +384,9 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
           ...(message?.type === 'input' ? { inputSequence: actor.inputSequence } : {}) });
         if (error.code === 'STALE_EPOCH' && actor.lastSnapshotEpoch !== world.epoch) scopedUpdate(socket, actor, { snapshot: true, reason: 'stale-epoch' });
       }
+      finally { inputStarted = undefined; }
     });
+    socket.once('close', () => delivery.drop(socket));
     socket.on('close', () => { clients.delete(socket); removeActor(actor); });
     socket.on('error', () => {});
   });
@@ -315,21 +401,32 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     }
   }, 15000);
   // Only visible age-band transitions produce packets; no per-frame age updates.
-  const aging = setInterval(() => {
-    const expirationStarted = performance.now();
+  let cleanupContinuation;
+  const cleanup = () => {
+    const started = performance.now();
+    let more = false;
     try {
-      const deleted = expire(world, publish);
+      const deleted = expire(world, publish, EXPIRY_BATCH, lag => measurements.record('expiration.lag_ms', lag));
+      more = pruneRecords(world) || deleted >= EXPIRY_BATCH;
       measurements.record('expiration.deleted_cells', deleted);
-      measurements.record('expiration.batch_full', Number(deleted >= 500));
-    } catch (error) { console.error('Text expiration failed:', error.message); }
-    finally { measurements.record('expiration.ms', performance.now() - expirationStarted); }
+      measurements.record('expiration.batch_full', Number(more));
+    } catch (error) { console.error('World cleanup failed:', error.message); }
+    finally { measurements.record('expiration.ms', performance.now() - started); }
+    if (more && !closing) cleanupContinuation = setImmediate(() => {
+      cleanupContinuation = undefined;
+      cleanup();
+    });
+  };
+  const aging = setInterval(() => {
+    if (!cleanupContinuation) cleanup();
     for (const [socket, actor] of clients) if (world.now() >= actor.observer.nextFreshnessAt) scopedUpdate(socket, actor);
-    notify();
+    for (const [actor, listener] of listeners) if (world.now() >= actor.observer.nextFreshnessAt) listener();
   }, 5000);
-  const adaptation = setInterval(() => {
+  const adaptation = setInterval(async () => {
+    if (world.resizeJob) return;
     const started = performance.now();
     try {
-      const result = world.adapt(peers());
+      const result = await adaptOnline(world, peers, { record:(name,value) => measurements.record(name,value) });
       measurements.record('density.actual', result.density);
       measurements.record('density.projected', result.projectedDensity);
       measurements.record('density.target_area', result.targetArea);
@@ -351,7 +448,8 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     server, world, wss, measurements,
     listen: (port = 3000, host = '0.0.0.0') => new Promise(resolve => server.listen(port, host, () => resolve(server.address()))),
     close: async () => {
-      closing = true; clearInterval(measurementTimer); clearInterval(heartbeat); clearInterval(adaptation); clearInterval(aging);
+      closing = true; clearInterval(measurementTimer); clearInterval(heartbeat); clearInterval(adaptation); clearInterval(aging); clearImmediate(cleanupContinuation);
+      await stopResize(world);
       agentHTTP.close(); await runner.shutdown(); await mcp.close();
       for (const actor of actors) removeActor(actor);
       for (const socket of clients.keys()) socket.terminate();

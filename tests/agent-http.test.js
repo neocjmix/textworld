@@ -17,12 +17,13 @@ async function fixture(t) {
   const world = new World({ width: 512, height: 256 });
   let clock = 0;
   const actors = new Map(), listeners = new Set(), networks = new NetworkBudgets({ now: () => clock });
+  const subscribed = Promise.withResolvers();
   const notify = () => { for (const listener of [...listeners]) listener(); };
   const peers = () => [...actors.values()].map(actor => actor.peer);
   const runner = createTurnRunner({ world, publish: notify, presence: notify });
   const api = createAgentHTTP({ world, peers, runner, now: () => clock,
     limits: { ...LIMITS, view: VIEW_LIMITS, turn: TURN_LIMITS },
-    subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
+    subscribe(listener) { listeners.add(listener); subscribed.resolve(); return () => listeners.delete(listener); },
     createActor(req, input) {
       const view = validateView(input.view), network = networks.acquire('loopback');
       const peer = { id: randomUUID(), name: input.name || '여행자', color: '#fff', x: 256, y: 128 };
@@ -60,7 +61,7 @@ async function fixture(t) {
     api.close(); await runner.shutdown(); server.closeAllConnections();
     await new Promise(resolve => server.close(resolve)); world.close();
   });
-  return { world, actors, api, create, turn, request, notify, listeners, setClock: value => { clock = value; } };
+  return { world, actors, api, create, turn, request, notify, listeners, subscribed: subscribed.promise, setClock: value => { clock = value; } };
 }
 
 test('public discovery and anonymous session expose only the current bounded view', async t => {
@@ -162,7 +163,7 @@ test('long polling wakes on visible changes and does not expose hidden-world act
   const f = await fixture(t), a = await f.create();
   let settled = false;
   const pending = f.turn(a.session, { actions: [], since: a.observation.revision, waitMs: 1000 }).then(value => { settled = true; return value; });
-  await pause(20);
+  await f.subscribed;
   f.world.applyWrite({ author: 'seed', id: 'hidden', epoch: 1, x: 10, y: 10, text: 'hidden' }); f.notify();
   await pause(40); assert.equal(settled, false);
   f.world.applyWrite({ author: 'seed', id: 'visible', epoch: 1, x: 256, y: 128, text: 'Z' }); f.notify();
@@ -175,7 +176,7 @@ test('long polling wakes on visible changes and does not expose hidden-world act
 test('long polling is single-flight, cancellable, and does not expire while waiting', async t => {
   const f = await fixture(t), a = await f.create();
   const pending = f.turn(a.session, { actions: [], since: a.observation.revision, waitMs: 1000 });
-  await pause(20);
+  await f.subscribed;
   f.setClock(120001); f.api.prune(); assert.equal(f.actors.size, 1);
   const competing = await f.turn(a.session, { actions: [] });
   assert.equal(competing.status, 429);

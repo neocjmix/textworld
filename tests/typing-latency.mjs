@@ -40,6 +40,12 @@ async function transport(context) {
   return {
     hold() { holding = true; heldAt = performance.now(); },
     get messages() { return frames.map(frame => frame.message); },
+    async dropBatchContaining(text) {
+      const contains = ({ message }) => message.type === 'batch' && message.messages.some(
+        view => view.observation.cells.some(cell => cell.text === text));
+      await next(() => frames.some(contains), 'Expected a batched text update');
+      frames.splice(frames.findIndex(contains), 1);
+    },
     async release() {
       const remainder = 300 - (performance.now() - heldAt);
       if (remainder > 0) await new Promise(resolve => setTimeout(resolve, remainder));
@@ -157,6 +163,13 @@ try {
     const s = await visibleBeforeReply(page, '한', 10);
     assert.equal(cell(s.localCells, 10).width, 2); assert.equal(cell(s.localCells, 11).width, 0);
     assert.equal(cell(s.cells, 10), undefined); assert.equal(s.preedit, '');
+    await next(() => wire.messages.some(m => m.type === 'ack' && m.viewRevision > s.viewRevision), 'Expected ACK ahead of its view');
+    const ack = wire.messages.find(m => m.type === 'ack' && m.viewRevision > s.viewRevision);
+    await wire.deliverThroughAck(ack.id);
+    await paint(page);
+    const afterAck = await state(page);
+    assert.equal(cell(afterAck.cells, 10), undefined, 'The observation is still held');
+    assert.equal(cell(afterAck.localCells, 10).text, '한', 'ACK must retain the visible prediction');
     const frames = await page.evaluate(() => {
       const input = window.typingInputs.at(-1); return window.typingFrames.filter(frame => frame.t >= input.t);
     });
@@ -210,6 +223,22 @@ try {
     await paint(page);
     assert.equal(cell((await state(page)).localCells, 10).text, 'R');
     assert.ok((await lastPaint(page)).text.some(glyph => glyph.text === 'R'));
+  });
+
+  await scenario('A missing observation triggers a snapshot and restores both remote edits', async ({ page, observer, wire }) => {
+    wire.hold();
+    await observer.locator('#input').focus();
+    await observer.keyboard.insertText('Q');
+    await settled(observer);
+    await wire.dropBatchContaining('Q');
+    await observer.keyboard.insertText('R');
+    await settled(observer);
+    await wire.release();
+    await page.waitForFunction(() => {
+      const cells = window.textworld.inspect().cells;
+      return ['Q', 'R'].every((text, i) => cells.some(cell => cell.x === 10 + i && cell.y === 8 && cell.text === text));
+    });
+    assert.deepEqual((await state(page)).cursor, { x: 10, y: 8 });
   });
 
   await scenario('A new local edit following a remote overwrite keeps server order under delay', async ({ page, observer, cdp, wire }) => {

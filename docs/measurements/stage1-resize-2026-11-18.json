@@ -1,0 +1,199 @@
+{
+  "at": "2026-11-18T16:23:55.346Z",
+  "revision": "2eec724a12ecfb2f20f5fe2bf70a630288fbc58f + working tree",
+  "node": "v24.22.1",
+  "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+  "cpuQuota": "400000 100000",
+  "scope": "Local engine, on-disk SQLite; growth measures the real async density path and sampled 5ms timer gap; excludes participant correction, observation fanout, sockets and browsers. Row-seeded ASCII at 1/7 density.",
+  "growth": [
+    {
+      "trial": 0,
+      "from": [
+        128,
+        64
+      ],
+      "occupied": 1171,
+      "to": [
+        144,
+        64
+      ],
+      "elapsedMs": 744.0855399999999,
+      "sliceMaxMs": 20.030790000000025,
+      "cutoverMs": 3.536626999999953,
+      "maxTimerGapMs": 46.450785999999994,
+      "cpuMs": 354.728,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 63934464
+    },
+    {
+      "trial": 1,
+      "from": [
+        128,
+        64
+      ],
+      "occupied": 1171,
+      "to": [
+        144,
+        64
+      ],
+      "elapsedMs": 180.0351760000001,
+      "sliceMaxMs": 6.625723999999991,
+      "cutoverMs": 2.07483000000002,
+      "maxTimerGapMs": 21.993480999999974,
+      "cpuMs": 144.991,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 67063808
+    },
+    {
+      "trial": 2,
+      "from": [
+        128,
+        64
+      ],
+      "occupied": 1171,
+      "to": [
+        144,
+        64
+      ],
+      "elapsedMs": 230.13986799999998,
+      "sliceMaxMs": 9.892762000000175,
+      "cutoverMs": 5.994228000000021,
+      "maxTimerGapMs": 39.43860900000004,
+      "cpuMs": 203.841,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 72675328
+    },
+    {
+      "trial": 0,
+      "from": [
+        512,
+        256
+      ],
+      "occupied": 18725,
+      "to": [
+        576,
+        256
+      ],
+      "elapsedMs": 1001.5109740000003,
+      "sliceMaxMs": 21.557424000000083,
+      "cutoverMs": 2.094587000000047,
+      "maxTimerGapMs": 24.765412000000197,
+      "cpuMs": 1114.122,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 112824320
+    },
+    {
+      "trial": 1,
+      "from": [
+        512,
+        256
+      ],
+      "occupied": 18725,
+      "to": [
+        576,
+        256
+      ],
+      "elapsedMs": 829.2559689999998,
+      "sliceMaxMs": 14.952401999999893,
+      "cutoverMs": 2.2616659999994226,
+      "maxTimerGapMs": 23.53887300000042,
+      "cpuMs": 790.139,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 140460032
+    },
+    {
+      "trial": 2,
+      "from": [
+        512,
+        256
+      ],
+      "occupied": 18725,
+      "to": [
+        576,
+        256
+      ],
+      "elapsedMs": 850.2664590000004,
+      "sliceMaxMs": 37.412169999999605,
+      "cutoverMs": 1.435580999999729,
+      "maxTimerGapMs": 38.67497600000024,
+      "cpuMs": 863.465,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 149839872
+    },
+    {
+      "trial": 0,
+      "from": [
+        896,
+        448
+      ],
+      "occupied": 57344,
+      "to": [
+        1008,
+        448
+      ],
+      "elapsedMs": 3418.163722000001,
+      "sliceMaxMs": 88.41403200000059,
+      "cutoverMs": 2.507596999999805,
+      "maxTimerGapMs": 88.65364799999952,
+      "cpuMs": 3044.887,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 232796160
+    },
+    {
+      "trial": 1,
+      "from": [
+        896,
+        448
+      ],
+      "occupied": 57344,
+      "to": [
+        1008,
+        448
+      ],
+      "elapsedMs": 2226.6949940000013,
+      "sliceMaxMs": 67.71434299999964,
+      "cutoverMs": 2.651781000000483,
+      "maxTimerGapMs": 67.77571099999841,
+      "cpuMs": 2035.689,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 309202944
+    },
+    {
+      "trial": 2,
+      "from": [
+        896,
+        448
+      ],
+      "occupied": 57344,
+      "to": [
+        1008,
+        448
+      ],
+      "elapsedMs": 2842.606909000002,
+      "sliceMaxMs": 15.74734200000239,
+      "cutoverMs": 1.827715999999782,
+      "maxTimerGapMs": 51.97218900000007,
+      "cpuMs": 2493.526,
+      "changed": true,
+      "preservation": "text",
+      "lostTextCells": 0,
+      "rssBytes": 332550144
+    }
+  ]
+}

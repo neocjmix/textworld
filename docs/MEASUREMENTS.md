@@ -59,7 +59,7 @@ HTTP는 `GET /api/metrics?period=60|3600&since=...&before=...&limit=...`, Bearer
 
 첫 코드 고정 benchmark의 실제 결과와 해석은 [기준 기록](measurements/BASELINE.md)에 있고, 전체72개 집계도 저장소에 보존한다. 비용 보고서는 정적 자산 bytes와 동적 application bytes를 분리한다. 최초 글꼴 로딩이 많은 짧은 구간을 계속 활동하는 세션과 혼동하지 않는다.
 
-만료 실험은 5초 sweep마다 `expiration.ms`, `expiration.deleted_cells`, `expiration.batch_full`을 집계한다. batch_full은 삭제된 셀이 500개 이상인 실행 횟수의 지표이며 두 칸 문자의 경우 셀 수와 후보 글자 수가 다르다. 전체 순회의 시간과 적체 가능성을 살펴본다.
+5초마다 만료 검사를 시작하고, 적체가 있으면 이벤트 루프에 제어를 돌려준 뒤 다음 소량 묶음을 처리한다. 각 묶음에서 만료·기록 정리 시간(`expiration.ms`), 지워진 칸 수(`expiration.deleted_cells`), 정리 연속 실행 여부(`expiration.batch_full`)를 집계한다. 후보가 있는 묶음에는 가장 오래된 글자가 안전한 만료 시점(공유 시각 + 185초)을 넘긴 시간(`expiration.lag_ms`)도 기록한다.
 
 점진적 resize의 `topology.adapt_ms`, `topology.search_deferred`, `topology.forced`로 후보 탐색 지연과 보류·강제 변경을 관찰한다.
 

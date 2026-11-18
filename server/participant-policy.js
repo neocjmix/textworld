@@ -207,6 +207,23 @@ export class ParticipantPolicy {
     }
     return { cursor: { ...point }, cost };
   }
+  // Coordinate clients choose opaque IDs. A session retains only ID strings
+  // after the durable receipt expires. Cursor ordinals and HTTP turn IDs have
+  // their own replay fences, so they do not consume this legacy session budget.
+  acceptCoordinateEdit(message) {
+    this.coordinateIds ??= new Set();
+    if (this.coordinateIds.has(message.id)) {
+      const receipt = this.prior(message.id);
+      if (receipt) return receipt;
+      throw new PolicyError('IDEMPOTENCY_EXPIRED', '이전 입력의 보관 기간이 끝났습니다.', {status: 409});
+    }
+    if (this.coordinateIds.size >= 4096) {
+      throw new PolicyError('SESSION_EDIT_LIMIT', '새 세션을 열어 입력을 계속하세요.', {status: 409});
+    }
+    const result = message.type === 'write' ? this.acceptWrite(message) : this.acceptErase(message);
+    this.coordinateIds.add(message.id);
+    return result;
+  }
   acceptWrite(message, { native = false } = {}) {
     const prior = this.prior(message.id);
     if (prior) return prior;
