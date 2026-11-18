@@ -26,9 +26,10 @@ try {
 const mapFont = '"Textworld Sarasa"';
 const glyphWidths = new Map();
 let fontReady = false;
-let world = null, selfId = null, cells = new Map(), peers = [];
+let world = null, selfId = null, cells = new Map(), peers = new Map();
 let localCells = new Map(), freshnessMarks = new Map(), freshnessBands = {}, colorBands = {};
 let observedView = null, viewRevision = 0, sentView = '', viewTimer, recoveryTimer;
+let awaitingViewSnapshot = false;
 let cursor = { x: 0, y: 0 }, camera = { x: 0, y: 0 };
 let cameraAnchor = null, cameraEpoch = null;
 let dotOrigin = { x: 0, y: 0 };
@@ -88,7 +89,7 @@ function schedule() {
   frame = requestAnimationFrame(() => { frame = null; draw(); });
 }
 function refreshLocalCells() {
-  localCells = world ? projectLocalCells(cells, pending.values(), world) : cells;
+  localCells = world && pending.size ? projectLocalCells(cells, pending.values(), world) : cells;
   schedule();
 }
 function requestedView() {
@@ -360,7 +361,7 @@ function draw() {
         const local = typeof cell.version === 'string';
         const style = freshnessStyle(local ? 'now' : freshnessBands[cell.version]);
         ctx.globalAlpha = style.opacity;
-        ctx.fillStyle = local ? (peers.find(peer => peer.id === selfId)?.color || '#314137') : (colorBands[cell.version] || '#314137');
+        ctx.fillStyle = local ? (peers.get(selfId)?.color || '#314137') : (colorBands[cell.version] || '#314137');
         paintText(cell.text, px, py, d, cell.width || 1, fonts); drawnGlyphs++;
         ctx.globalAlpha = 1;
       }
@@ -368,7 +369,7 @@ function draw() {
   }
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  for (const peer of peers) {
+  for (const peer of peers.values()) {
     if (peer.id === selfId) continue;
     for (let y = startY; y <= camera.y + v.rows; y++) {
       if (wrap(y, world.height) !== peer.y) continue;
@@ -634,6 +635,56 @@ function goToHash() {
   }
   return false;
 }
+function applyView(message) {
+  if (!world || awaitingViewSnapshot || message.world.epoch < world.epoch) return false;
+  const observation = message.observation;
+  if (message.world.epoch > world.epoch || (!observation.reset && observation.revision > viewRevision + 1)) {
+    awaitingViewSnapshot = true;
+    send({ type: 'sync' });
+    return false;
+  }
+  if (observation.revision < viewRevision) return false;
+  if (observation.partial) {
+    for (const version of observation.forgetVersions || []) {
+      delete freshnessBands[version];
+      delete colorBands[version];
+    }
+    Object.assign(freshnessBands, observation.freshness);
+    Object.assign(colorBands, observation.colors);
+    for (const point of observation.unmark || []) freshnessMarks.delete(cellKey(point.x, point.y));
+    for (const mark of observation.marks) freshnessMarks.set(cellKey(mark.x, mark.y), mark.version);
+    for (const id of observation.departed || []) peers.delete(id);
+    for (const peer of observation.peers) peers.set(peer.id, peer);
+  } else {
+    freshnessBands = observation.freshness || {};
+    colorBands = observation.colors || {};
+    freshnessMarks = new Map((observation.marks || []).map(m => [cellKey(m.x, m.y), m.version]));
+    peers = new Map(observation.peers.map(peer => [peer.id, peer]));
+  }
+  world = message.world;
+  observedView = observation.view;
+  viewRevision = observation.revision;
+  if (observation.reset) cells = new Map();
+  for (const point of observation.forget || []) cells.delete(cellKey(point.x, point.y));
+  for (const cell of observation.cells) {
+    const key = cellKey(cell.x, cell.y);
+    if (cell.text || cell.width === 0) cells.set(key, cell); else cells.delete(key);
+  }
+  return true;
+}
+function receiveViews(messages) {
+  let changed = false;
+  for (const message of messages) {
+    if (applyView(message)) changed = true;
+  }
+  if (!changed) return;
+  // Keep author predictions painted between their immediate ACK and the
+  // ordered observation containing the corresponding authoritative change.
+  for (const [id, operation] of pending) {
+    if (operation.ackViewRevision !== undefined && operation.ackViewRevision <= viewRevision) pending.delete(id);
+  }
+  refreshLocalCells();
+}
 function connect() {
   sentView = '';
   socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
@@ -652,10 +703,11 @@ function connect() {
       colorBands = message.colors || {};
       freshnessMarks = new Map((message.marks || []).map(m => [cellKey(m.x, m.y), m.version]));
       observedView = message.view || null; viewRevision = message.viewRevision || 0;
+      awaitingViewSnapshot = false;
       $('cursor').hidden = false;
       cells = new Map(message.cells.filter(c => c.text || c.width === 0).map(c => [cellKey(c.x, c.y), c]));
-      peers = message.peers;
-      const me = peers.find(p => p.id === selfId);
+      peers = new Map(message.peers.map(peer => [peer.id, peer]));
+      const me = peers.get(selfId);
       input.style.setProperty("--author-color", me?.color || "#314137");
       try { reconcileInput(message.input); }
       catch { actions.clear(); pending.clear(); cursorInput.restore(message.input.state); cursor = { ...cursorInput.cursor }; }
@@ -665,7 +717,11 @@ function connect() {
       if (!sameSession || nativeInput.text !== nativeProjection.text) resetComposition();
       refreshLocalCells();
       connection(true);
-      reportView({ immediate: true });
+      if (!sameSession) {
+        const view = requestedView();
+        send({ type: 'hello', batchVersion: 1, view });
+        sentView = JSON.stringify(view);
+      } else reportView({ immediate: true });
       if (firstSnapshot) {
         firstSnapshot = false;
         if (!goToHash()) locate(true);
@@ -683,30 +739,18 @@ function connect() {
       }
       center({ residual: resized && (motion.active || !!drag?.moved), direct: resized && !!drag?.moved });
       if (!wasConnected && isDesktop()) focusInput();
-    } else if (message.type === 'view') {
-      if (message.world?.epoch !== world?.epoch) return;
-      const observation = message.observation;
-      freshnessBands = observation.freshness || {};
-      colorBands = observation.colors || {};
-      freshnessMarks = new Map((observation.marks || []).map(m => [cellKey(m.x, m.y), m.version]));
-      world = message.world;
-      observedView = observation.view; viewRevision = observation.revision;
-      if (observation.reset) cells = new Map();
-      for (const point of observation.forget || []) cells.delete(cellKey(point.x, point.y));
-      for (const c of observation.cells) {
-        if (c.text || c.width === 0) cells.set(cellKey(c.x, c.y), c); else cells.delete(cellKey(c.x, c.y));
-      }
-      peers = observation.peers;
-      // A scoped view is a cache update, not navigation or a native edit.
-      // In particular an echo must not rewind newer local typing or reset IME.
-      refreshLocalCells();
+    } else if (message.type === 'view' || message.type === 'batch') {
+      receiveViews(message.type === 'batch' ? message.messages : [message]);
     } else if (message.type === 'ack') {
       browserMeasurements.ack(message.id);
       const predicted = actions.get(message.inputSequence)?.prediction;
       if (message.epoch === world.epoch && predicted && message.cursor
         && (predicted.x !== message.cursor.x || predicted.y !== message.cursor.y)) send({ type: 'sync' });
       if (message.inputSequence) actions.delete(message.inputSequence);
-      if (pending.delete(message.id)) refreshLocalCells();
+      const operation = pending.get(message.id);
+      if (operation && message.epoch === world.epoch && message.viewRevision > viewRevision) {
+        operation.ackViewRevision = message.viewRevision;
+      } else if (pending.delete(message.id)) refreshLocalCells();
     }
     else if (message.type === 'error') {
       pending.delete(message.id);
@@ -714,7 +758,7 @@ function connect() {
         actions.delete(sequence); pending.delete(action.id);
       }
       refreshLocalCells();
-      const observationOnly = message.requestType === 'view';
+      const observationOnly = message.requestType === 'view' || message.requestType === 'sync';
       if (!observationOnly && message.code !== 'STALE_EPOCH') {
         stopPan(); cancelMove(); resetComposition();
         if (message.cursor) cursor = { ...message.cursor };
@@ -725,7 +769,7 @@ function connect() {
         // A throttled request must not create an immediate sync/error loop.
         recoveryTimer = setTimeout(() => {
           recoveryTimer = null;
-          if (observationOnly) reportView({ immediate: true, force: true });
+          if (message.requestType === 'view' && !awaitingViewSnapshot) reportView({ immediate: true, force: true });
           else send({ type: 'sync' });
         }, message.status === 429 ? Math.max(100, message.retryAfterMs || 1000) : 0);
       }
@@ -733,7 +777,7 @@ function connect() {
         ? `${message.message} 약 ${Math.max(1, Math.ceil((message.retryAfterMs || 1000) / 1000))}초 뒤 다시 시도하세요.`
         : `${observationOnly ? '지도 갱신' : '입력'} 미반영: ${message.message}`);
     }
-    $('population').textContent = `주변 ${peers.length}명`;
+    $('population').textContent = `주변 ${peers.size}명`;
   };
   socket.onclose = () => {
     browserMeasurements.reset();
@@ -758,4 +802,4 @@ document.fonts.load(`18px ${mapFont}`, '한글日本語中文iWM').then(faces =>
   notice('지도 글꼴을 불러오지 못했습니다. 페이지를 새로고침해 주세요.');
 });
 // Read-only browser diagnostics for verifying spatial invariants.
-window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), observedView, viewRevision, freshnessMarks: [...freshnessMarks], freshness: freshnessBands, peers: structuredClone(peers), cells: [...cells.values()], localCells: [...localCells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, cameraActive: cameraMotion.active, cursorActive: cursorMotion.active, keyboardVisible, cursorVerticalFraction: cursorVerticalFraction(), fontReady }) };
+window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), observedView, viewRevision, freshnessMarks: [...freshnessMarks], freshness: freshnessBands, peers: structuredClone([...peers.values()]), cells: [...cells.values()], localCells: [...localCells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, cameraActive: cameraMotion.active, cursorActive: cursorMotion.active, keyboardVisible, cursorVerticalFraction: cursorVerticalFraction(), fontReady }) };

@@ -56,7 +56,7 @@ export function createAgentHTTP({ world, createActor, removeActor, peers, runner
   let closed = false;
   const metadata = () => ({ width: world.width, height: world.height, epoch: world.epoch, textLayout: 2 });
   const touch = session => { session.touchedAt = now(); };
-  const read = (session, since) => session.actor.observer.read(peers(), { since });
+  const read = (session, since) => session.actor.observer.read(peers(session.actor), { since });
   const payload = (session, observation, turn) => ({
     session: { id: session.actor.peer.id, expiresInMs: AGENT_HTTP_LIMITS.sessionIdleMs },
     world: metadata(), cursor: { x: session.actor.peer.x, y: session.actor.peer.y },
@@ -113,7 +113,7 @@ export function createAgentHTTP({ world, createActor, removeActor, peers, runner
       };
       const disconnected = () => finish();
       session.waiter = { finish };
-      unsubscribe = subscribe(changed);
+      unsubscribe = subscribe(changed, session.actor);
       timer = setTimeout(() => { changed(); finish(); }, waitMs);
       res.once('close', disconnected);
     });

@@ -224,3 +224,139 @@ test('a rejected observation preserves its previous baseline and revision until 
   assert.deepEqual(retry.cells.map(cell => cell.text), ['B']);
   assert.deepEqual(costs, [8, 8, 8, 8]);
 });
+
+test('incremental WS views preserve overwrites, deletion marks, cursor moves and bounded glyph closure', t => {
+  let now = 1000;
+  const { world, write } = fixture(t, { width: 32, height: 16, now: () => now });
+  const self = peer('self', 0, 1), visitor = peer('visitor', 25, 1);
+  const people = [self, visitor], view = { cols: 3, rows: 2 };
+  const observer = new Observer({ world, peer: self, view });
+  const reference = new Observer({ world, peer: self, view });
+  const cells = new Map(), marks = new Map(), peers = new Map();
+  let bands = {}, colors = {}, revision = 0, fullReads = 0;
+  function apply(obs) {
+    const key = point => `${point.x},${point.y}`;
+    if (obs.reset) cells.clear();
+    for (const p of obs.forget) cells.delete(key(p));
+    for (const c of obs.cells) cells.set(key(c), c);
+    if (obs.partial) {
+      for (const p of obs.unmark) marks.delete(key(p));
+      for (const id of obs.departed) peers.delete(id);
+      for (const version of obs.forgetVersions) { delete bands[version]; delete colors[version]; }
+    } else { marks.clear(); peers.clear(); bands = {}; colors = {}; }
+    for (const m of obs.marks) marks.set(key(m), m);
+    for (const p of obs.peers) peers.set(p.id, p);
+    Object.assign(bands, obs.freshness); Object.assign(colors, obs.colors);
+    revision = obs.revision;
+  }
+  apply(observer.read(people)); reference.read(people);
+  const advance = event => {
+    const obs = observer.change(event, () => { fullReads++; return people; });
+    if (obs) apply(obs);
+    const expected = reference.read(people, { force: true });
+    assert.equal(revision, expected.revision);
+    assert.deepEqual([...cells.values()].sort(compareAddress), expected.cells.sort(compareAddress));
+    assert.deepEqual([...marks.values()].sort(compareAddress), expected.marks.sort(compareAddress));
+    assert.deepEqual([...peers.values()].sort(compareId), expected.peers.sort(compareId));
+    assert.deepEqual(bands, expected.freshness); assert.deepEqual(colors, expected.colors);
+    assert.equal(observer.density, reference.density);
+    return obs;
+  };
+  function compareAddress(a, b) { return a.y - b.y || a.x - b.x; }
+  function compareId(a, b) { return a.id.localeCompare(b.id); }
+  assert.equal(advance(write('hidden', 15, 1)), null);
+  const ordered = ['가', '나', '다'].map(text => advance(write(text, 30, 1)));
+  assert.deepEqual(ordered.map(obs => at(obs.cells, 30, 1).text), ['가', '나', '다']);
+  assert.ok(ordered.every(obs => obs.partial && at(obs.cells, 31, 1).width === 0));
+  const overwritten = advance(write('x', 30, 1));
+  assert.deepEqual(overwritten.cells, [], 'invisible replacement of the outside half stays private');
+  assert.equal(overwritten.marks[0].x, 31);
+  advance(write('한', 31, 1));
+  const entered = advance({ peer: Object.assign(visitor, { x: 0 }) });
+  assert.equal(entered.peers.length, 1); assert.equal(entered.peers[0].privateField, undefined);
+  assert.deepEqual(advance({ peer: Object.assign(visitor, { x: 20 }) }).departed, ['visitor']);
+  assert.equal(fullReads, 0, 'stable-view events never request the local or global peer list');
+  self.x = 1; advance({ peer: self });
+  now += 20000; advance({});
+  advance(world.erase({ author: 'writer', id: 'delete-wide', epoch: world.epoch, x: 0, y: 1 }));
+  now += 91000; advance({});
+  assert.equal(fullReads, 3, 'only the moving viewer and timed age transitions need a peer query');
+});
+
+test('incremental rejection preserves the prior revision, addresses and closure cost on retry', t => {
+  const { world, write } = fixture(t, { width: 32, height: 16 });
+  let blocked = false;
+  const costs = [];
+  const observer = new Observer({ world, peer: peer('self', 0, 1), view: { cols: 1, rows: 1 }, charge: cost => {
+    costs.push(cost); if (blocked && cost) throw Object.assign(new Error('observation limit'), { status: 429 });
+  } });
+  const first = observer.read(), wide = write('界', 31, 1);
+  blocked = true;
+  assert.throws(() => observer.change(wide), error => error.status === 429);
+  assert.equal(observer.revision, first.revision); assert.equal(observer.last.cells.size, 0);
+  blocked = false;
+  const accepted = observer.change(wide);
+  assert.deepEqual(keys(accepted.cells), ['0,1', '31,1']); assert.deepEqual(costs, [1, 1, 1]);
+});
+
+test('shared encoding uses only this view’s immutable public cell records', async t => {
+  const { encodeView } = await import('../server/encode-view.js');
+  const { world, write } = fixture(t, { width: 32, height: 16 });
+  const self = peer('self', 5, 1), watcher = peer('watcher', 5, 1);
+  self.name = '"한\\\n';
+  const observers = [self, watcher].map(who => new Observer({ world, peer: who, view: { cols: 3, rows: 1 } }));
+  for (const observer of observers) observer.read([self, watcher]);
+  const result = write('"한PRIVATE', 4, 1);
+  const views = observers.map(observer => observer.change(result));
+  assert.equal(views[0].cells[0], views[1].cells[0]);
+  for (const observation of views) {
+    assert.ok(Object.isFrozen(observation.cells));
+    const msg = { type: 'view', world: { epoch: world.epoch }, observation };
+    const encoded = encodeView(msg);
+    assert.deepEqual(JSON.parse(encoded), JSON.parse(JSON.stringify(msg)));
+    assert.ok(!encoded.includes('PRIVATE'));
+    assert.ok(!encoded.includes('"text":"P"'));
+  }
+});
+
+test('movement strips match full observations and read budgets across edges and both seams', t => {
+  const { world, write } = fixture(t, { width: 32, height: 16 });
+  const self = peer('self', 0, 1), other = peer('other', 31, 15), peers = [self, other];
+  const costs = [[], []], view = { cols: 13, rows: 7 };
+  const [incremental, reference] = costs.map(charges => new Observer({
+    world, peer: self, view, charge: value => charges.push(value),
+  }));
+  for (let y = 0; y < 16; y++) write(y % 3 ? '한.A日 B' : 'A界BC', (y * 7) % 32, y);
+  for (const observer of [incremental, reference]) observer.read(peers);
+  let seed = 112435;
+  const next = limit => ((seed = (seed * 1664525 + 1013904223) >>> 0) >>> 16) % limit;
+  for (let i = 0; i < 90; i++) {
+    const x = (self.x + 29 + next(7)) % 32, y = (self.y + 14 + next(5)) % 16;
+    const result = write(i % 2 ? '愛' : 'X', (x + next(15) + 25) % 32, y);
+    self.x = x; self.y = y;
+    const delta = incremental.change({ cells: result.cells, peer: self }, () => peers);
+    reference.read(peers);
+    assert.equal(incremental.revision, reference.revision, 'revision at step ' + i);
+    assert.deepEqual(incremental.last.cells, reference.last.cells, 'cells at step ' + i);
+    assert.deepEqual(incremental.last.marks, reference.last.marks);
+    assert.deepEqual(incremental.last.freshness, reference.last.freshness);
+    assert.deepEqual(incremental.last.peers, reference.last.peers);
+    assert.equal(incremental.density, reference.density);
+    if (delta) assert.equal(costs[0].at(-1), costs[1].at(-1), 'charge at step ' + i);
+  }
+});
+
+test('typing a step moves a large viewport by reading only its changing strips', t => {
+  const { world } = fixture(t, { width: 512, height: 256 });
+  const self = peer('self', 256, 128);
+  const observer = new Observer({ world, peer: self, view: { cols: 160, rows: 48 } });
+  observer.read([self]);
+  const get = world.getCell.bind(world);
+  let reads = 0;
+  world.getCell = (...args) => { reads++; return get(...args); };
+  self.x += 2;
+  const delta = observer.change({ peer: self }, () => [self]);
+  assert.equal(delta.partial, true);
+  assert.equal(delta.view.x, 178);
+  assert.ok(reads <= 8 * 48, 'two new and departed columns with adjacent closure');
+});

@@ -1,0 +1,1431 @@
+{
+  "at": "2026-11-18T17:25:48.067Z",
+  "revision": "551dd3d547701411c29690045beda1e7cb1d6f80",
+  "dirty": true,
+  "node": "v24.22.1",
+  "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+  "cpuQuota": "400000 100000",
+  "durationMs": 3600000,
+  "scope": "Local loopback, separate processes, on-disk SQLite. Fixed world clock unless liveClock enabled. Bytes include final drain. Remote time ends at decoded client observation. No TLS, browser draw or hosting overhead.",
+  "results": [
+    {
+      "peers": 32,
+      "active": 32,
+      "rate": 1,
+      "layout": "uniform",
+      "action": "type",
+      "batch": true,
+      "liveClock": true,
+      "sourceDigest": "2713a38b610237e4d052464b9d480fdc8c97f4989fe6fbc320ccccb85c09adeb",
+      "view": [
+        160,
+        48
+      ],
+      "durationMs": 3600000,
+      "offeredPerSecond": 32,
+      "sent": 115200,
+      "acks": 115200,
+      "pendingAtOfferEnd": 0,
+      "pendingAfterDrain": 0,
+      "drainMs": 0.0,
+      "readerDrainMs": 258.173,
+      "ackP50Ms": 3.239,
+      "ackP95Ms": 14.586,
+      "ackMaxMs": 800.996,
+      "ackP99Ms": 96.033,
+      "batchFrames": 1772320,
+      "innerMessages": 3688096,
+      "viewRecords": 3688096,
+      "expectedViewRecords": null,
+      "revisionGaps": 0,
+      "revisionRegressions": 0,
+      "resets": 2272,
+      "queueSamples": [
+        {
+          "elapsedMs": 60002,
+          "pending": 1
+        },
+        {
+          "elapsedMs": 120001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 180002,
+          "pending": 6
+        },
+        {
+          "elapsedMs": 240001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 300000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 360000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 420001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 480001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 540002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 600001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 660002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 720002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 780002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 840002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 900001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 960002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1020000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1080001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1140001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1200001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1260001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1320001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1380001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1440000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1500001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1560001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1620000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1680000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1740002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1800002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1860000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1920000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 1980001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2040002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2100002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2160001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2220002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2280000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2340000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2400001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2460001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2520000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2580002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2640001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2700001,
+          "pending": 1
+        },
+        {
+          "elapsedMs": 2760002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2820002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2880001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2940001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 3000001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 3060001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 3120001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 3180000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 3240000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 3300002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 3360001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 3420001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 3480001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 3540000,
+          "pending": 0
+        }
+      ],
+      "confirmedWrites": 115200,
+      "uncorrelatedWriteAcks": 0,
+      "remoteObserved": 3571200,
+      "missingVisibleWriteDeliveries": null,
+      "outsideViewWriteDeliveries": null,
+      "ownMissing": 0,
+      "remoteReceivedP95Ms": 67.327,
+      "scheduledP95Ms": 19.164,
+      "generatorSendP95Ms": 2.328,
+      "errors": {},
+      "disconnects": 0,
+      "receivedBytes": 2256522019,
+      "receivedMessages": 1889792,
+      "expiredGlyphs": 10171,
+      "expirationAgeP95Ms": 192255,
+      "expirationAgeMaxMs": 192255,
+      "elapsedMs": 3600266.229,
+      "cpuMs": 575693.43,
+      "rssBytes": 331558912,
+      "eventLoopP99Ms": 33.686,
+      "readyP95Ms": 58.239,
+      "readyCount": 3688096,
+      "storage": [
+        {
+          "elapsedMs": 0,
+          "rssBytes": 113549312,
+          "heapBytes": 33340856,
+          "pageBytes": 3284992,
+          "freeBytes": 0,
+          "walBytes": 4400192,
+          "historyRows": 10083,
+          "operationRows": 256,
+          "timeMarks": 1,
+          "cells": 10083,
+          "ink": 10083,
+          "epoch": 2,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 1578
+        },
+        {
+          "elapsedMs": 60025,
+          "rssBytes": 320548864,
+          "heapBytes": 138427048,
+          "pageBytes": 5804032,
+          "freeBytes": 0,
+          "walBytes": 4400192,
+          "historyRows": 13923,
+          "operationRows": 2176,
+          "timeMarks": 13,
+          "cells": 10193,
+          "ink": 10193,
+          "epoch": 5,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 61603
+        },
+        {
+          "elapsedMs": 120026,
+          "rssBytes": 342990848,
+          "heapBytes": 109133800,
+          "pageBytes": 8335360,
+          "freeBytes": 0,
+          "walBytes": 4400192,
+          "historyRows": 17765,
+          "operationRows": 4097,
+          "timeMarks": 25,
+          "cells": 10306,
+          "ink": 10306,
+          "epoch": 5,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 121604
+        },
+        {
+          "elapsedMs": 180064,
+          "rssBytes": 343105536,
+          "heapBytes": 130941680,
+          "pageBytes": 10870784,
+          "freeBytes": 0,
+          "walBytes": 4400192,
+          "historyRows": 21603,
+          "operationRows": 6016,
+          "timeMarks": 37,
+          "cells": 10422,
+          "ink": 10422,
+          "epoch": 5,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 181642
+        },
+        {
+          "elapsedMs": 240065,
+          "rssBytes": 327102464,
+          "heapBytes": 121258032,
+          "pageBytes": 16306176,
+          "freeBytes": 970752,
+          "walBytes": 4655632,
+          "historyRows": 35615,
+          "operationRows": 8105,
+          "timeMarks": 48,
+          "cells": 386,
+          "ink": 376,
+          "epoch": 9,
+          "overdueGlyphs": 5,
+          "oldestGlyphAgeMs": 186178
+        },
+        {
+          "elapsedMs": 300065,
+          "rssBytes": 337453056,
+          "heapBytes": 73458992,
+          "pageBytes": 17899520,
+          "freeBytes": 45056,
+          "walBytes": 4655632,
+          "historyRows": 39548,
+          "operationRows": 10037,
+          "timeMarks": 60,
+          "cells": 372,
+          "ink": 372,
+          "epoch": 19,
+          "overdueGlyphs": 5,
+          "oldestGlyphAgeMs": 185635
+        },
+        {
+          "elapsedMs": 360092,
+          "rssBytes": 335441920,
+          "heapBytes": 71181304,
+          "pageBytes": 17981440,
+          "freeBytes": 1990656,
+          "walBytes": 4655632,
+          "historyRows": 29559,
+          "operationRows": 9827,
+          "timeMarks": 60,
+          "cells": 282,
+          "ink": 282,
+          "epoch": 28,
+          "overdueGlyphs": 4,
+          "oldestGlyphAgeMs": 185191
+        },
+        {
+          "elapsedMs": 420093,
+          "rssBytes": 336568320,
+          "heapBytes": 129968424,
+          "pageBytes": 17981440,
+          "freeBytes": 2011136,
+          "walBytes": 4655632,
+          "historyRows": 29529,
+          "operationRows": 9812,
+          "timeMarks": 60,
+          "cells": 188,
+          "ink": 188,
+          "epoch": 38,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 124075
+        },
+        {
+          "elapsedMs": 480093,
+          "rssBytes": 331014144,
+          "heapBytes": 81986968,
+          "pageBytes": 17981440,
+          "freeBytes": 2035712,
+          "walBytes": 4655632,
+          "historyRows": 29501,
+          "operationRows": 9798,
+          "timeMarks": 60,
+          "cells": 124,
+          "ink": 124,
+          "epoch": 48,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 63006
+        },
+        {
+          "elapsedMs": 540093,
+          "rssBytes": 329797632,
+          "heapBytes": 59890472,
+          "pageBytes": 17981440,
+          "freeBytes": 5029888,
+          "walBytes": 4655632,
+          "historyRows": 19302,
+          "operationRows": 9614,
+          "timeMarks": 60,
+          "cells": 83,
+          "ink": 82,
+          "epoch": 58,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 42318
+        },
+        {
+          "elapsedMs": 600094,
+          "rssBytes": 326918144,
+          "heapBytes": 95250720,
+          "pageBytes": 17981440,
+          "freeBytes": 5160960,
+          "walBytes": 4655632,
+          "historyRows": 19170,
+          "operationRows": 9581,
+          "timeMarks": 60,
+          "cells": 54,
+          "ink": 54,
+          "epoch": 68,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 31955
+        },
+        {
+          "elapsedMs": 660094,
+          "rssBytes": 316555264,
+          "heapBytes": 90862432,
+          "pageBytes": 17981440,
+          "freeBytes": 5206016,
+          "walBytes": 4655632,
+          "historyRows": 19102,
+          "operationRows": 9548,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 16680
+        },
+        {
+          "elapsedMs": 720093,
+          "rssBytes": 319176704,
+          "heapBytes": 29395232,
+          "pageBytes": 17981440,
+          "freeBytes": 5214208,
+          "walBytes": 4655632,
+          "historyRows": 19078,
+          "operationRows": 9536,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 16523
+        },
+        {
+          "elapsedMs": 780093,
+          "rssBytes": 319176704,
+          "heapBytes": 33818032,
+          "pageBytes": 17981440,
+          "freeBytes": 5226496,
+          "walBytes": 4655632,
+          "historyRows": 19062,
+          "operationRows": 9528,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 16368
+        },
+        {
+          "elapsedMs": 840093,
+          "rssBytes": 323502080,
+          "heapBytes": 45748352,
+          "pageBytes": 17981440,
+          "freeBytes": 5271552,
+          "walBytes": 4655632,
+          "historyRows": 19014,
+          "operationRows": 9507,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 16179
+        },
+        {
+          "elapsedMs": 900094,
+          "rssBytes": 324550656,
+          "heapBytes": 101070208,
+          "pageBytes": 17981440,
+          "freeBytes": 5300224,
+          "walBytes": 4655632,
+          "historyRows": 18994,
+          "operationRows": 9497,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 16024
+        },
+        {
+          "elapsedMs": 960094,
+          "rssBytes": 325206016,
+          "heapBytes": 78095264,
+          "pageBytes": 17981440,
+          "freeBytes": 5316608,
+          "walBytes": 4655632,
+          "historyRows": 18986,
+          "operationRows": 9493,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 15805
+        },
+        {
+          "elapsedMs": 1020093,
+          "rssBytes": 325206016,
+          "heapBytes": 35835328,
+          "pageBytes": 17981440,
+          "freeBytes": 5337088,
+          "walBytes": 4655632,
+          "historyRows": 18976,
+          "operationRows": 9488,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 15585
+        },
+        {
+          "elapsedMs": 1080093,
+          "rssBytes": 328351744,
+          "heapBytes": 55298080,
+          "pageBytes": 17981440,
+          "freeBytes": 5328896,
+          "walBytes": 4655632,
+          "historyRows": 18962,
+          "operationRows": 9481,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 15388
+        },
+        {
+          "elapsedMs": 1140093,
+          "rssBytes": 329068544,
+          "heapBytes": 81048888,
+          "pageBytes": 17981440,
+          "freeBytes": 5337088,
+          "walBytes": 4655632,
+          "historyRows": 18952,
+          "operationRows": 9476,
+          "timeMarks": 59,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 15053
+        },
+        {
+          "elapsedMs": 1200094,
+          "rssBytes": 329461760,
+          "heapBytes": 100947880,
+          "pageBytes": 17981440,
+          "freeBytes": 5324800,
+          "walBytes": 4655632,
+          "historyRows": 18940,
+          "operationRows": 9470,
+          "timeMarks": 59,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 14712
+        },
+        {
+          "elapsedMs": 1260094,
+          "rssBytes": 329592832,
+          "heapBytes": 78757224,
+          "pageBytes": 17981440,
+          "freeBytes": 5320704,
+          "walBytes": 4655632,
+          "historyRows": 18930,
+          "operationRows": 9465,
+          "timeMarks": 59,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 14618
+        },
+        {
+          "elapsedMs": 1320093,
+          "rssBytes": 329986048,
+          "heapBytes": 101756680,
+          "pageBytes": 17981440,
+          "freeBytes": 5140480,
+          "walBytes": 4655632,
+          "historyRows": 19236,
+          "operationRows": 9618,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 14462
+        },
+        {
+          "elapsedMs": 1380094,
+          "rssBytes": 330248192,
+          "heapBytes": 123384520,
+          "pageBytes": 17981440,
+          "freeBytes": 5144576,
+          "walBytes": 4655632,
+          "historyRows": 19216,
+          "operationRows": 9608,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 19275
+        },
+        {
+          "elapsedMs": 1440094,
+          "rssBytes": 330248192,
+          "heapBytes": 63787976,
+          "pageBytes": 17981440,
+          "freeBytes": 5148672,
+          "walBytes": 4655632,
+          "historyRows": 19200,
+          "operationRows": 9600,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 19149
+        },
+        {
+          "elapsedMs": 1500094,
+          "rssBytes": 330379264,
+          "heapBytes": 87683520,
+          "pageBytes": 17981440,
+          "freeBytes": 5152768,
+          "walBytes": 4655632,
+          "historyRows": 19182,
+          "operationRows": 9591,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 18992
+        },
+        {
+          "elapsedMs": 1560094,
+          "rssBytes": 330379264,
+          "heapBytes": 66732336,
+          "pageBytes": 17981440,
+          "freeBytes": 5148672,
+          "walBytes": 4655632,
+          "historyRows": 19174,
+          "operationRows": 9587,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 18868
+        },
+        {
+          "elapsedMs": 1620094,
+          "rssBytes": 330379264,
+          "heapBytes": 88959520,
+          "pageBytes": 17981440,
+          "freeBytes": 5144576,
+          "walBytes": 4655632,
+          "historyRows": 19164,
+          "operationRows": 9582,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 18712
+        },
+        {
+          "elapsedMs": 1680093,
+          "rssBytes": 330379264,
+          "heapBytes": 110284008,
+          "pageBytes": 17981440,
+          "freeBytes": 5156864,
+          "walBytes": 4655632,
+          "historyRows": 19150,
+          "operationRows": 9575,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 18523
+        },
+        {
+          "elapsedMs": 1740094,
+          "rssBytes": 330379264,
+          "heapBytes": 131620184,
+          "pageBytes": 17981440,
+          "freeBytes": 5148672,
+          "walBytes": 4655632,
+          "historyRows": 19144,
+          "operationRows": 9572,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 18336
+        },
+        {
+          "elapsedMs": 1800094,
+          "rssBytes": 330641408,
+          "heapBytes": 30346416,
+          "pageBytes": 17981440,
+          "freeBytes": 5156864,
+          "walBytes": 4655632,
+          "historyRows": 19132,
+          "operationRows": 9566,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 18211
+        },
+        {
+          "elapsedMs": 1860094,
+          "rssBytes": 330641408,
+          "heapBytes": 53223568,
+          "pageBytes": 17981440,
+          "freeBytes": 5169152,
+          "walBytes": 4655632,
+          "historyRows": 19126,
+          "operationRows": 9563,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 18055
+        },
+        {
+          "elapsedMs": 1920094,
+          "rssBytes": 330641408,
+          "heapBytes": 75272952,
+          "pageBytes": 17981440,
+          "freeBytes": 5173248,
+          "walBytes": 4655632,
+          "historyRows": 19114,
+          "operationRows": 9557,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 17899
+        },
+        {
+          "elapsedMs": 1980093,
+          "rssBytes": 330641408,
+          "heapBytes": 96040640,
+          "pageBytes": 17981440,
+          "freeBytes": 5181440,
+          "walBytes": 4655632,
+          "historyRows": 19102,
+          "operationRows": 9551,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 17680
+        },
+        {
+          "elapsedMs": 2040093,
+          "rssBytes": 330641408,
+          "heapBytes": 119856872,
+          "pageBytes": 17981440,
+          "freeBytes": 5185536,
+          "walBytes": 4655632,
+          "historyRows": 19090,
+          "operationRows": 9545,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 17554
+        },
+        {
+          "elapsedMs": 2100094,
+          "rssBytes": 330641408,
+          "heapBytes": 98173392,
+          "pageBytes": 17981440,
+          "freeBytes": 5181440,
+          "walBytes": 4655632,
+          "historyRows": 19084,
+          "operationRows": 9542,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 17463
+        },
+        {
+          "elapsedMs": 2160095,
+          "rssBytes": 330641408,
+          "heapBytes": 44134368,
+          "pageBytes": 17981440,
+          "freeBytes": 5185536,
+          "walBytes": 4655632,
+          "historyRows": 19074,
+          "operationRows": 9537,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 17307
+        },
+        {
+          "elapsedMs": 2220096,
+          "rssBytes": 330641408,
+          "heapBytes": 61886152,
+          "pageBytes": 17981440,
+          "freeBytes": 5197824,
+          "walBytes": 4655632,
+          "historyRows": 19062,
+          "operationRows": 9531,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 17152
+        },
+        {
+          "elapsedMs": 2280095,
+          "rssBytes": 330641408,
+          "heapBytes": 85375240,
+          "pageBytes": 17981440,
+          "freeBytes": 5206016,
+          "walBytes": 4655632,
+          "historyRows": 19046,
+          "operationRows": 9523,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 17058
+        },
+        {
+          "elapsedMs": 2340096,
+          "rssBytes": 330641408,
+          "heapBytes": 64883096,
+          "pageBytes": 17981440,
+          "freeBytes": 5201920,
+          "walBytes": 4655632,
+          "historyRows": 19042,
+          "operationRows": 9521,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 16994
+        },
+        {
+          "elapsedMs": 2400096,
+          "rssBytes": 330641408,
+          "heapBytes": 87588656,
+          "pageBytes": 17981440,
+          "freeBytes": 5214208,
+          "walBytes": 4655632,
+          "historyRows": 19034,
+          "operationRows": 9517,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 16837
+        },
+        {
+          "elapsedMs": 2460096,
+          "rssBytes": 330641408,
+          "heapBytes": 109195656,
+          "pageBytes": 17981440,
+          "freeBytes": 5222400,
+          "walBytes": 4655632,
+          "historyRows": 19026,
+          "operationRows": 9513,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 16619
+        },
+        {
+          "elapsedMs": 2520095,
+          "rssBytes": 330641408,
+          "heapBytes": 128807680,
+          "pageBytes": 17981440,
+          "freeBytes": 5218304,
+          "walBytes": 4655632,
+          "historyRows": 19016,
+          "operationRows": 9508,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 16493
+        },
+        {
+          "elapsedMs": 2580095,
+          "rssBytes": 330641408,
+          "heapBytes": 70152480,
+          "pageBytes": 17981440,
+          "freeBytes": 5234688,
+          "walBytes": 4655632,
+          "historyRows": 19010,
+          "operationRows": 9505,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 16212
+        },
+        {
+          "elapsedMs": 2640096,
+          "rssBytes": 330641408,
+          "heapBytes": 48686568,
+          "pageBytes": 17981440,
+          "freeBytes": 5242880,
+          "walBytes": 4655632,
+          "historyRows": 19004,
+          "operationRows": 9502,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 16150
+        },
+        {
+          "elapsedMs": 2700095,
+          "rssBytes": 331165696,
+          "heapBytes": 69324952,
+          "pageBytes": 17981440,
+          "freeBytes": 5255168,
+          "walBytes": 4655632,
+          "historyRows": 18994,
+          "operationRows": 9497,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 15993
+        },
+        {
+          "elapsedMs": 2760096,
+          "rssBytes": 331296768,
+          "heapBytes": 92345648,
+          "pageBytes": 17981440,
+          "freeBytes": 5263360,
+          "walBytes": 4655632,
+          "historyRows": 18980,
+          "operationRows": 9490,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 15744
+        },
+        {
+          "elapsedMs": 2820096,
+          "rssBytes": 331296768,
+          "heapBytes": 112923424,
+          "pageBytes": 17981440,
+          "freeBytes": 5275648,
+          "walBytes": 4655632,
+          "historyRows": 18966,
+          "operationRows": 9483,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 15556
+        },
+        {
+          "elapsedMs": 2880096,
+          "rssBytes": 331296768,
+          "heapBytes": 135283888,
+          "pageBytes": 17981440,
+          "freeBytes": 5275648,
+          "walBytes": 4655632,
+          "historyRows": 18956,
+          "operationRows": 9478,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 15363
+        },
+        {
+          "elapsedMs": 2940095,
+          "rssBytes": 331296768,
+          "heapBytes": 31537800,
+          "pageBytes": 17981440,
+          "freeBytes": 5283840,
+          "walBytes": 4655632,
+          "historyRows": 18952,
+          "operationRows": 9476,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 15184
+        },
+        {
+          "elapsedMs": 3000095,
+          "rssBytes": 331296768,
+          "heapBytes": 55049912,
+          "pageBytes": 17981440,
+          "freeBytes": 5275648,
+          "walBytes": 4655632,
+          "historyRows": 18938,
+          "operationRows": 9469,
+          "timeMarks": 59,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 15055
+        },
+        {
+          "elapsedMs": 3060096,
+          "rssBytes": 331296768,
+          "heapBytes": 74013176,
+          "pageBytes": 17981440,
+          "freeBytes": 5292032,
+          "walBytes": 4655632,
+          "historyRows": 18924,
+          "operationRows": 9462,
+          "timeMarks": 59,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 14838
+        },
+        {
+          "elapsedMs": 3120096,
+          "rssBytes": 331296768,
+          "heapBytes": 95841664,
+          "pageBytes": 17981440,
+          "freeBytes": 5292032,
+          "walBytes": 4655632,
+          "historyRows": 18914,
+          "operationRows": 9457,
+          "timeMarks": 59,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 14611
+        },
+        {
+          "elapsedMs": 3180096,
+          "rssBytes": 331296768,
+          "heapBytes": 121049048,
+          "pageBytes": 17981440,
+          "freeBytes": 5271552,
+          "walBytes": 4655632,
+          "historyRows": 18902,
+          "operationRows": 9451,
+          "timeMarks": 59,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 19400
+        },
+        {
+          "elapsedMs": 3240096,
+          "rssBytes": 331296768,
+          "heapBytes": 105242944,
+          "pageBytes": 17981440,
+          "freeBytes": 5136384,
+          "walBytes": 4655632,
+          "historyRows": 19210,
+          "operationRows": 9605,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 19245
+        },
+        {
+          "elapsedMs": 3300097,
+          "rssBytes": 331296768,
+          "heapBytes": 54236400,
+          "pageBytes": 17981440,
+          "freeBytes": 5140480,
+          "walBytes": 4655632,
+          "historyRows": 19200,
+          "operationRows": 9600,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 19089
+        },
+        {
+          "elapsedMs": 3360097,
+          "rssBytes": 331296768,
+          "heapBytes": 76902664,
+          "pageBytes": 17981440,
+          "freeBytes": 5140480,
+          "walBytes": 4655632,
+          "historyRows": 19186,
+          "operationRows": 9593,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 18902
+        },
+        {
+          "elapsedMs": 3420097,
+          "rssBytes": 331296768,
+          "heapBytes": 57008456,
+          "pageBytes": 17981440,
+          "freeBytes": 5144576,
+          "walBytes": 4655632,
+          "historyRows": 19172,
+          "operationRows": 9586,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 18716
+        },
+        {
+          "elapsedMs": 3480098,
+          "rssBytes": 331296768,
+          "heapBytes": 81073032,
+          "pageBytes": 17981440,
+          "freeBytes": 5148672,
+          "walBytes": 4655632,
+          "historyRows": 19156,
+          "operationRows": 9578,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 18529
+        },
+        {
+          "elapsedMs": 3540098,
+          "rssBytes": 331296768,
+          "heapBytes": 96018712,
+          "pageBytes": 17981440,
+          "freeBytes": 5156864,
+          "walBytes": 4655632,
+          "historyRows": 19146,
+          "operationRows": 9573,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 18218
+        },
+        {
+          "elapsedMs": 3600097,
+          "rssBytes": 331558912,
+          "heapBytes": 104673432,
+          "pageBytes": 17981440,
+          "freeBytes": 5173248,
+          "walBytes": 4655632,
+          "historyRows": 19132,
+          "operationRows": 9566,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 17869
+        },
+        {
+          "elapsedMs": 3600267,
+          "rssBytes": 331558912,
+          "heapBytes": 104688200,
+          "pageBytes": 17981440,
+          "freeBytes": 5173248,
+          "walBytes": 4655632,
+          "historyRows": 19132,
+          "operationRows": 9566,
+          "timeMarks": 60,
+          "cells": 32,
+          "ink": 32,
+          "epoch": 73,
+          "overdueGlyphs": 0,
+          "oldestGlyphAgeMs": 18038
+        }
+      ],
+      "world": {
+        "width": 32,
+        "height": 16,
+        "epoch": 73,
+        "seq": 115716,
+        "textLayout": 2
+      },
+      "ink": 32,
+      "metrics": {
+        "commit.ms": {
+          "count": 115388,
+          "sum": 260938.33285798543,
+          "min": 0.4143550000153482,
+          "max": 297.3930170000531,
+          "mean": 2.26139921705884,
+          "p95Upper": 8
+        },
+        "ws.buffered_bytes": {
+          "count": 1889792,
+          "sum": 0,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "p95Upper": 1
+        },
+        "presence.ms": {
+          "count": 115388,
+          "sum": 217624.13927093137,
+          "min": 0.004878000007010996,
+          "max": 344.84448699996574,
+          "mean": 1.8860205504119265,
+          "p95Upper": 8
+        },
+        "presence.recipients": {
+          "count": 115388,
+          "sum": 3687968,
+          "min": 0,
+          "max": 32,
+          "mean": 31.961451797413943,
+          "p95Upper": 32
+        },
+        "delivery.over_100ms": {
+          "count": 3688096,
+          "sum": 35608,
+          "min": 0,
+          "max": 1,
+          "mean": 0.009654846294673457,
+          "p95Upper": 1
+        },
+        "delivery.batch_events": {
+          "count": 1772320,
+          "sum": 3688096,
+          "min": 1,
+          "max": 24,
+          "mean": 2.0809424934549066,
+          "p95Upper": 2
+        },
+        "observer.ms": {
+          "count": 29233,
+          "sum": 31889.37839700505,
+          "min": 0.09867599990684539,
+          "max": 118.05918899999233,
+          "mean": 1.090869168303118,
+          "p95Upper": 4
+        },
+        "observer.area": {
+          "count": 29233,
+          "sum": 73927472,
+          "min": 512,
+          "max": 7680,
+          "mean": 2528.9047309547427,
+          "p95Upper": 8192
+        },
+        "topology.ms": {
+          "count": 71,
+          "sum": 7703.981090999952,
+          "min": 22.161628999980167,
+          "max": 399.3028289999929,
+          "mean": 108.50677592957679,
+          "p95Upper": 256
+        },
+        "topology.growth": {
+          "count": 3,
+          "sum": 3,
+          "min": 1,
+          "max": 1,
+          "mean": 1,
+          "p95Upper": 1
+        },
+        "topology.adapt_ms": {
+          "count": 3580,
+          "sum": 38313.15924000861,
+          "min": 0.020179000217467546,
+          "max": 2538.655693000008,
+          "mean": 10.701999787711902,
+          "p95Upper": 1
+        },
+        "expiration.deleted_cells": {
+          "count": 2354,
+          "sum": 10280,
+          "min": 0,
+          "max": 64,
+          "mean": 4.367034834324554,
+          "p95Upper": 64
+        },
+        "expiration.ms": {
+          "count": 2354,
+          "sum": 13903.307311996788,
+          "min": 0.9527459996752441,
+          "max": 165.77096599998185,
+          "mean": 5.906247796090394,
+          "p95Upper": 16
+        },
+        "process.event_loop_max_ms": {
+          "count": 60,
+          "sum": 10909.614019999999,
+          "min": 64.585727,
+          "max": 755.499007,
+          "mean": 181.82690033333333,
+          "p95Upper": 512
+        },
+        "topology.shrink": {
+          "count": 68,
+          "sum": 68,
+          "min": 1,
+          "max": 1,
+          "mean": 1,
+          "p95Upper": 1
+        }
+      }
+    }
+  ],
+  "environmentNote": "Real-time 1 hour offering with continuously active peers. The sourceDigest at server startup exactly matches pinned commit 4b71230bee2534d2638433dd0df27399c29fef32; revision is the shared workspace Git HEAD at file export, after the run. CPU affinity 0–1, short matrix on 2–4 shares the 4-core local cgroup in the early interval. All clients start together and write identical independent CJK inputs, causing heavy overwrites after the initial seeded glyphs expire. Remote observations are keyed by unique server-confirmed write version. The 2272 reset snapshots correspond to 71 actual density resizes × 32 clients. Expiration age uses shared timestamps (up to 5 s early) and a rounded HDR histogram. Second-half page/WAL sizes are bytes, measured every minute; storage is file-backed SQLite on the local temporary filesystem.",
+  "serverRevision": "4b71230bee2534d2638433dd0df27399c29fef32"
+}

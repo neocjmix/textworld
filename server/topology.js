@@ -87,6 +87,8 @@ export function remesh(cells, from, to, seed, { seams } = {}) {
     } else result.set(cellKey(location.x, location.y), { ...cell, ...location });
     reserved.add(cellKey(location.x, location.y));
   }
+  // Resolve forced collisions in coordinate order, independent of insertion history.
+  wide.sort((a, b) => a.location.y - b.location.y || a.location.x - b.location.x);
   for (const { cell, oldTail, location } of wide) {
     const tail = { x: wrap(location.x + 1, to.width), y: location.y };
     if (reserved.has(cellKey(tail.x, tail.y))) {reserved.delete(cellKey(location.x, location.y));continue;}
