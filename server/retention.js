@@ -26,6 +26,9 @@ export function firstFreshVersion(world, cutoff) {
 }
 
 export function pruneRecords(world, limit = MAINTENANCE_ROWS) {
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > MAINTENANCE_ROWS) {
+    throw new RangeError('Cleanup page size must be between 1 and ' + MAINTENANCE_ROWS);
+  }
   const db = world.db;
   const before = firstFreshVersion(world, world.now() - RETENTION_MS);
   const tombstones = db.prepare(`SELECT x,y FROM cells

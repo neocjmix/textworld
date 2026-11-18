@@ -28,17 +28,24 @@ const next = (predicate, label) => new Promise((resolve, reject) => {
   check();
 });
 async function transport(context) {
-  let holding = false, heldAt = 0, frames = [];
+  let holding = false, heldAt = 0, frames = [], throttleSync = false;
   await context.routeWebSocket('**/ws', ws => {
     const server = ws.connectToServer();
     server.onMessage(data => {
       if (holding) frames.push({ data, send: () => ws.send(data), message: JSON.parse(String(data)) });
       else ws.send(data);
     });
-    ws.onMessage(data => server.send(data));
+    ws.onMessage(data => {
+      if (throttleSync && JSON.parse(String(data)).type === 'sync') {
+        throttleSync = false;
+        ws.send(JSON.stringify({ type: 'error', requestType: 'sync', code: 'RATE_LIMIT',
+          status: 429, retryAfterMs: 100, message: 'sync retry' }));
+      } else server.send(data);
+    });
   });
   return {
     hold() { holding = true; heldAt = performance.now(); },
+    throttleNextSync() { throttleSync = true; },
     get messages() { return frames.map(frame => frame.message); },
     async dropBatchContaining(text) {
       const contains = ({ message }) => message.type === 'batch' && message.messages.some(
@@ -225,7 +232,7 @@ try {
     assert.ok((await lastPaint(page)).text.some(glyph => glyph.text === 'R'));
   });
 
-  await scenario('A missing observation triggers a snapshot and restores both remote edits', async ({ page, observer, wire }) => {
+  await scenario('A missing observation recovers both remote edits across a throttled sync without interrupting IME', async ({ page, observer, cdp, wire }) => {
     wire.hold();
     await observer.locator('#input').focus();
     await observer.keyboard.insertText('Q');
@@ -233,12 +240,17 @@ try {
     await wire.dropBatchContaining('Q');
     await observer.keyboard.insertText('R');
     await settled(observer);
+    await page.locator('#input').focus();
+    await cdp.send('Input.imeSetComposition', { text: '한', selectionStart: 1, selectionEnd: 1 });
+    wire.throttleNextSync();
     await wire.release();
     await page.waitForFunction(() => {
       const cells = window.textworld.inspect().cells;
       return ['Q', 'R'].every((text, i) => cells.some(cell => cell.x === 10 + i && cell.y === 8 && cell.text === text));
     });
-    assert.deepEqual((await state(page)).cursor, { x: 10, y: 8 });
+    const restored = await state(page);
+    assert.deepEqual(restored.cursor, { x: 10, y: 8 });
+    assert.equal(restored.preedit, '한');
   });
 
   await scenario('A new local edit following a remote overwrite keeps server order under delay', async ({ page, observer, cdp, wire }) => {

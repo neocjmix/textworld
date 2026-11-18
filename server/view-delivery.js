@@ -23,7 +23,7 @@ export function createViewDelivery({ write, record, intervalMs = 50, frameBytes 
       const ready = now();
       for (const start of queue.starts) reportDelay(ready - start);
       record('delivery.batch_events', queue.parts.length);
-    }
+    } else record('delivery.undelivered_events', queue.parts.length);
   }
 
   function reportDelay(ms) {
@@ -41,6 +41,7 @@ export function createViewDelivery({ write, record, intervalMs = 50, frameBytes 
     }
     if (bytes + envelopeBytes > frameBytes) {
       if (write(socket, encoded, frameBytes)) reportDelay(now() - started);
+      else record('delivery.undelivered_events', 1);
       return;
     }
     if (!queue) {
@@ -59,6 +60,8 @@ export function createViewDelivery({ write, record, intervalMs = 50, frameBytes 
   }
 
   function drop(socket) {
+    const queue = pending.get(socket);
+    if (queue) record('delivery.undelivered_events', queue.parts.length);
     pending.delete(socket);
     if (!pending.size) {
       clearTimeout(timer);

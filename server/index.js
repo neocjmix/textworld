@@ -377,7 +377,10 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
             epoch: result.epoch, cursor: result.cursor, duplicate: !!result.duplicate });
           if (result.duplicate) acknowledge();
           else dispatch(actor, result.cells, acknowledge);
-        } else if (message.type === 'sync') scopedUpdate(socket, actor, { snapshot: true });
+        } else if (message.type === 'sync') {
+          measurements.record('delivery.sync_requests');
+          scopedUpdate(socket, actor, { snapshot: true });
+        }
         else throw new WorldError('UNKNOWN_MESSAGE', '알 수 없는 요청입니다.');
       } catch (error) {
         send(socket, { type: 'error', ...errorRecord(error), id: message?.id, requestType: message?.type, cursor: { x: peer.x, y: peer.y },

@@ -103,6 +103,8 @@ export class World {
   assertPosition(x, y) {
     if (!Number.isSafeInteger(x) || !Number.isSafeInteger(y)) throw new WorldError('BAD_POSITION', '셀 좌표는 정수여야 합니다.');
   }
+  // Recent result cache. The public transports also fence retries at their
+  // session boundary, including after housekeeping has reclaimed a result.
   prior(author, id) {
     if (typeof id !== 'string' || id.length < 1 || id.length > 100) throw new WorldError('BAD_ID', '입력 식별자가 필요합니다.');
     const previous = this.db.prepare('SELECT result FROM operations WHERE author=? AND id=?').get(author, id);
@@ -221,8 +223,8 @@ export class World {
   evidence({ before = this.now(), limit = 500 } = {}) {
     return this.db.prepare(`SELECT c.x,c.y,c.text,c.width,c.leadX,c.version,c.author,t.updatedAt,c.groupId AS "group",
       (SELECT count(*) FROM history h WHERE h.x=c.x AND h.y=c.y) AS revisions,
-      (SELECT count(*) FROM history h WHERE h.author=c.author AND h.groupId=c.groupId) AS originalGroupCells,
-      (SELECT count(*) FROM cells g WHERE g.groupId=c.groupId AND g.author=c.author AND (g.text!='' OR g.width=0)) AS survivingGroupCells
+      (SELECT count(*) FROM history h WHERE h.seq=c.version) AS originalGroupCells,
+      (SELECT count(*) FROM cells g WHERE g.version=c.version AND (g.text!='' OR g.width=0)) AS survivingGroupCells
       FROM cells c JOIN change_times t ON t.version=(SELECT MAX(version) FROM change_times WHERE version<=c.version) WHERE c.text!='' AND t.updatedAt<=? ORDER BY t.updatedAt LIMIT ?`).all(before, Math.min(500, Math.max(1, limit)));
   }
   conditionalDelete({ id, epoch, candidates }) {

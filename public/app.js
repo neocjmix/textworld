@@ -636,14 +636,14 @@ function goToHash() {
   return false;
 }
 function applyView(message) {
-  if (message.world?.epoch !== world?.epoch || awaitingViewSnapshot) return false;
+  if (!world || awaitingViewSnapshot || message.world.epoch < world.epoch) return false;
   const observation = message.observation;
-  if (observation.revision < viewRevision) return false;
-  if (!observation.reset && observation.revision > viewRevision + 1) {
+  if (message.world.epoch > world.epoch || (!observation.reset && observation.revision > viewRevision + 1)) {
     awaitingViewSnapshot = true;
     send({ type: 'sync' });
     return false;
   }
+  if (observation.revision < viewRevision) return false;
   if (observation.partial) {
     for (const version of observation.forgetVersions || []) {
       delete freshnessBands[version];
@@ -681,7 +681,7 @@ function receiveViews(messages) {
   // Keep author predictions painted between their immediate ACK and the
   // ordered observation containing the corresponding authoritative change.
   for (const [id, operation] of pending) {
-    if (operation.ackViewRevision <= viewRevision) pending.delete(id);
+    if (operation.ackViewRevision !== undefined && operation.ackViewRevision <= viewRevision) pending.delete(id);
   }
   refreshLocalCells();
 }
@@ -758,7 +758,7 @@ function connect() {
         actions.delete(sequence); pending.delete(action.id);
       }
       refreshLocalCells();
-      const observationOnly = message.requestType === 'view';
+      const observationOnly = message.requestType === 'view' || message.requestType === 'sync';
       if (!observationOnly && message.code !== 'STALE_EPOCH') {
         stopPan(); cancelMove(); resetComposition();
         if (message.cursor) cursor = { ...message.cursor };
@@ -769,7 +769,7 @@ function connect() {
         // A throttled request must not create an immediate sync/error loop.
         recoveryTimer = setTimeout(() => {
           recoveryTimer = null;
-          if (observationOnly && !awaitingViewSnapshot) reportView({ immediate: true, force: true });
+          if (message.requestType === 'view' && !awaitingViewSnapshot) reportView({ immediate: true, force: true });
           else send({ type: 'sync' });
         }, message.status === 429 ? Math.max(100, message.retryAfterMs || 1000) : 0);
       }

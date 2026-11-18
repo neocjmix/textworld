@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { World } from '../server/world.js';
 import { expire } from '../server/expiration.js';
-import { ParticipantPolicy } from '../server/participant-policy.js';
+import { LIMITS, ParticipantPolicy } from '../server/participant-policy.js';
 import { pruneRecords, RETENTION_MS } from '../server/retention.js';
 
 test('bounded pruning keeps live wide glyphs, source evidence and sparse clocks on restart', t => {
@@ -59,7 +59,13 @@ test('an expired opaque coordinate receipt is rejected instead of resurrecting a
   assert.throws(() => policy.acceptCoordinateEdit(write), {code: 'IDEMPOTENCY_EXPIRED'});
   assert.equal(world.seq, seq);
   assert.equal(world.getCell(0, 0).text, '');
-  policy.acceptCoordinateEdit({...write, id: 'next', x: peer.x, text: 'B'});
+  const next = {...write, id: 'next', x: peer.x, text: 'B'};
+  policy.acceptCoordinateEdit(next);
+  for (let i = policy.coordinateIds.size; i < LIMITS.coordinateEditsPerSession; i++) {
+    policy.coordinateIds.add('previous-' + i);
+  }
+  assert.ok(policy.acceptCoordinateEdit(next).duplicate);
+  assert.throws(() => policy.acceptCoordinateEdit({...next, id: 'over-limit'}), {status:409, code:'SESSION_EDIT_LIMIT'});
 });
 
 test('released colors are collected only after their cells and marks are gone', t => {
@@ -134,4 +140,23 @@ test('failed housekeeping leaves memory, receipts and SQLite in the same state f
   pruneRecords(world);
   assert.equal(world.getCell(0, 0), undefined);
   assert.equal(world.prior('a', 'write'), null);
+});
+
+test('scavenger evidence identifies a live original group by its immutable commit version', t => {
+  let now = 1000;
+  const world = new World({now: () => now});
+  t.after(() => world.close());
+  const group = {author:'importer', id:'label', reason:'write', cursor:null};
+  world.commit([{x:0, y:0, text:'A'}, {x:1, y:0, text:'B'}], group);
+  now += RETENTION_MS + 1;
+  pruneRecords(world);
+  // An internal importer can reuse a label for another independent commit.
+  world.commit([{x:0, y:0, text:'C'}], group);
+  pruneRecords(world);
+  const old = world.evidence().find(cell => cell.text === 'B');
+  const recent = world.evidence().find(cell => cell.text === 'C');
+  assert.equal(old.originalGroupCells, 2);
+  assert.equal(old.survivingGroupCells, 1);
+  assert.equal(recent.originalGroupCells, 1);
+  assert.equal(recent.survivingGroupCells, 1);
 });

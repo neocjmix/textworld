@@ -26,7 +26,7 @@ for (const rate of [32, 48]) {
         // Half repeatedly overwrite the origin; half fill previously unused
         // glyph positions. Leave room for the full two-column glyph.
         const slot = ++writes % 2 === 0 ? 0 : 1 + travelling++ % 65535;
-        world.applyWrite({author: 'writer-' + writer, id: 'input:' + writes, epoch: 1,
+        world.applyWrite({author: 's' + writer, id: 'input:' + writes, epoch: 1,
           x: slot % 512 * 2, y: Math.floor(slot / 512), text: writes % 3 ? '가' : 'A'});
       }
       if (second % 5 === 0) {

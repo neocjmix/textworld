@@ -15,7 +15,7 @@ export const LIMITS = Object.freeze({
     sessions: 8,
   },
   atomicGraphemes: 64, atomicUtf16: 4096, clearAddresses: 128,
-  recentAddresses: 512, recentOrigins: 16,
+  recentAddresses: 512, recentOrigins: 16, coordinateEditsPerSession: 4096,
 });
 export const limits = LIMITS;
 
@@ -217,7 +217,7 @@ export class ParticipantPolicy {
       if (receipt) return receipt;
       throw new PolicyError('IDEMPOTENCY_EXPIRED', '이전 입력의 보관 기간이 끝났습니다.', {status: 409});
     }
-    if (this.coordinateIds.size >= 4096) {
+    if (this.coordinateIds.size >= LIMITS.coordinateEditsPerSession) {
       throw new PolicyError('SESSION_EDIT_LIMIT', '새 세션을 열어 입력을 계속하세요.', {status: 409});
     }
     const result = message.type === 'write' ? this.acceptWrite(message) : this.acceptErase(message);

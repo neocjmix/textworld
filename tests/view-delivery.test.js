@@ -38,11 +38,12 @@ test('one large view flushes preceding batch and requests fragmentation without 
 });
 
 test('an idle subscriber receives the queued views on the timer and closed subscribers release queued work', async () => {
-  const { delivery, sent } = fixture(1024);
+  const { delivery, sent, metrics } = fixture(1024);
   const view = { type: 'view' };
   delivery.enqueue(1, view, performance.now());
   delivery.enqueue(2, view, performance.now());
   delivery.drop(1);
   await new Promise(resolve => setTimeout(resolve, 80));
   assert.deepEqual(sent.map(({socket}) => socket), [2]);
+  assert.deepEqual(metrics.filter(m => m.name === 'delivery.undelivered_events').map(m => m.value), [1]);
 });
