@@ -76,9 +76,10 @@ export function createLivePlaytest({ token, directory, sampleWorld, upgrade }) {
       if (run.worker) await run.worker.terminate();
       await ingress.close();
       run.state = 'finished';
-      const summary = { ...snapshot(run), state: 'finished', finishedAt: new Date().toISOString(),
-        reason: run.stopReason ?? result?.reason ?? 'driver-error', error: run.error ?? null };
+      const summary = { ...snapshot(run), finishedAt: new Date().toISOString(),
+        reason: result?.reason ?? run.stopReason ?? 'driver-error', error: run.error ?? null };
       record(run, 'end', summary);
+      summary.error ??= run.error ?? null;
       try {
         const path = join(run.dir, 'result.json');
         writeFileSync(path + '.tmp', JSON.stringify(summary));

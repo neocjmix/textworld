@@ -1,11 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import http from 'node:http';
 
 const url = new URL('https://textworld-production-987c.up.railway.app/api/playtest');
 const [command = 'status', id, ...args] = process.argv.slice(2);
 const help = 'status [ID] | start [ID [scenario.json]] | set ID writers walkers readers [new-cells|overwrite] | mark ID 메모 | stop ID';
 try {
   if (!process.env.TEXTWORLD_PLAYTEST_TOKEN) throw Error('Railway production의 운영자 환경에서 실행하세요.');
+  if (process.env.HTTPS_PROXY || process.env.https_proxy) http.setGlobalProxyFromEnv?.();
   let body;
   if (command === 'status' && !args.length) {
     if (id) url.searchParams.set('id', id);
