@@ -5,6 +5,7 @@ import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { createHistogram } from 'node:perf_hooks';
 import { WebSocket } from 'ws';
+import { ObservationAudit } from './observation-audit.mjs';
 import { randomSource as random } from './playtest/scenario.mjs';
 
 // Loopback-only, open-loop release workload. The target revision may be a separate checkout.
@@ -31,8 +32,9 @@ if (
 const readerStride = seconds > 900 ? 16 : 1;
 const quietSeconds = Number(process.env.CAPACITY_QUIET_SECONDS || 0);
 if (!Number.isInteger(quietSeconds) || quietSeconds < 0 || quietSeconds > 600) throw Error('Invalid quiet period');
-const writers = Math.round(count * 0.02),
+const writers = Number(process.env.CAPACITY_WRITERS ?? Math.max(1, Math.round(count * 0.02))),
   walkers = Math.round(count * 0.08);
+if (!Number.isSafeInteger(writers) || writers < 1 || writers + walkers >= count) throw Error('Invalid writer count');
 const q = (samples, fraction) => {
   const values = [...samples].sort((a, b) => a - b);
   return values.length ? values[Math.ceil(values.length * fraction) - 1] : null;
@@ -163,6 +165,8 @@ async function sample(label, hotFraction, liveClock, seconds) {
     accepted = 0;
   let setupError = 0,
     bytesNewViews = 0;
+  const audits = {sameRevision:0, advancedOnRead:0, differences:{}};
+  const auditSlots = new Set(seconds > 900 ? [writers+walkers, Math.floor(count/3), Math.floor(2*count/3), count-1] : []);
   const clock = () => performance.now();
   const ready = await ipc('ready');
   async function connect(i) {
@@ -172,6 +176,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
         handshakeTimeout: 10000,
       });
     const c = { ws, i, seq: 0, epoch: 1, connected: false, seen: new Map() };
+    if (auditSlots.has(i)) c.audit = new ObservationAudit(audits);
     all.push(c);
     sockets.set(i, c);
     const joined = Promise.withResolvers();
@@ -190,6 +195,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
       if (recording) bytes += data.length;
       const envelope = JSON.parse(data);
       for (const m of envelope.type === 'batch' ? envelope.messages : [envelope]) {
+        c.audit?.receive(m);
         if (m.type === 'snapshot') {
           if (recording && m.basis) {
             topologyPatches++;
@@ -291,6 +297,12 @@ async function sample(label, hotFraction, liveClock, seconds) {
           ackP95: q(acks.slice(segmentAcks), 0.95),
           pending: pending.size,
         };
+        if (slices.length % 2 === 1) for (const slot of auditSlots) {
+          const observer = sockets.get(slot);
+          if (!observer?.connected || observer.replaced || observer.ws.readyState !== WebSocket.OPEN) continue;
+          observer.audit.requested = true;
+          observer.ws.send(JSON.stringify({type:'sync'}));
+        }
         slices.push(interval);
         console.log(label, 'slice', JSON.stringify(interval));
         segmentBytes = bytes;
@@ -382,6 +394,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
       revisionRegressions: regressions,
       topologyPatches,
       basisMismatches,
+      audits,
       resets,
       bytesPerSecond: bytes / (m.elapsedMs / 1000),
       serverBytesPerSecond: metric('ws.tx_bytes').sum / (m.elapsedMs / 1000),
@@ -411,7 +424,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
               'observer.ms',
               'presence.ms',
               'expiration.ms',
-              'ws.slow_disconnects',
+              'ws.slow_disconnects', 'overload.actions',
               'activity.peer_ms',
               'delivery.undelivered_events',
               'delivery.sync_requests',

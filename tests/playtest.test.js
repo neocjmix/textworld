@@ -58,7 +58,8 @@ test('only finite plans, positive budgets and bounded role targets are accepted'
   assert.equal(scenario.safeParse({ ...plan, lifetimeSeconds: [5, 2] }).success, false);
   assert.equal(scenario.safeParse({ ...plan, budget: { ...plan.budget, botMinutes: 0 } }).success, false);
   assert.equal(scenario.safeParse({ ...plan, phases: [{ ...plan.phases[0], seconds: 3600 }, plan.phases[1]] }).success, false);
-  assert.equal(target.safeParse({ writers: 24, walkers: 24, readers: 1 }).success, false);
+  assert.equal(target.safeParse({ writers: 6, walkers: 24, readers: 270 }).success, true);
+  assert.equal(target.safeParse({ writers: 6, walkers: 24, readers: 271 }).success, false);
   assert.equal(scenario.parse(plan).jitterRatio, .3);
   assert.equal(scenario.safeParse({ ...plan, jitterRatio: .61 }).success, false);
 });

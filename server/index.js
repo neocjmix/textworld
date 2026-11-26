@@ -10,7 +10,7 @@ import { encodeSnapshot } from './encode-view.js';
 import { sampleResources } from '../experiments/playtest/cost.mjs';
 import { World, WorldError } from './world.js';
 import { VIEW_LIMITS } from '../shared/participant-rules.js';
-import { LIMITS, NetworkBudgets, ParticipantPolicy, PolicyError } from './participant-policy.js';
+import { Budget, LIMITS, NetworkBudgets, ParticipantPolicy, PolicyError } from './participant-policy.js';
 import { Observer, createSnapshotFrame, contains, viewRectangle, validateView } from './visibility.js';
 import { SpatialSubscriptions } from './spatial-subscriptions.js';
 import { createTurnRunner } from './agent-turns.js';
@@ -114,6 +114,18 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   const clients = new Map(), actors = new Set(), listeners = new Map();
   const spatial = new SpatialSubscriptions(world);
   const networks = new NetworkBudgets({ now: policyNow });
+  // Normal 300-person traffic offers ~30 actions/s. Bound synchronous fanout
+  // before accepting a mutation; readers and already committed views continue.
+  const worldActions = new Budget({rate:120, capacity:96, now:policyNow});
+  const admitAction = (units = 1) => {
+    try { worldActions.spend(units); }
+    catch (error) {
+      if (error.status !== 429) throw error;
+      measurements.record('overload.actions');
+      throw new PolicyError('WORLD_BUSY', '입력이 몰리고 있습니다. 잠시 뒤 다시 시도하세요.',
+        {status:429, retryAfterMs:Math.max(250, error.retryAfterMs)});
+    }
+  };
   let closing = false, population=0,lastPopulationAt=performance.now();
   const updatePopulation=()=>{const time=performance.now();measurements.record('activity.peer_ms',(time-lastPopulationAt)*population);population=actors.size;lastPopulationAt=time;};
   const limits = { ...LIMITS, view: VIEW_LIMITS, turn: { maxActions: 16, maxGraphemes: 256, maxUtf16: 4096,
@@ -242,7 +254,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     world.reserveAuthor(peer.id, color);
     peer.name ||= `여행자 ${actors.size + 1}`;
     const actor = { peer, network, closed: false, hello: false, alive: true, lastSnapshotEpoch: null };
-    actor.policy = new ParticipantPolicy({ world, peer, now: policyNow, network,
+    actor.policy = new ParticipantPolicy({ world, peer, now: policyNow, network, admitAction,
       isVisible: (x, y) => {
         const rectangle = viewRectangle(world, peer, actor.observer.view);
         return contains(rectangle, x, y, world)

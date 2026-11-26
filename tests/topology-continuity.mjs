@@ -38,6 +38,33 @@ try {
   const near=await b.evaluate(()=>window.textworld.inspect());assert.equal(near.composing,false);
   await b.locator('#input').focus();await b.keyboard.insertText('새');await b.waitForFunction(()=>window.textworld.inspect().pending===0);
   assert.equal(app.world.getCell(near.cursor.x,near.cursor.y).text,'새');
+  const recovering = await context.newPage();
+  let corruptNext = false, patches = 0, repairs = 0;
+  await recovering.routeWebSocket('**/ws', client => {
+    const upstream = client.connectToServer();
+    client.onMessage(raw => { if (JSON.parse(raw).type === 'sync') repairs++; upstream.send(raw); });
+    upstream.onMessage(raw => {
+      const message = JSON.parse(raw);
+      if (corruptNext && message.basis) {
+        corruptNext = false; patches++; message.basis.revision++;
+        client.send(JSON.stringify(message));
+      } else client.send(raw);
+    });
+  });
+  await recovering.goto(`http://127.0.0.1:${port}/`);
+  await recovering.waitForFunction(() => window.textworld?.inspect().connected);
+  // Let the browser negotiate its topology format before the server changes epoch.
+  const readySocket = [...app.wss.clients].at(-1);
+  for (let attempt=0; attempt<100 && !readySocket.topologyDelta; attempt++) await recovering.waitForTimeout(20);
+  assert.ok(readySocket.topologyDelta);
+  const beforeRepairs = repairs;
+  corruptNext = true;
+  app.world.resize(app.world.width+2,app.world.height,[],{seed:61});
+  await recovering.waitForFunction(epoch => window.textworld.inspect().world.epoch === epoch,app.world.epoch);
+  assert.equal(patches,1);
+  assert.equal(repairs,beforeRepairs+1);
+  await recovering.close();
+  console.log('PASS mismatched topology revision requests a full snapshot and resumes the live map');
   await mkdir('artifacts',{recursive:true});await a.screenshot({path:'artifacts/topology-local-continuity.png'});
   assert.deepEqual(errors,[]);
   console.log('PASS two browsers: remote resize preserves text pixels, active Korean composition and reconversion; a crossed seam corrects the cursor');

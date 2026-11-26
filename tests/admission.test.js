@@ -62,3 +62,27 @@ test('one backpressured link closes with 1013 while its neighbor receives the ne
   const joined = connect(url);
   await joined.next(m => m.type === 'snapshot' && m.cells.some(c => c.text === '늘'));
 });
+
+test('aggregate action pressure refuses before a write, keeps the read stream and admits the next ordinal', async t => {
+  let clock = 0;
+  const app = createTextworld({storagePath:':memory:',policyNow:() => clock});
+  t.after(() => app.close());
+  const {port} = await app.listen(0,'127.0.0.1');
+  const url = 'ws://127.0.0.1:'+port+'/ws';
+  const reader = connect(url), walker = connect(url);
+  await Promise.all([reader,walker].map(client => client.next(m => m.type === 'snapshot')));
+  for (const client of [reader,walker]) client.send({type:'hello',batchVersion:1});
+  for (let n=1; n<=96; n++) walker.send({type:'input',epoch:1,id:'walk'+n,sequence:n,
+    action:{kind:'move',dx:n%2 ? 1 : -1,dy:0,newOrigin:true}});
+  await walker.next(m => m.type === 'ack' && m.id === 'walk96');
+  const seq = app.world.seq;
+  reader.send({type:'input',id:'first',sequence:1,epoch:1,action:{kind:'type',text:'雨'}});
+  const busy = await reader.next(m => m.type === 'error' && m.id === 'first');
+  assert.equal(busy.code,'WORLD_BUSY'); assert.equal(busy.status,429);
+  assert.ok(busy.retryAfterMs>0); assert.equal(app.world.seq,seq);
+  clock += busy.retryAfterMs;
+  reader.send({type:'input',id:'again',sequence:2,epoch:1,action:{kind:'type',text:'雨'}});
+  await reader.next(m => m.type === 'ack' && m.id === 'again');
+  await walker.next(m => m.type === 'batch' && m.messages.some(v => v.observation.cells.some(c => c.text === '雨')));
+  assert.equal(app.world.seq,seq+1);
+});

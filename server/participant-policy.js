@@ -54,7 +54,7 @@ export class Budget {
 }
 
 const budget = (limit, now) => new Budget({ rate: limit.ratePerSecond, capacity: limit.burst, now });
-function consumeTogether(budgets, cost) {
+function consumeTogether(budgets, cost, admit) {
   let failure;
   for (const item of budgets.filter(Boolean)) {
     try { item.check(cost); }
@@ -64,6 +64,7 @@ function consumeTogether(budgets, cost) {
     }
   }
   if (failure) throw failure;
+  admit?.();
   for (const item of budgets.filter(Boolean)) item.spend(cost);
 }
 
@@ -109,9 +110,9 @@ const samePoint = (a, b) => a.x === b.x && a.y === b.y;
 const shortest = (distance, extent) => wrap(distance + extent / 2, extent) - extent / 2;
 
 export class ParticipantPolicy {
-  constructor({ world, peer, now = Date.now, network, isVisible = () => true }) {
+  constructor({ world, peer, now = Date.now, network, admitAction, isVisible = () => true }) {
     if (!world || !peer) throw new TypeError('World and peer are required.');
-    this.world = world; this.peer = peer; this.network = network; this.isVisible = isVisible;
+    this.world = world; this.peer = peer; this.network = network; this.isVisible = isVisible; this.admitAction = admitAction;
     this.request = budget(LIMITS.request, now);
     this.write = budget(LIMITS.write, now);
     this.move = budget(LIMITS.move, now);
@@ -197,7 +198,7 @@ export class ParticipantPolicy {
     // A GPS/shared-address relocation may span a large world, but spends an
     // entire burst. Repeating such relocations cannot create a free scan path.
     const cost = Math.min(distance, LIMITS.move.burst);
-    consumeTogether([this.move, this.network?.move], cost);
+    consumeTogether([this.move, this.network?.move], cost, this.admitAction);
     this.peer.x = point.x; this.peer.y = point.y;
     if (native) {
       this.carets.set(cellKey(point.x, point.y), { ...point });
@@ -265,7 +266,7 @@ export class ParticipantPolicy {
     // views. Explicit replacement addresses must belong to the bounded recent
     // input context, which the native editor may retain beyond the screen edge.
     const cost = Math.max(count, removed.size, 1);
-    consumeTogether([this.write, this.network?.write], cost);
+    consumeTogether([this.write, this.network?.write], cost, this.admitAction && (() => this.admitAction(Math.max(1, cost / 8))));
     let result;
     try { this.world.persistAuthor(this.peer.id); result = this.world.applyWrite({ author: this.peer.id, id: message.id, epoch: message.epoch,
       ...origin, text, clear, lineStartX }); }
@@ -304,7 +305,7 @@ export class ParticipantPolicy {
     if (!allowed) forbidden('현재 칸 또는 바로 앞 글자만 지울 수 있습니다.');
     const span = cellSpan((x, y) => this.world.getCell(x, y), point.x, point.y, this.world);
     for (const cell of span.length ? span : [point]) this.visible(cell);
-    consumeTogether([this.write, this.network?.write], 1);
+    consumeTogether([this.write, this.network?.write], 1, this.admitAction);
     let result;
     try { result = this.world.erase({ author: this.peer.id, id: message.id, epoch: message.epoch, ...point }); }
     catch (error) { this.write.refund(1); this.network?.write.refund(1); throw error; }
