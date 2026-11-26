@@ -15,6 +15,7 @@ import { WebSocket } from 'ws';
 
 import { empty, merge, summary } from '../shared/measurement.js';
 import { EXPIRY_AGE_MS } from '../shared/freshness.js';
+import { decodeWire } from '../shared/wire.js';
 
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const filename = fileURLToPath(import.meta.url);
@@ -218,7 +219,7 @@ if (process.argv[2] === '--server') {
         socket.on('error',error=>{errors[error.code||'socket']=(errors[error.code||'socket']||0)+1;});
         socket.on('close',()=>{if(measuring)disconnects++;});
         socket.on('message',raw=>{
-          const message=JSON.parse(raw.toString());
+          const message=decodeWire(JSON.parse(raw.toString()));
           if(measuring){receivedBytes+=raw.length;receivedMessages++;}
           for (const item of message.type==='batch' ? message.messages : [message]) {
             if (measuring && message.type==='batch') innerMessages++;
@@ -256,7 +257,7 @@ if (process.argv[2] === '--server') {
           const handler=raw=>{if(JSON.parse(raw.toString()).type==='snapshot'){clearTimeout(timer);socket.off('message',handler);resolve();}};
           socket.on('message',handler);socket.once('error',reject);
         });
-        socket.send(JSON.stringify({type:'hello',...(config.batch ? {batchVersion:1} : {}),view:{cols:160,rows:48}}));
+        socket.send(JSON.stringify({type:'hello',...(config.batch ? {batchVersion:1,wireVersion:config.compact ? 1 : 0} : {}),view:{cols:160,rows:48}}));
         if (socket.region) {
           // Move by the public input path to a row beyond the other group's viewport.
           const setupAck = new Promise((resolve, reject) => {

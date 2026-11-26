@@ -101,6 +101,7 @@ const sameRectangle = (a, b) => a && a.x === b.x && a.y === b.y && a.cols === b.
 const samePeer = (a, b) => a && a.id === b.id && a.name === b.name && a.color === b.color
   && a.x === b.x && a.y === b.y;
 const markVisible = band => band === 'now' || band === 'recent' || band === 'minutes';
+const freshnessUntil = Object.fromEntries(FRESHNESS.map(band => [band.name, band.until]));
 const keyOf = cell => cellKey(cell.x, cell.y);
 const byAddress = records => new Map(records.map(record => [keyOf(record), { ...record }]));
 const byId = peers => new Map(peers.map(peer => [peer.id, { ...peer }]));
@@ -297,6 +298,11 @@ export class Observer {
       const key = keyOf(address);
       const oldCell = last.cells.get(key), oldMark = last.marks.get(key);
       const inside = contains(view, address.x, address.y, world);
+      // A bulk expiration can mention distant cells in the same commit. Only
+      // an adjacent valid CJK half can extend visibility outside the rectangle.
+      if (!inside && !oldCell && !oldMark
+        && !contains(view, address.x - 1, address.y, world)
+        && !contains(view, address.x + 1, address.y, world)) continue;
       const source = world.getCell(address.x, address.y);
       let cell, mark;
       if (occupiedCell(source)) {
@@ -333,6 +339,20 @@ export class Observer {
     const delta = { partial: true, view, cells: [], forget: [], marks: [], unmark: [],
       freshness: {}, colors: {}, forgetVersions: [], peers: updatedPeers, departed };
     if (!last.counts) last.counts = versionCounts(last.cells.values(), last.marks.values());
+    // Thousands of versions usually share only a few five-second timestamps.
+    // Index their next band boundary once; only a due group needs its versions
+    // visited. This is a private view cache, not a new timestamp on each cell.
+    if (!last.ageGroups) {
+      last.ageGroups = new Map();
+      for (const [version, stamp] of last.times) {
+        if (!Number.isFinite(stamp) || !last.counts.has(version)) continue;
+        let group = last.ageGroups.get(stamp);
+        if (!group) last.ageGroups.set(stamp, group = {
+          at: stamp + freshnessUntil[last.freshness[version]], versions: new Set(),
+        });
+        group.versions.add(version);
+      }
+    }
     const lost = new Set();
     const release = version => {
       const remaining = last.counts.get(version) - 1;
@@ -359,22 +379,33 @@ export class Observer {
         }
         if (last.freshness[version] !== band) delta.freshness[version] = band;
         last.times.set(version, updatedAt);
+        if (Number.isFinite(updatedAt)) {
+          let group = last.ageGroups.get(updatedAt);
+          if (!group) last.ageGroups.set(updatedAt, group = {
+            at: updatedAt + freshnessUntil[band], versions: new Set(),
+          });
+          group.versions.add(version);
+        }
         last.counts.set(version, (last.counts.get(version) || 0) + 1);
         last.freshness[version] = band;
         if (Number.isFinite(updatedAt)) this.nextFreshnessAt = Math.min(this.nextFreshnessAt,
-          updatedAt + FRESHNESS.find(item => item.name === band).until);
+          updatedAt + freshnessUntil[band]);
       }
     }
     if (ageDue) {
       this.nextFreshnessAt = Infinity;
-      for (const [version, stamp] of last.times) {
-        if (!last.counts.has(version) || !Number.isFinite(stamp)) continue;
-        const band = freshness(stamp, now);
-        if (last.freshness[version] !== band) {
-          delta.freshness[version] = band;
-          last.freshness[version] = band;
+      for (const [stamp, group] of last.ageGroups) {
+        if (now >= group.at) {
+          const band = freshness(stamp, now);
+          for (const version of group.versions) {
+            if (last.counts.has(version) && last.freshness[version] !== band) {
+              delta.freshness[version] = band;
+              last.freshness[version] = band;
+            }
+          }
+          group.at = stamp + freshnessUntil[band];
         }
-        this.nextFreshnessAt = Math.min(this.nextFreshnessAt, stamp + FRESHNESS.find(item => item.name === band).until);
+        this.nextFreshnessAt = Math.min(this.nextFreshnessAt, group.at);
       }
       for (const [key, mark] of last.marks) if (!markVisible(last.freshness[mark.version])) {
         last.marks.delete(key);
@@ -383,6 +414,11 @@ export class Observer {
       }
     }
     for (const version of lost) if (!last.counts.has(version)) {
+      const stamp = last.times.get(version), group = last.ageGroups.get(stamp);
+      if (group) {
+        group.versions.delete(version);
+        if (!group.versions.size) last.ageGroups.delete(stamp);
+      }
       last.times.delete(version);
       delete last.freshness[version]; delete delta.freshness[version]; delete delta.colors[version];
       delta.forgetVersions.push(version);
@@ -421,7 +457,7 @@ export class Observer {
       colors[cell.version] = info ? info.color : world.authorColors.get(source?.author) || '#314137';
       times.set(cell.version, updatedAt);
       ages[cell.version] = band;
-      if (Number.isFinite(updatedAt)) nextFreshnessAt = Math.min(nextFreshnessAt, updatedAt + FRESHNESS.find(item => item.name === band).until);
+      if (Number.isFinite(updatedAt)) nextFreshnessAt = Math.min(nextFreshnessAt, updatedAt + freshnessUntil[band]);
     }
     const localPeers = frame ? frame.peers(peer, rectangle) : peersInRectangle(world, peer, rectangle, peers);
     const cells = [], forget = [];

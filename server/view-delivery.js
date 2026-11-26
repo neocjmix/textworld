@@ -6,36 +6,17 @@ const prefix = '{"type":"batch","messages":[';
 const suffix = ']}';
 const envelopeBytes = Buffer.byteLength(prefix + suffix);
 
-export function createViewDelivery({ write, record, intervalMs = 50, frameBytes = 64 * 1024, sliceMs = 4, now = () => performance.now() }) {
+export function createViewDelivery({ write, record, intervalMs = 50, frameBytes = 64 * 1024, now = () => performance.now() }) {
   const pending = new Map();
-  let timer, continuation;
-
-  function stop() {
-    clearTimeout(timer); clearImmediate(continuation);
-    timer = continuation = undefined;
-  }
-
-  function drain() {
-    timer = continuation = undefined;
-    const start = now();
-    for (const client of pending.keys()) {
-      flush(client);
-      // Encoding was captured synchronously at the commit boundary. Yielding
-      // only transmission cannot merge, skip or reorder any observation.
-      if (now() - start >= sliceMs) break;
-    }
-    if (pending.size) {
-      continuation = setImmediate(drain);
-      continuation.unref();
-    }
-  }
+  let timer;
 
   function flush(socket) {
     const queue = pending.get(socket);
     if (!queue) return;
     pending.delete(socket);
     if (!pending.size) {
-      stop();
+      clearTimeout(timer);
+      timer = undefined;
     }
     const encoded = queue.compact ? '["tw1","b",[' + queue.parts.join(',') + ']]' : prefix + queue.parts.join(',') + suffix;
     if (write(socket, encoded)) {
@@ -71,8 +52,10 @@ export function createViewDelivery({ write, record, intervalMs = 50, frameBytes 
     queue.bytes += bytes + Number(queue.parts.length > 0);
     queue.parts.push(encoded);
     queue.starts.push(started);
-    if (!timer && !continuation) {
-      timer = setTimeout(drain, intervalMs);
+    if (!timer) {
+      timer = setTimeout(() => {
+        for (const client of pending.keys()) flush(client);
+      }, intervalMs);
       timer.unref();
     }
   }
@@ -82,7 +65,8 @@ export function createViewDelivery({ write, record, intervalMs = 50, frameBytes 
     if (queue) record('delivery.undelivered_events', queue.parts.length);
     pending.delete(socket);
     if (!pending.size) {
-      stop();
+      clearTimeout(timer);
+      timer = undefined;
     }
   }
 

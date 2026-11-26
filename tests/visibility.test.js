@@ -305,6 +305,41 @@ test('incremental rejection preserves the prior revision, addresses and closure 
   assert.deepEqual(keys(accepted.cells), ['0,1', '31,1']); assert.deepEqual(costs, [1, 1, 1]);
 });
 
+test('shared age boundaries match a fresh spatial read through overwrites, departure and clock jumps', t => {
+  let now = 1234;
+  const { world, write } = fixture(t, { width: 32, height: 16, now: () => now });
+  const self = peer('self', 8, 4), peers = [self], view = { cols: 16, rows: 8 };
+  const incremental = new Observer({ world, peer: self, view });
+  const reference = new Observer({ world, peer: self, view });
+  for (const stamp of [1234, 6432, 11678]) {
+    now = stamp;
+    for (let i = 0; i < 6; i++) write(i % 2 ? '한' : 'a', i * 2, Math.floor(stamp / 5000));
+  }
+  incremental.read(peers); reference.read(peers);
+  const compare = change => {
+    incremental.change(change, () => peers);
+    reference.read(peers);
+    for (const key of ['cells', 'marks', 'freshness', 'times']) {
+      assert.deepEqual(incremental.last[key], reference.last[key], key + ' at ' + now);
+    }
+    assert.equal(incremental.revision, reference.revision);
+    assert.equal(incremental.nextFreshnessAt, reference.nextFreshnessAt);
+  };
+  for (const time of [14999, 15000, 19999, 20000, 25000, 44999, 45000, 50000, 90000, 180000]) {
+    now = time;
+    compare({});
+    compare(write('中', 2, 0));
+    compare(world.erase({ author: 'writer', id: 'erase-' + now, epoch: world.epoch, x: 8, y: 1 }));
+    self.x = self.x === 8 ? 9 : 8;
+    compare({ peer: self });
+  }
+  now += 300000;
+  compare({});
+  self.x = 24; self.y = 12;
+  compare({ peer: self });
+  assert.equal(incremental.last.times.size, 0, 'leaving the region releases all version timestamps');
+});
+
 test('shared encoding uses only this view’s immutable public cell records', async t => {
   const { encodeView } = await import('../server/encode-view.js');
   const { world, write } = fixture(t, { width: 32, height: 16 });
