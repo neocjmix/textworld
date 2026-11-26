@@ -67,6 +67,8 @@ node examples/agent.mjs http://localhost:3000
 
 ## 검증
 
+혼자 다중 사용자 지도를 체험하려면 `npm run playtest`를 실행하고 터미널에 표시된 지도를 여세요. 기본 6분 5초 동안 봇이 들어오고 빠집니다. 터미널에서 인원과 행동을 조정하고, 같은 Wi-Fi의 휴대폰으로 들어가 직접 입력할 수 있습니다. [체험 방법과 실행 예산](docs/PLAYTEST_RUNNER.md)
+
 ```sh
 npm test                    # 엔진 + 실제 WebSocket/HTTP 통합 테스트
 npm run test:browser         # 실제 Chromium, 독립 브라우저/모바일 에뮬레이션

@@ -49,7 +49,8 @@ export function networkKey(req, trustProxy = false) {
 export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || resolve(root, 'data/world.sqlite'),
   now = Date.now, policyNow = () => performance.now(),
   metricsPath, metricsToken = process.env.TEXTWORLD_METRICS_TOKEN || '', metricsEnabled = true,
-  trustProxy = process.env.TEXTWORLD_TRUST_PROXY || (process.env.RAILWAY_ENVIRONMENT_ID ? 'railway' : false) } = {}) {
+  trustProxy = process.env.TEXTWORLD_TRUST_PROXY || (process.env.RAILWAY_ENVIRONMENT_ID ? 'railway' : false),
+  identifyNetwork = req => networkKey(req, trustProxy) } = {}) {
   const world = new World({ storagePath, now });
   world.storagePath = storagePath;
   const measurements = new Measurements({path:metricsPath || (storagePath === ':memory:' ? ':memory:' : storagePath + '.metrics.sqlite'),enabled:metricsEnabled});
@@ -198,7 +199,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   const createActor = (req, { name, view, position } = {}) => {
     const acceptedView = validateView(view);
     if (world.usedColors.size >= 113 ** 3) throw new PolicyError('COLOR_CAPACITY', '새 사용자 색을 배정할 수 없습니다.', { status: 503 });
-    const network = networks.acquire(networkKey(req, trustProxy));
+    const network = networks.acquire(identifyNetwork(req));
     const usedColors = world.usedColors;
     let color;
     do { color = '#' + [randomInt(113), randomInt(113), randomInt(113)].map(v => v.toString(16).padStart(2, '0')).join(''); } while (usedColors.has(color));
@@ -248,7 +249,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     return () => listeners.delete(actor);
   } });
   const mcp = createMCPAgent({ agentHTTP,
-    acceptRequest: req => networks.get(networkKey(req, trustProxy)).request.spend() });
+    acceptRequest: req => networks.get(identifyNetwork(req)).request.spend() });
   const json = (res, status, value) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)); };
   const server = http.createServer(async (req, res) => {
     const started=performance.now(),route=measurementRoute(req.url.split('?')[0]);let bytes=0;
