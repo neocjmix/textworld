@@ -1,0 +1,12 @@
+{
+  "seed": 147741,
+  "jitterRatio": 0.3,
+  "lifetimeSeconds": [300, 550],
+  "budget": { "botMinutes": 4800, "receivedMiB": 2048, "admissions": 2500 },
+  "phases": [
+    { "name": "300명 입장·성장", "seconds": 425, "writers": 6, "walkers": 24, "readers": 268, "actionIntervalMs": 850 },
+    { "name": "독자 유지·풍화·축소", "seconds": 360, "writers": 0, "walkers": 0, "readers": 298 },
+    { "name": "다시 입력·회복", "seconds": 120, "writers": 6, "walkers": 24, "readers": 268, "actionIntervalMs": 850 },
+    { "name": "퇴장", "seconds": 15, "writers": 0, "walkers": 0, "readers": 0 }
+  ]
+}

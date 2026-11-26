@@ -1,7 +1,7 @@
 import { fork } from 'node:child_process';
 import { once } from 'node:events';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { writeFile } from 'node:fs/promises';
+import { writeFile, rename } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { createHistogram } from 'node:perf_hooks';
 import { WebSocket } from 'ws';
@@ -497,10 +497,24 @@ async function sample(label, hotFraction, liveClock, seconds) {
       epochs: m.world.epoch - health.world.epoch,
     };
     if (quietSeconds) {
+      const checkpoint = filename + '.active.json';
+      await writeFile(checkpoint + '.tmp', JSON.stringify({ ...result, quietPending: true }, null, 2));
+      await rename(checkpoint + '.tmp', checkpoint);
+      console.log('Active workload finished; quiet cleanup remains:', checkpoint);
       await sleep(quietSeconds * 1000);
       const response = ipc('quiet');
       server.send({ kind: 'quiet' });
       result.quiet = { seconds: quietSeconds, ...(await response).sample };
+      const readers = [...auditSlots].map(i => sockets.get(i)).filter(c => c?.audit && c.ws.readyState === WebSocket.OPEN);
+      for (const c of readers) {
+        c.audit.requested = true;
+        c.ws.send(JSON.stringify({ type: 'sync' }));
+      }
+      const deadline = clock() + 5000;
+      while (readers.some(c => c.audit.requested) && clock() < deadline) await sleep(25);
+      result.quiet.readers = readers.map(c => ({ slot: c.i, pending: c.audit.requested,
+        cells: c.audit.state.cells.size, marks: c.audit.state.marks.size,
+        freshness: Object.keys(c.audit.state.freshness).length, colors: Object.keys(c.audit.state.colors).length }));
     }
     await writeFile(filename, JSON.stringify(result, null, 2));
     console.log(JSON.stringify(result));
