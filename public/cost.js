@@ -61,7 +61,7 @@ function updateRelease() {
   get('release-layout').disabled = current;
   if (current) get('release-layout').value = 'steady';
   get('release-evidence').textContent = current
-    ? `입력 20명·이동 80명·독자 900명, 25%가 광장에서 출발한 ${capacityProfile.seconds / 60}분 실측입니다. 이 표본만으로 장기 안정성을 보장하지 않습니다.`
+    ? `입력 20명·이동 80명·독자 900명, 25%가 광장에서 출발한 ${capacityProfile.seconds / 60}분 실측입니다. 아래는 같은 활동이 계속된다는 비용 추정이며, 모든 밀집도·활동률에 적용되는 요금은 아닙니다.`
     : '이전 공개판의 입력 6명·이동 24명·독자 270명 실측입니다. 시간대 조합은 별도 분산·밀집 시험의 원가를 가중합니다. 새 전송 형식의 300명 재측정값은 아닙니다.';
   const scenario = get('release-layout').value;
   get('release-plaza-label').hidden = scenario !== 'mix';

@@ -152,7 +152,8 @@ async function sample(label, hotFraction, liveClock, seconds) {
   const acks = [],
     sendLags = [],
     offerAcks = [],
-    churnTimes = [];
+    churnTimes = [],
+    unexpectedCloseDetails = [];
   let recording = false,
     bytes = 0,
     baseSeq = Infinity,
@@ -185,7 +186,10 @@ async function sample(label, hotFraction, liveClock, seconds) {
     all.push(c);
     sockets.set(i, c);
     const joined = Promise.withResolvers();
-    const timer = setTimeout(() => joined.reject(Error('connection setup timeout ' + i)), 15000);
+    const timer = setTimeout(() => {
+      c.setupTimedOut = true;
+      joined.reject(Error('connection setup timeout ' + i));
+    }, 15000);
     let retryTimer;
     const place = () => {
       if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'input', id: 'place',
@@ -195,11 +199,15 @@ async function sample(label, hotFraction, liveClock, seconds) {
       if (!c.connected) joined.reject(e);
       else if (recording) errs[e.code || 'transport'] = (errs[e.code || 'transport'] || 0) + 1;
     });
-    ws.on('close', () => {
+    ws.on('close', (code, reason) => {
       if (!c.connected) joined.reject(Error('connection closed before placement ' + i));
       if (recording) {
         if (c.replaced) expectedCloses++;
-        else unexpectedCloses++;
+        else {
+          unexpectedCloses++;
+          unexpectedCloseDetails.push({ slot: i, placed: c.connected, setupTimedOut: !!c.setupTimedOut,
+            cancelledByHarness: !!c.cancelledByHarness, code, reason: reason.toString().slice(0, 160) });
+        }
       }
     });
     ws.on('message', (data) => {
@@ -272,6 +280,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
     try {
       await joined.promise;
     } catch (error) {
+      c.cancelledByHarness = true;
       ws.terminate();
       throw error;
     } finally {
@@ -414,6 +423,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
       arrivals,
       expectedCloses,
       unexpectedCloses,
+      unexpectedCloseDetails,
       errs,
       sent,
       accepted,

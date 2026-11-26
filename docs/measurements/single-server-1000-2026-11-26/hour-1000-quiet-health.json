@@ -1,0 +1,1849 @@
+{
+  "description": "Independent loopback health observations during the 510-second no-input cleanup after hour-1000. Peak RSS excludes active-hour samples. Not a quiet-period egress meter. The final regression normal/surge tests overlapped part of this quiet period on the same host.",
+  "count": 102,
+  "durationSeconds": 506.8029754161835,
+  "minConnections": 1000,
+  "maxConnections": 1000,
+  "cpuCoresObserved": 0.11156209166603583,
+  "rssStart": 1216770048,
+  "rssEnd": 236638208,
+  "rssMax": 1218609152,
+  "observations": [
+    {
+      "at": 1795725654.5883632,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1324.01,
+      "rssBytes": 1216770048
+    },
+    {
+      "at": 1795725659.590559,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1324.33,
+      "rssBytes": 1218609152
+    },
+    {
+      "at": 1795725664.592734,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1324.66,
+      "rssBytes": 1218609152
+    },
+    {
+      "at": 1795725669.5955021,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1324.95,
+      "rssBytes": 1218609152
+    },
+    {
+      "at": 1795725674.5987,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1327.16,
+      "rssBytes": 592171008
+    },
+    {
+      "at": 1795725679.6007617,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1328.17,
+      "rssBytes": 598777856
+    },
+    {
+      "at": 1795725684.6034648,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1328.55,
+      "rssBytes": 604868608
+    },
+    {
+      "at": 1795725689.6057835,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1328.91,
+      "rssBytes": 608759808
+    },
+    {
+      "at": 1795725694.6081653,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1330.03,
+      "rssBytes": 616050688
+    },
+    {
+      "at": 1795725699.6102786,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1330.34,
+      "rssBytes": 617598976
+    },
+    {
+      "at": 1795725704.6292725,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1330.66,
+      "rssBytes": 619847680
+    },
+    {
+      "at": 1795725709.6314414,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1331.47,
+      "rssBytes": 633765888
+    },
+    {
+      "at": 1795725714.6336005,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1331.79,
+      "rssBytes": 634535936
+    },
+    {
+      "at": 1795725719.6356282,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1332.12,
+      "rssBytes": 636604416
+    },
+    {
+      "at": 1795725724.6375585,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1332.61,
+      "rssBytes": 652091392
+    },
+    {
+      "at": 1795725729.6393936,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1332.91,
+      "rssBytes": 656318464
+    },
+    {
+      "at": 1795725734.6441433,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1333.25,
+      "rssBytes": 658264064
+    },
+    {
+      "at": 1795725739.645783,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1333.65,
+      "rssBytes": 661590016
+    },
+    {
+      "at": 1795725744.6476278,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1333.93,
+      "rssBytes": 664330240
+    },
+    {
+      "at": 1795725749.648977,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1334.25,
+      "rssBytes": 667992064
+    },
+    {
+      "at": 1795725754.6508112,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1334.36,
+      "rssBytes": 668127232
+    },
+    {
+      "at": 1795725759.6527996,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1334.82,
+      "rssBytes": 674258944
+    },
+    {
+      "at": 1795725764.6547184,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1334.9,
+      "rssBytes": 674783232
+    },
+    {
+      "at": 1795725769.656221,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1335.42,
+      "rssBytes": 682131456
+    },
+    {
+      "at": 1795725774.65811,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1335.49,
+      "rssBytes": 682520576
+    },
+    {
+      "at": 1795725779.6612253,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1335.8,
+      "rssBytes": 692113408
+    },
+    {
+      "at": 1795725784.6633418,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1336.12,
+      "rssBytes": 713207808
+    },
+    {
+      "at": 1795725789.665594,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 256,
+          "epoch": 2,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1336.38,
+      "rssBytes": 715489280
+    },
+    {
+      "at": 1795725794.6676779,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 512,
+          "height": 224,
+          "epoch": 3,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1338.29,
+      "rssBytes": 761511936
+    },
+    {
+      "at": 1795725799.6704876,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 448,
+          "height": 224,
+          "epoch": 4,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1340.39,
+      "rssBytes": 755269632
+    },
+    {
+      "at": 1795725804.672871,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 448,
+          "height": 196,
+          "epoch": 5,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1341.76,
+      "rssBytes": 757616640
+    },
+    {
+      "at": 1795725810.1001534,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 392,
+          "height": 196,
+          "epoch": 6,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1343.95,
+      "rssBytes": 757665792
+    },
+    {
+      "at": 1795725815.165097,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 392,
+          "height": 172,
+          "epoch": 7,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1346.27,
+      "rssBytes": 756957184
+    },
+    {
+      "at": 1795725820.253824,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 392,
+          "height": 172,
+          "epoch": 7,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1346.71,
+      "rssBytes": 761724928
+    },
+    {
+      "at": 1795725825.2556558,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 343,
+          "height": 172,
+          "epoch": 8,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1347.75,
+      "rssBytes": 757391360
+    },
+    {
+      "at": 1795725830.2573235,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 343,
+          "height": 151,
+          "epoch": 9,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1348.89,
+      "rssBytes": 756736000
+    },
+    {
+      "at": 1795725835.258866,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 301,
+          "height": 151,
+          "epoch": 10,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1349.72,
+      "rssBytes": 752279552
+    },
+    {
+      "at": 1795725840.2608702,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 301,
+          "height": 133,
+          "epoch": 11,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1350.34,
+      "rssBytes": 751493120
+    },
+    {
+      "at": 1795725845.2648635,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 264,
+          "height": 133,
+          "epoch": 12,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1350.97,
+      "rssBytes": 750706688
+    },
+    {
+      "at": 1795725850.2664237,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 264,
+          "height": 133,
+          "epoch": 12,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1351.08,
+      "rssBytes": 751583232
+    },
+    {
+      "at": 1795725855.2687879,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 264,
+          "height": 117,
+          "epoch": 13,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1351.39,
+      "rssBytes": 746250240
+    },
+    {
+      "at": 1795725860.2715101,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 231,
+          "height": 117,
+          "epoch": 14,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1352.06,
+      "rssBytes": 745463808
+    },
+    {
+      "at": 1795725865.2742298,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 231,
+          "height": 103,
+          "epoch": 15,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1352.61,
+      "rssBytes": 744677376
+    },
+    {
+      "at": 1795725870.2761257,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 203,
+          "height": 103,
+          "epoch": 16,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1353.19,
+      "rssBytes": 743903232
+    },
+    {
+      "at": 1795725875.278833,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 203,
+          "height": 91,
+          "epoch": 17,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1353.83,
+      "rssBytes": 743116800
+    },
+    {
+      "at": 1795725880.562142,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 178,
+          "height": 91,
+          "epoch": 18,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1354.4,
+      "rssBytes": 742354944
+    },
+    {
+      "at": 1795725885.5640545,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 178,
+          "height": 91,
+          "epoch": 18,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1354.53,
+      "rssBytes": 742354944
+    },
+    {
+      "at": 1795725890.5661778,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 178,
+          "height": 80,
+          "epoch": 19,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1354.96,
+      "rssBytes": 741568512
+    },
+    {
+      "at": 1795725895.5678768,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 156,
+          "height": 80,
+          "epoch": 20,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1355.47,
+      "rssBytes": 740782080
+    },
+    {
+      "at": 1795725900.570206,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 156,
+          "height": 70,
+          "epoch": 21,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1356.23,
+      "rssBytes": 739995648
+    },
+    {
+      "at": 1795725905.5720818,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 137,
+          "height": 70,
+          "epoch": 22,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1357.06,
+      "rssBytes": 739225600
+    },
+    {
+      "at": 1795725910.5983994,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 137,
+          "height": 62,
+          "epoch": 23,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1357.57,
+      "rssBytes": 738574336
+    },
+    {
+      "at": 1795725915.6004443,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 137,
+          "height": 62,
+          "epoch": 23,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1357.6,
+      "rssBytes": 738574336
+    },
+    {
+      "at": 1795725920.6072097,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 120,
+          "height": 62,
+          "epoch": 24,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1358.34,
+      "rssBytes": 737792000
+    },
+    {
+      "at": 1795725925.6094189,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 120,
+          "height": 55,
+          "epoch": 25,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1359.13,
+      "rssBytes": 737980416
+    },
+    {
+      "at": 1795725930.6116304,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 105,
+          "height": 55,
+          "epoch": 26,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1359.92,
+      "rssBytes": 737300480
+    },
+    {
+      "at": 1795725935.6395643,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 105,
+          "height": 49,
+          "epoch": 27,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1360.76,
+      "rssBytes": 736518144
+    },
+    {
+      "at": 1795725940.9393334,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 92,
+          "height": 49,
+          "epoch": 28,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1361.74,
+      "rssBytes": 735883264
+    },
+    {
+      "at": 1795725945.9700391,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 92,
+          "height": 49,
+          "epoch": 28,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1361.84,
+      "rssBytes": 735883264
+    },
+    {
+      "at": 1795725950.9763408,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 92,
+          "height": 43,
+          "epoch": 29,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1362.67,
+      "rssBytes": 734953472
+    },
+    {
+      "at": 1795725956.0015984,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 81,
+          "height": 43,
+          "epoch": 30,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1363.93,
+      "rssBytes": 734171136
+    },
+    {
+      "at": 1795725961.0222712,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 81,
+          "height": 38,
+          "epoch": 31,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1364.73,
+      "rssBytes": 735555584
+    },
+    {
+      "at": 1795725966.024352,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 71,
+          "height": 38,
+          "epoch": 32,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1365.86,
+      "rssBytes": 736768000
+    },
+    {
+      "at": 1795725971.0260997,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 71,
+          "height": 34,
+          "epoch": 33,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1366.49,
+      "rssBytes": 736829440
+    },
+    {
+      "at": 1795725976.0281343,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 71,
+          "height": 34,
+          "epoch": 33,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1366.51,
+      "rssBytes": 736829440
+    },
+    {
+      "at": 1795725981.0325572,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 63,
+          "height": 34,
+          "epoch": 34,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1367.58,
+      "rssBytes": 736509952
+    },
+    {
+      "at": 1795725986.0344553,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 63,
+          "height": 30,
+          "epoch": 35,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1368.59,
+      "rssBytes": 742572032
+    },
+    {
+      "at": 1795725991.03789,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 56,
+          "height": 30,
+          "epoch": 36,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1369.73,
+      "rssBytes": 749465600
+    },
+    {
+      "at": 1795725996.0407767,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 56,
+          "height": 27,
+          "epoch": 37,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1370.29,
+      "rssBytes": 741322752
+    },
+    {
+      "at": 1795726001.2553172,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 49,
+          "height": 27,
+          "epoch": 38,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1371.56,
+      "rssBytes": 771313664
+    },
+    {
+      "at": 1795726006.2599943,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 49,
+          "height": 27,
+          "epoch": 38,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1371.59,
+      "rssBytes": 772898816
+    },
+    {
+      "at": 1795726011.2619016,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 49,
+          "height": 24,
+          "epoch": 39,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1372.28,
+      "rssBytes": 767152128
+    },
+    {
+      "at": 1795726016.266816,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 43,
+          "height": 24,
+          "epoch": 40,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1373.33,
+      "rssBytes": 740270080
+    },
+    {
+      "at": 1795726021.2858522,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 43,
+          "height": 21,
+          "epoch": 41,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1374.48,
+      "rssBytes": 739225600
+    },
+    {
+      "at": 1795726026.2893305,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 38,
+          "height": 21,
+          "epoch": 42,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1375.22,
+      "rssBytes": 738152448
+    },
+    {
+      "at": 1795726031.290829,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 38,
+          "height": 19,
+          "epoch": 43,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1375.98,
+      "rssBytes": 737366016
+    },
+    {
+      "at": 1795726036.293101,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 38,
+          "height": 19,
+          "epoch": 43,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1376.05,
+      "rssBytes": 741163008
+    },
+    {
+      "at": 1795726041.2964265,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 38,
+          "height": 17,
+          "epoch": 44,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1377.26,
+      "rssBytes": 736591872
+    },
+    {
+      "at": 1795726046.3002796,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 34,
+          "height": 17,
+          "epoch": 45,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1378.02,
+      "rssBytes": 735805440
+    },
+    {
+      "at": 1795726051.3024378,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 34,
+          "height": 16,
+          "epoch": 46,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1378.51,
+      "rssBytes": 735035392
+    },
+    {
+      "at": 1795726056.304204,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.48,
+      "rssBytes": 734248960
+    },
+    {
+      "at": 1795726061.3126853,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.55,
+      "rssBytes": 734248960
+    },
+    {
+      "at": 1795726066.3184915,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.59,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726071.3285775,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.65,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726076.3341732,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.69,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726081.33985,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.75,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726086.3422687,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.8,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726091.3444066,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.82,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726096.3463602,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.84,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726101.348044,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.88,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726106.3529558,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.9,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726111.3552945,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.92,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726116.3584328,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.96,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726121.3608654,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1379.98,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726126.3627746,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1380.0,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726131.3648112,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1380.04,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726136.3677764,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1380.05,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726141.369932,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1380.07,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726146.3789656,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1380.14,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726151.385927,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1380.17,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726156.387815,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1380.19,
+      "rssBytes": 725860352
+    },
+    {
+      "at": 1795726161.3913386,
+      "health": {
+        "ok": true,
+        "world": {
+          "width": 32,
+          "height": 16,
+          "epoch": 47,
+          "textLayout": 2
+        },
+        "peers": 1000,
+        "capacity": 1000,
+        "playtest": "disabled",
+        "revision": null
+      },
+      "cpuSeconds": 1380.55,
+      "rssBytes": 236638208
+    }
+  ]
+}

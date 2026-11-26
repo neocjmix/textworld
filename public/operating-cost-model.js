@@ -97,18 +97,20 @@ export const releaseProfile = Object.freeze({
 
 // The new wire format is measured separately; never scale the 300-person
 // result or silently interpolate an unmeasured all-plaza workload.
-// Source: single-server-1000-2026-11-26/guarded-normal.json (180 seconds).
+// Source: single-server-1000-2026-11-26/hour-1000.json (3600 seconds).
+// The subsequent edit-footprint admission guard is separately regression-tested;
+// this is the measured delivery/encoding baseline, not a fabricated final-hour run.
 export const capacityProfile = Object.freeze({
   concurrent: 1000,
-  seconds: 180,
-  sample: 'guarded-normal',
-  hour: { bytesPerSecond: 1499571.528666262, cores: 0.3861383105673988, rssGiB: 0.7472444592869757 },
+  seconds: 3600,
+  sample: 'hour-1000',
+  hour: { bytesPerSecond: 1195378.964443989, cores: 0.36274362083920303, rssGiB: 1.0727822119463857 },
   // Built map HTML/JS/CSS measured at 35,838 B gzip; rounded up for release stamps.
   mapBytes: 36000,
   fontBytes: 1873600,
   allFontBytes: 5949384,
-  // Previous production volume observation; the final report identifies it separately.
-  volumeGiB: 0.0332113,
+  // Measured mean production volume in the 920-second public 300-person cycle.
+  volumeGiB: 0.04674854899064663,
 });
 
 // Only these measured populations are available. The historical model above
