@@ -72,15 +72,24 @@ try {
       // WebKit can retain decoded fonts across contexts in one browser process.
       delayedBrowser = await launch();
       const late = await delayedBrowser.newContext();
+      const lateRequests = [];
+      late.on('request', request => { if (/\.css|\.woff2/.test(request.url())) lateRequests.push(request.url()); });
+      late.on('requestfailed', request => lateRequests.push({ failed: request.url(), error: request.failure() }));
       let releaseFont, requestedFont;
       const held = new Promise(resolve => { releaseFont = resolve; });
       const requested = new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error('Delayed font was never requested')), 10000);
         requestedFont = () => { clearTimeout(timer); resolve(); };
       });
+      requested.catch(() => {}); // The page may still be navigating when the timer expires.
       await late.route(url => /\/(fonts\/sarasa\.css|assets\/sarasa-[A-Z0-9]+\.css)$/.test(url.pathname), async route => {
         const response = await route.fetch();
-        await route.fulfill({ response, body: (await response.text()).replace(/(\/fonts\/[A-Za-z0-9._-]*-hangul-[A-Za-z0-9._-]*\.woff2)/g, '$1?late-font-test=1') });
+        await new Promise(resolve => setTimeout(resolve, 150)); // CSS arrives after the fast ESM bundle.
+        const headers = { ...response.headers() };
+        // route.fetch decodes gzip. A modified body must not keep the encoded
+        // representation's Content-Encoding, length or validator (WebKit).
+        delete headers['content-encoding']; delete headers['content-length']; delete headers.etag;
+        await route.fulfill({ response, headers, body: (await response.text()).replace(/(\/fonts\/[A-Za-z0-9._-]*-hangul-[A-Za-z0-9._-]*\.woff2)/g, '$1?late-font-test=1') });
       });
       await late.route('**/fonts/*-hangul-*.woff2*', async route => {
         requestedFont(); await held; await route.continue();
@@ -95,10 +104,22 @@ try {
         };
       });
       const delayed = await late.newPage();
-      await delayed.goto(`${origin}/#x=10&y=8`);
-      await delayed.waitForFunction(() => window.textworld?.inspect().connected);
+      delayed.on('pageerror', error => lateRequests.push({ pageerror: error.message }));
+      await delayed.goto(`${origin}/#x=10&y=8`, { waitUntil: 'domcontentloaded' });
+      await delayed.waitForFunction(() => window.textworld?.inspect().connected).catch(async error => {
+        console.error(JSON.stringify({ lateRequests, initial: await delayed.evaluate(() => ({ state: window.textworld?.inspect(),
+          sheets: [...document.styleSheets].map(s => ({ href: s.href, rules: s.cssRules.length })),
+          events: window.fontEvents, faces: [...document.fonts].map(f => ({ family: f.family, status: f.status })) })) }));
+        throw error;
+      });
       await delayed.mouse.click(300, 300); await delayed.keyboard.insertText('각');
-      await requested;
+      await requested.catch(async error => {
+        console.error(JSON.stringify({ lateRequests, state: await delayed.evaluate(() => ({
+          state: window.textworld?.inspect(), input: document.getElementById('input')?.innerHTML,
+          events: window.fontEvents, paints: window.fontPaints,
+          faces: [...document.fonts].map(face => ({ status: face.status, range: face.unicodeRange })) })) }));
+        throw error;
+      });
       await delayed.waitForFunction(() => window.textworld.inspect().pending === 0 && window.fontPaints.length > 0);
       assert.equal(await delayed.evaluate(() => window.fontPaints.at(-1)), false);
       releaseFont();
@@ -110,6 +131,17 @@ try {
       await delayed.waitForFunction(() => window.textworld.inspect().pending === 0);
       await late.close();
       console.log(`${engine}: delayed unicode-range font repaints an idle map`);
+      const failedCSS = await delayedBrowser.newContext(), failedPage = await failedCSS.newPage();
+      await failedCSS.route(url => /\/(fonts\/sarasa\.css|assets\/sarasa-[A-Z0-9]+\.css)$/.test(url.pathname),
+        route => route.fulfill({ status: 503, contentType: 'text/plain', body: 'stylesheet unavailable' }));
+      await failedCSS.route(url => /\/(app\.js|assets\/app-[A-Z0-9]+\.js)$/.test(url.pathname), async route => {
+        await new Promise(resolve => setTimeout(resolve, 100)); await route.continue();
+      });
+      await failedPage.goto(origin, { waitUntil: 'domcontentloaded' });
+      await failedPage.waitForFunction(() => document.getElementById('connection').textContent === '글꼴 로드 실패');
+      assert.equal(await failedPage.evaluate(() => window.textworld.inspect().connected), false);
+      await failedCSS.close();
+      console.log(`${engine}: an early stylesheet failure reports an error instead of waiting forever`);
     } finally { await delayedBrowser?.close(); await browser.close(); }
   }
   await mkdir('artifacts', { recursive: true });

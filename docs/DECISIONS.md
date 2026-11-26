@@ -2,6 +2,8 @@
 
 ## 2026-11-26 — CDN 캐시와 배포의 일관성
 
+번들 후 실제 WebKit 검사에서 늦은 CSS보다 모듈이 먼저 실행되면 `document.fonts.load`가 등록된 글꼴 없이 끝나 입장을 막는 경합을 발견했다. 여러 모듈의 다운로드 순서가 우연히 가리던 의존성이다. 글꼴 stylesheet의 준비를 명시적으로 기다리고, 이미 발생한 CSS 오류도 페이지 load 완료 시 확인한다. 브라우저 fixture는 CSS를 150ms 지연하고 글꼴 조각도 별도로 지연한다. 요청/압축 응답을 수정하는 fixture는 이전 Content-Encoding·Length·ETag를 재사용하지 않는다.
+
 Railway 내장 CDN을 선택했다. 외부 CDN은 DNS·인증서·두 겹 캐시 관리가 추가되고 현재 필요를 더 잘 해결하지 않는다. CDN HIT의 무료 egress와 가까운 edge는 정적 첫 방문에 유리하지만 WebSocket fan-out을 줄이지는 않는다. 관측/행동/세션과 운영 응답은 `no-store`를 유지한다. 공개 고정 안내 JSON만 edge 30초를 허용한다.
 
 고정 URL에 장기 TTL을 붙이거나 매번 전체 purge하면 신구 파일 혼합 또는 모든 글꼴의 재다운로드를 유발한다. esbuild로 전이 의존성까지 포함한 내용 해시 URL을 만들고 HTML은 짧은 TTL과 **플랫폼의 성공한 배포 후 HTML purge**를 함께 사용한다. 별도 purge 웹훅이나 스케줄러는 구현하지 않는다. 빌드 전 purge는 구 서버에서 stale HTML이 다시 채워지는 경합 때문에 제외한다. 배포 도구는 저장된 정책을 재확인하며 자동 GitHub/대시보드 배포도 플랫폼 정책을 따른다.

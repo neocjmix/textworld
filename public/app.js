@@ -829,7 +829,25 @@ notice('글꼴을 불러오고 있습니다.');
 // CSS unicode-range selects additional font parts as native text or Canvas
 // encounters them. Repaint an idle map when a delayed part becomes available.
 document.fonts.addEventListener('loadingdone', schedule);
-document.fonts.load(`18px ${mapFont}`, 'iWM').then(faces => {
+// An ESM bundle can run before a delayed stylesheet has registered its faces
+// (notably in WebKit). Waiting for FontFaceSet alone can resolve with no faces.
+function fontStylesheetReady() {
+  const link = $('map-font');
+  if (link.sheet) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const done = () => {
+      link.removeEventListener('load', done); link.removeEventListener('error', failed);
+      window.removeEventListener('load', done);
+      if (link.sheet) resolve(); else reject(new Error('Map font stylesheet is unavailable'));
+    };
+    const failed = () => { done(); };
+    link.addEventListener('load', done, { once: true });
+    link.addEventListener('error', failed, { once: true });
+    window.addEventListener('load', done, { once: true });
+    if (document.readyState === 'complete') done();
+  });
+}
+fontStylesheetReady().then(() => document.fonts.load(`18px ${mapFont}`, 'iWM')).then(faces => {
   if (!faces.length) throw new Error('Map font is unavailable');
   fontReady = true;
   connect();
