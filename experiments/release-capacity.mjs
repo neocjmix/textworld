@@ -5,7 +5,7 @@ import { writeFile, rename } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { createHistogram } from 'node:perf_hooks';
 import { WebSocket } from 'ws';
-import { ObservationAudit } from './observation-audit.mjs';
+import { ObservationAudit, sampledReader } from './observation-audit.mjs';
 import { randomSource as random } from './playtest/scenario.mjs';
 import { decodeWire } from '../shared/wire.js';
 
@@ -230,7 +230,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
             if (o.reset) resets++;
             if (
               i >= writers + walkers &&
-              i % readerStride === 0 &&
+              sampledReader(i, readerStride) &&
               c.connected &&
               o.partial &&
               !o.reset &&
@@ -444,6 +444,9 @@ async function sample(label, hotFraction, liveClock, seconds) {
       rejoinP95Ms: q(churnTimes, 0.95),
       surge,
       readerStride,
+      readerSampling: readerStride === 1 ? 'all' : 'rotating-residue-v1',
+      readerViewCounts: people.slice(writers + walkers).filter(p => sampledReader(p.i, readerStride))
+        .reduce((counts, p) => { const key = p.view.cols + 'x' + p.view.rows; counts[key] = (counts[key] || 0) + 1; return counts; }, {}),
       otherDecodeP99Ms: remote.count ? remote.percentile(99) / 1000 : null,
       ackP99Ms: q(acks, 0.99),
       rejoinP99Ms: q(churnTimes, 0.99),

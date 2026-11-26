@@ -7,6 +7,10 @@ const byPeer = records => new Map(records.map(p => [p.id,p]));
 const full = m => ({ cells:byCell(m.cells), marks:byCell(m.marks), peers:byPeer(m.peers),
   freshness:{...m.freshness}, colors:{...m.colors}, view:m.view });
 
+// Rotate the selected residue in each block. A fixed `slot % 16 === 0`
+// accidentally selects only wide views because those use `slot % 4 === 0`.
+export const sampledReader = (slot, stride) => slot % stride === Math.floor(slot / stride) % stride;
+
 export class ObservationAudit {
   constructor(totals) { this.totals = totals; }
 

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ObservationAudit } from '../experiments/observation-audit.mjs';
+import { ObservationAudit, sampledReader } from '../experiments/observation-audit.mjs';
 
 test('the soak audit detects a missing visible cell and distinguishes a fresh clock read', () => {
   const totals = {sameRevision:0,advancedOnRead:0,differences:{}};
@@ -15,4 +15,16 @@ test('the soak audit detects a missing visible cell and distinguishes a fresh cl
   observer.requested = true;
   observer.receive({...first,viewRevision:2,freshness:{9:'recent'}});
   assert.deepEqual(totals,{sameRevision:1,advancedOnRead:1,differences:{cells:1}});
+});
+
+test('long-run latency sampling covers both viewport sizes instead of selecting only every fourth slot', () => {
+  const readers = Array.from({length:900}, (_, i) => i + 100);
+  assert.equal(readers.filter(i => sampledReader(i, 1)).length, 900);
+  const selected = readers.filter(i => sampledReader(i, 16));
+  assert.ok(selected.length >= 55 && selected.length <= 57);
+  assert.ok(selected.filter(i => i % 4 === 0).length >= 13);
+  assert.ok(selected.filter(i => i % 4 !== 0).length >= 40);
+  for (let block = 0; block < 64; block++) {
+    assert.equal(Array.from({length:16}, (_, i) => block * 16 + i).filter(i => sampledReader(i, 16)).length, 1);
+  }
 });
