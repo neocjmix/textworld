@@ -1,5 +1,6 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { PolicyError } from './participant-policy.js';
+import { PAGE_CACHE } from './asset-release.js';
 
 export const AGENT_HTTP_LIMITS = Object.freeze({ sessionIdleMs: 120_000, maxWaitMs: 25_000, bodyBytes: 65_536 });
 const base = '/api/agents/v1';
@@ -7,9 +8,9 @@ const fail = (code, message, status = 400, retryAfterMs = 0) => new PolicyError(
 const record = value => value && typeof value === 'object' && !Array.isArray(value);
 const ownKeys = (value, allowed) => Object.keys(value).every(key => allowed.includes(key));
 
-function json(res, status, value, retryAfterMs = 0) {
+function json(res, status, value, retryAfterMs = 0, cacheControl = 'no-store') {
   if (res.destroyed || res.writableEnded) return;
-  const headers = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
+  const headers = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': cacheControl, 'X-Content-Type-Options': 'nosniff' };
   if (status === 429 || retryAfterMs > 0) headers['Retry-After'] = String(Math.max(1, Math.ceil(retryAfterMs / 1000)));
   res.writeHead(status, headers);
   res.end(status === 204 ? undefined : JSON.stringify(value));
@@ -148,7 +149,7 @@ export function createAgentHTTP({ world, createActor, removeActor, peers, runner
           docs: '/agents.html', source: 'https://github.com/neocjmix/textworld/blob/main/docs/AGENT_API.md',
           mcp: '/mcp', mcpDocs: 'https://github.com/neocjmix/textworld/blob/main/docs/MCP.md',
           actions: ['type', 'move', 'enter', 'backspace', 'delete', 'home', 'wait'],
-          limits: { ...limits, http: AGENT_HTTP_LIMITS } });
+          limits: { ...limits, http: AGENT_HTTP_LIMITS } }, 0, PAGE_CACHE);
         return true;
       }
       if (path === `${base}/sessions`) {

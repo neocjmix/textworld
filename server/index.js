@@ -25,6 +25,7 @@ import { localContinuity } from './local-continuity.js';
 import { translateTrail } from '../shared/relocation.js';
 import { CursorInput, remapWriting } from '../shared/cursor-input.js';
 import { createStaticAssets } from './static-assets.js';
+import { readAssetRelease, retainAssetRelease } from './asset-release.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const publicWorld = world => ({ width: world.width, height: world.height, epoch: world.epoch, textLayout: 2 });
@@ -49,6 +50,7 @@ export function networkKey(req, trustProxy = false) {
 }
 
 export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || resolve(root, 'data/world.sqlite'),
+  staticRelease = null,
   now = Date.now, policyNow = () => performance.now(), maxParticipants = 300,
   metricsPath, metricsToken = process.env.TEXTWORLD_METRICS_TOKEN || '', metricsEnabled = true,
   trustProxy = process.env.TEXTWORLD_TRUST_PROXY || (process.env.RAILWAY_ENVIRONMENT_ID ? 'railway' : false),
@@ -56,7 +58,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   playtestToken = process.env.TEXTWORLD_PLAYTEST_TOKEN || '', playtestDirectory = resolve(dirname(storagePath), 'playtests') } = {}) {
   if (!Number.isSafeInteger(maxParticipants) || maxParticipants < 1) throw new RangeError('Invalid participant capacity');
   const world = new World({ storagePath, now });
-  const serveStatic = createStaticAssets(root);
+  const serveStatic = createStaticAssets(root, { release: staticRelease });
   world.storagePath = storagePath;
   const outbound = { publicHttpBytes: 0, publicWebSocketBytes: 0 };
   const playtestResources = () => sampleResources(outbound);
@@ -537,7 +539,9 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  const app = createTextworld();
+  const storagePath = process.env.TEXTWORLD_DB || resolve(root, 'data/world.sqlite');
+  const staticRelease = await retainAssetRelease(await readAssetRelease(root), resolve(dirname(storagePath), 'static-assets'));
+  const app = createTextworld({ storagePath, staticRelease });
   const address = await app.listen(Number(process.env.PORT || 3000));
   console.log(`Textworld listening on http://localhost:${address.port}`);
   let closing = false;

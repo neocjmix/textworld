@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import { chromium, firefox, webkit } from 'playwright';
 import { createTextworld } from '../server/index.js';
+import { readAssetRelease } from '../server/asset-release.js';
+import { resolve } from 'node:path';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 
-const app = createTextworld({ storagePath: ':memory:', now: () => 1_000_000 });
+const app = createTextworld({ storagePath: ':memory:', now: () => 1_000_000,
+  staticRelease: process.env.TEXTWORLD_BUILT_ASSETS ? await readAssetRelease(resolve('.')) : null });
 const address = await app.listen(0, '127.0.0.1');
 const origin = `http://127.0.0.1:${address.port}`;
 const manifest = JSON.parse(await readFile(new URL('../public/fonts/subsets.json', import.meta.url)));
@@ -75,9 +78,9 @@ try {
         const timer = setTimeout(() => reject(new Error('Delayed font was never requested')), 10000);
         requestedFont = () => { clearTimeout(timer); resolve(); };
       });
-      await late.route('**/fonts/sarasa.css', async route => {
+      await late.route(url => /\/(fonts\/sarasa\.css|assets\/sarasa-[A-Z0-9]+\.css)$/.test(url.pathname), async route => {
         const response = await route.fetch();
-        await route.fulfill({ response, body: (await response.text()).replace(/(\/fonts\/[^"]*-hangul-[^"]*\.woff2)/g, '$1?late-font-test=1') });
+        await route.fulfill({ response, body: (await response.text()).replace(/(\/fonts\/[A-Za-z0-9._-]*-hangul-[A-Za-z0-9._-]*\.woff2)/g, '$1?late-font-test=1') });
       });
       await late.route('**/fonts/*-hangul-*.woff2*', async route => {
         requestedFont(); await held; await route.continue();

@@ -28,6 +28,7 @@ Railway 서비스 설정에서 다음 값을 관리한다. `railway.json`은 만
 | 항목 | 값 |
 | --- | --- |
 | Builder | Railpack |
+| Build command | `npm run build` (package.json에서 자동 탐지) |
 | Start command | `node server/index.js` |
 | Healthcheck | `/health` |
 | Replicas | `us-west2`의 1개 |
@@ -38,6 +39,8 @@ Railway 서비스 설정에서 다음 값을 관리한다. `railway.json`은 만
 | `NODE_ENV` | `production` |
 | `PORT` | `3000` |
 | `TEXTWORLD_DB` | `/data/world.sqlite` |
+
+브라우저 정적 파일은 빌드 때 내용 해시를 붙인다. 서버는 포트를 열기 전에 `/data/static-assets`에 현재 파일과 이전 배포 호환 파일을 준비한다. CDN은 성공한 배포마다 HTML만 자동 purge하도록 플랫폼에 설정하며 `deploy:production`에서 이 정책을 재확인한다. [캐시·보존·롤백·검증 절차](CDN.md)
 
 서버는 `0.0.0.0:$PORT`로 HTTP와 WebSocket `/ws`를 함께 제공한다. Railway HTTPS 도메인을 3000번 포트로 연결한다. HTTPS 덕분에 휴대폰에서도 GPS와 클립보드를 사용할 수 있지만, 사용자 권한은 여전히 필요하다.
 

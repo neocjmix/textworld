@@ -9,7 +9,9 @@ const root = resolve(process.env.TARGET_ROOT || '.');
 const { createTextworld } = await import(pathToFileURL(resolve(root, 'server/index.js')));
 const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
 const workingTree = execFileSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' }).trim();
-const app = createTextworld({ storagePath: ':memory:', now: () => 1_000_000 });
+const staticRelease = process.env.TEXTWORLD_BUILT_ASSETS ?
+  await (await import(pathToFileURL(resolve(root, 'server/asset-release.js')))).readAssetRelease(root) : null;
+const app = createTextworld({ storagePath: ':memory:', now: () => 1_000_000, staticRelease });
 const address = await app.listen(0, '127.0.0.1');
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', args: ['--no-sandbox'] });
 const results = [];

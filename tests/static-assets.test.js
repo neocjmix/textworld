@@ -35,7 +35,7 @@ test('static text negotiates gzip and revalidates both representations without r
   assert.ok(compressed.body.length < plain.body.length / 4);
   assert.equal(compressed.headers.vary, 'Accept-Encoding');
   assert.equal(compressed.headers.etag, plain.headers.etag);
-  assert.equal(compressed.headers['cache-control'], 'no-cache');
+  assert.equal(compressed.headers['cache-control'], 'no-cache, no-store, max-age=0');
   for (const validator of [plain.headers.etag, `"other", ${plain.headers.etag.slice(2)}`, '*']) {
     const unchanged = await request('/app.js', { 'If-None-Match': validator, 'Accept-Encoding': 'gzip' });
     assert.equal(unchanged.status, 304); assert.equal(unchanged.body.length, 0);

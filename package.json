@@ -4,8 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node scripts/build-assets.mjs",
+    "prestart": "npm run build",
     "start": "node server/index.js",
     "deploy:production": "node scripts/deploy-production.mjs",
+    "cdn:enable": "node scripts/cdn-policy.mjs --enable",
     "test": "node --test tests/*.test.js",
     "test:browser": "node tests/browser.mjs",
     "experiment": "node experiments/topology.mjs",
@@ -42,6 +45,7 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.4.0",
+    "esbuild": "0.28.2",
     "playwright": "^1.56.1"
   }
 }

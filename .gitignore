@@ -1,5 +1,6 @@
 node_modules/
 data/
 artifacts/
+.build/
 *.log
 .env

@@ -139,6 +139,6 @@ test('versioned WOFF2 font responses are immutable while the font stylesheet rem
   assert.equal(font.headers.get('cache-control'), 'public, max-age=31536000, immutable');
   assert.equal((await font.arrayBuffer()).byteLength, 0);
   const stylesheet = await fetch(`${base}/fonts/sarasa.css`);
-  assert.equal(stylesheet.status, 200); assert.equal(stylesheet.headers.get('cache-control'), 'no-cache');
+  assert.equal(stylesheet.status, 200); assert.equal(stylesheet.headers.get('cache-control'), 'no-cache, no-store, max-age=0');
   assert.match(await stylesheet.text(), /Textworld Sarasa/);
 });

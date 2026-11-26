@@ -2,8 +2,11 @@
 import assert from 'node:assert/strict';
 import { chromium, firefox, webkit } from 'playwright';
 import { createTextworld } from '../server/index.js';
+import { readAssetRelease } from '../server/asset-release.js';
+import { resolve } from 'node:path';
 
-const app = createTextworld({ storagePath: ':memory:', now: () => 1_000_000 });
+const app = createTextworld({ storagePath: ':memory:', now: () => 1_000_000,
+  staticRelease: process.env.TEXTWORLD_BUILT_ASSETS ? await readAssetRelease(resolve('.')) : null });
 const address = await app.listen(0, '127.0.0.1');
 const origin = process.env.BROWSER_TEST_URL || `http://127.0.0.1:${address.port}`;
 const engines = (process.env.BROWSERS || 'chromium,firefox,webkit').split(',');
