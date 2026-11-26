@@ -644,6 +644,10 @@ function applyView(message) {
     return false;
   }
   if (observation.revision < viewRevision) return false;
+  installObservation(observation, message.world);
+  return true;
+}
+function installObservation(observation, metadata) {
   if (observation.partial) {
     for (const version of observation.forgetVersions || []) {
       delete freshnessBands[version];
@@ -661,7 +665,7 @@ function applyView(message) {
     freshnessMarks = new Map((observation.marks || []).map(m => [cellKey(m.x, m.y), m.version]));
     peers = new Map(observation.peers.map(peer => [peer.id, peer]));
   }
-  world = message.world;
+  world = metadata;
   observedView = observation.view;
   viewRevision = observation.revision;
   if (observation.reset) cells = new Map();
@@ -670,7 +674,18 @@ function applyView(message) {
     const key = cellKey(cell.x, cell.y);
     if (cell.text || cell.width === 0) cells.set(key, cell); else cells.delete(key);
   }
-  return true;
+}
+function translateObserved(dx, dy) {
+  if (!dx && !dy) return;
+  const move = value => ({...value, x:value.x+dx, y:value.y+dy,
+    ...(Number.isInteger(value.leadX) ? {leadX:value.leadX+dx} : {})});
+  cells = new Map([...cells.values()].map(cell => {
+    const next = move(cell); return [cellKey(next.x,next.y), next];
+  }));
+  peers = new Map([...peers].map(([id, other]) => [id, move(other)]));
+  freshnessMarks = new Map([...freshnessMarks].map(([key, version]) => {
+    const [x,y] = key.split(',').map(Number); return [cellKey(x+dx,y+dy),version];
+  }));
 }
 function receiveViews(messages) {
   let changed = false;
@@ -699,15 +714,26 @@ function connect() {
       // remaining motion and apply it relative to the corrected cursor.
       if (resized) cameraMotion.cancel();
       if (!sameSession) { cancelMove(); actions.clear(); pending.clear(); id = 0; }
-      world = message.world; selfId = message.selfId;
-      freshnessBands = message.freshness || {};
-      colorBands = message.colors || {};
-      freshnessMarks = new Map((message.marks || []).map(m => [cellKey(m.x, m.y), m.version]));
-      observedView = message.view || null; viewRevision = message.viewRevision || 0;
+      if (message.basis) {
+        const basis = message.basis;
+        if (!sameSession || awaitingViewSnapshot || oldEpoch !== basis.epoch || viewRevision !== basis.revision) {
+          if (!awaitingViewSnapshot) send({type:'sync'});
+          awaitingViewSnapshot = true;
+          return;
+        }
+        translateObserved(basis.dx, basis.dy);
+        installObservation(message.patch, message.world);
+      } else {
+        world = message.world; selfId = message.selfId;
+        freshnessBands = message.freshness || {};
+        colorBands = message.colors || {};
+        freshnessMarks = new Map((message.marks || []).map(m => [cellKey(m.x, m.y), m.version]));
+        observedView = message.view || null; viewRevision = message.viewRevision || 0;
+        cells = new Map(message.cells.filter(c => c.text || c.width === 0).map(c => [cellKey(c.x, c.y), c]));
+        peers = new Map(message.peers.map(peer => [peer.id, peer]));
+      }
       awaitingViewSnapshot = false;
       $('cursor').hidden = false;
-      cells = new Map(message.cells.filter(c => c.text || c.width === 0).map(c => [cellKey(c.x, c.y), c]));
-      peers = new Map(message.peers.map(peer => [peer.id, peer]));
       const me = peers.get(selfId);
       input.style.setProperty("--author-color", me?.color || "#314137");
       try { reconcileInput(message.input); }
@@ -720,7 +746,7 @@ function connect() {
       connection(true);
       if (!sameSession) {
         const view = requestedView();
-        send({ type: 'hello', batchVersion: 1, view });
+        send({ type: 'hello', batchVersion: 1, topologyDelta: 1, view });
         sentView = JSON.stringify(view);
       } else reportView({ immediate: true });
       if (firstSnapshot) {

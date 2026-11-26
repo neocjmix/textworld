@@ -394,16 +394,20 @@ export class Observer {
     return Object.freeze(delta);
   }
 
-  read(peers = [], { since, force = false, frame } = {}) {
+  read(peers = [], { since, force = false, frame, topologyDelta, translated } = {}) {
     const { world, peer } = this, old = this.last, previousRevision = this.revision;
     const rectangle = viewRectangle(world, peer, this.view);
     const marks = [];
-    const current = frame ? frame.cells(rectangle, marks) : cellsInRectangle(world, rectangle, marks);
-    let ink = 0;
-    for (const cell of current.values()) ink += visibleInk(cell, rectangle, world);
-    const ages = {}, colors = {}, times = new Map(), now = world.now();
-    let nextFreshnessAt = Infinity;
-    for (const cell of [...current.values(), ...marks]) {
+    // Automatic remeshing keeps occupied glyphs on a proven rigid patch and removes tombstones.
+    const reuseCells = topologyDelta && translated && old?.epoch === world.epoch && sameRectangle(old.view, rectangle);
+    const current = reuseCells ? old.cells : frame ? frame.cells(rectangle, marks) : cellsInRectangle(world, rectangle, marks);
+    let ink = reuseCells ? this.ink : 0;
+    if (!reuseCells) for (const cell of current.values()) ink += visibleInk(cell, rectangle, world);
+    const now = world.now();
+    const reuseAges = reuseCells && !old.marks.size && now < this.nextFreshnessAt;
+    const ages = reuseAges ? old.freshness : {}, colors = {}, times = reuseAges ? old.times : new Map();
+    let nextFreshnessAt = reuseAges ? this.nextFreshnessAt : Infinity;
+    if (!reuseAges) for (const cell of [...current.values(), ...marks]) {
       if (times.has(cell.version)) continue;
       const source = frame ? null : world.getCell(cell.x, cell.y);
       const info = frame?.version(cell);
@@ -416,16 +420,18 @@ export class Observer {
     }
     const localPeers = frame ? frame.peers(peer, rectangle) : peersInRectangle(world, peer, rectangle, peers);
     const cells = [], forget = [];
-    for (const [key, cell] of current) if (!sameCell(old?.cells.get(key), cell)) cells.push(cell);
-    if (old) for (const [key, cell] of old.cells) if (!current.has(key)) forget.push({ x: cell.x, y: cell.y });
+    if (!reuseCells) {
+      for (const [key, cell] of current) if (!sameCell(old?.cells.get(key), cell)) cells.push(cell);
+      if (old) for (const [key, cell] of old.cells) if (!current.has(key)) forget.push({ x: cell.x, y: cell.y });
+    }
     const sameWorld = old && old.epoch === world.epoch && old.width === world.width && old.height === world.height;
     // A rejected observation must not advance the baseline or its revision.
     // Retry therefore charges for exactly the still-unseen addresses again.
-    this.charge(observationCost(world, rectangle, current, old, sameWorld));
+    this.charge(reuseCells ? 0 : observationCost(world, rectangle, current, old, sameWorld));
     this.ink = ink;
     this.density = ink / (rectangle.cols * rectangle.rows);
     this.nextFreshnessAt = nextFreshnessAt;
-    const changed = !sameWorld || !sameRectangle(old?.view, rectangle) || cells.length || forget.length || old.marks.size !== marks.length
+    const changed = topologyDelta || !sameWorld || !sameRectangle(old?.view, rectangle) || cells.length || forget.length || old.marks.size !== marks.length
       || marks.some(mark => old.marks.get(keyOf(mark))?.version !== mark.version)
       || Object.keys(old.freshness).length !== Object.keys(ages).length
       || Object.entries(ages).some(([version, band]) => old.freshness[version] !== band)
@@ -437,6 +443,18 @@ export class Observer {
     this.last = { epoch: world.epoch, width: world.width, height: world.height,
       view: { ...rectangle }, marks: byAddress(marks), times, freshness: { ...ages },
       cells: frame ? current : byAddress([...current.values()]), peers: frame ? new Map(localPeers.map(other => [other.id, other])) : byId(localPeers), counts: null };
+    if (topologyDelta && old) {
+      const freshness = {}, newColors = {};
+      if (!reuseAges) for (const [version, band] of Object.entries(ages)) {
+        if (old.freshness[version] !== band) freshness[version] = band;
+        if (!(version in old.freshness)) newColors[version] = colors[version];
+      }
+      return { partial:true, revision:this.revision, view:rectangle, cells, forget, marks,
+        unmark:[...old.marks.values()].filter(mark => !this.last.marks.has(keyOf(mark))).map(({x,y}) => ({x,y})),
+        freshness, colors:newColors, forgetVersions:reuseAges ? [] : Object.keys(old.freshness).filter(version => !(version in ages)),
+        peers:localPeers.filter(other => !samePeer(old.peers.get(other.id), other)),
+        departed:[...old.peers.keys()].filter(id => !this.last.peers.has(id)) };
+    }
     return { revision: this.revision, reset: !!reset, view: rectangle,
       cells: reset ? [...current.values()] : cells, forget: reset ? [] : forget, marks: marks.map(mark => ({ ...mark })), freshness: ages, colors, peers: localPeers };
   }

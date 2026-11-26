@@ -154,6 +154,8 @@ async function sample(label, hotFraction, liveClock, seconds) {
     unexpectedCloses = 0,
     gaps = 0,
     regressions = 0,
+    topologyPatches = 0,
+    basisMismatches = 0,
     resets = 0,
     wireRecords = 0,
     arrivals = 0,
@@ -189,13 +191,17 @@ async function sample(label, hotFraction, liveClock, seconds) {
       const envelope = JSON.parse(data);
       for (const m of envelope.type === 'batch' ? envelope.messages : [envelope]) {
         if (m.type === 'snapshot') {
+          if (recording && m.basis) {
+            topologyPatches++;
+            if (m.basis.epoch !== c.epoch || m.basis.revision !== c.rev) basisMismatches++;
+          }
           c.epoch = m.world.epoch;
           c.rev = m.viewRevision;
           if (i < writers) authorIds.add(m.selfId);
           if (!c.hello) {
             c.hello = true;
             if (recording) bytesNewViews += data.length;
-            ws.send(JSON.stringify({ type: 'hello', batchVersion: 1, view: p.view }));
+            ws.send(JSON.stringify({ type: 'hello', batchVersion: 1, topologyDelta: 1, view: p.view }));
             ws.send(
               JSON.stringify({
                 type: 'input',
@@ -374,6 +380,8 @@ async function sample(label, hotFraction, liveClock, seconds) {
       viewRecords: wireRecords,
       revisionGaps: gaps,
       revisionRegressions: regressions,
+      topologyPatches,
+      basisMismatches,
       resets,
       bytesPerSecond: bytes / (m.elapsedMs / 1000),
       serverBytesPerSecond: metric('ws.tx_bytes').sum / (m.elapsedMs / 1000),

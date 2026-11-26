@@ -97,7 +97,15 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
         }
         for (const actor of actors) spatial.update(actor);
         const frame = clients.size > 1 ? createSnapshotFrame(world, peers()) : undefined;
-        for(const [socket,actor] of clients)scopedUpdate(socket,actor,{snapshot:true,frame,reason:'density-resize',resize:{ ...result, relocation:relocations.get(actor) }});
+        for (const [socket,actor] of clients) {
+          const relocation = relocations.get(actor);
+          const movedBaseline = relocation && actor.observer.last?.epoch === world.epoch;
+          const basis = socket.topologyDelta && !actor.retry && actor.lastSnapshotEpoch === world.epoch-1
+            ? { epoch:world.epoch-1, revision:actor.observer.revision,
+                dx:movedBaseline ? relocation.dx : 0, dy:movedBaseline ? relocation.dy : 0 } : undefined;
+          scopedUpdate(socket,actor,{snapshot:true,frame,basis,translated:movedBaseline && !!result.translates,
+            reason:'density-resize',resize:{ ...result, relocation }});
+        }
         notify();
       }
       return result;
@@ -151,7 +159,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     return writeEncoded(socket, sharedSnapshot ? encodeSnapshot(message) : JSON.stringify(message));
   };
   const notify = () => { for (const listener of listeners.values()) listener(); };
-  const scopedUpdate = (socket, actor, { snapshot = false, delta, frame, ...extra } = {}) => {
+  const scopedUpdate = (socket, actor, { snapshot = false, delta, frame, basis, translated, ...extra } = {}) => {
     if (socket.readyState !== WebSocket.OPEN) return;
     try {
       const previous = actor.observer.revision;
@@ -161,16 +169,18 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       }
       const observation = delta && socket.textworldBatchVersion === 1
         ? actor.observer.change(delta, () => spatial.peersFor(actor))
-        : actor.observer.read(frame ? [] : spatial.peersFor(actor), { since: previous, force: snapshot, frame });
+        : actor.observer.read(frame ? [] : spatial.peersFor(actor), { since: previous, force: snapshot, frame, topologyDelta:!!basis, translated });
       if (!observation) return;
       clearTimeout(actor.retry); actor.retry = null;
       if (snapshot) {
         actor.input.cursor = { x: actor.peer.x, y: actor.peer.y };
         const inputState = actor.input.snapshot();
         measurements.record('input.snapshot_bytes', Buffer.byteLength(JSON.stringify(inputState)));
-        send(socket, { type: 'snapshot', world: publicWorld(world), selfId: actor.peer.id,
-          cells: observation.cells, marks: observation.marks, freshness: observation.freshness, colors: observation.colors, peers: observation.peers, view: observation.view, viewRevision: observation.revision, limits,
-          input: { sequence: actor.inputSequence, state: inputState }, ...extra }, !!frame);
+        const contents = basis && observation.partial ? {basis, patch:observation} : {cells:observation.cells,
+          marks:observation.marks, freshness:observation.freshness, colors:observation.colors, peers:observation.peers};
+        send(socket, { type: 'snapshot', world: publicWorld(world), selfId: actor.peer.id, ...contents,
+          view: observation.view, viewRevision: observation.revision, limits,
+          input: { sequence: actor.inputSequence, state: inputState }, ...extra }, !!frame && !contents.patch);
         actor.lastSnapshotEpoch = world.epoch;
       } else if (observation.revision !== previous || extra.force) send(socket, { type: 'view', world: publicWorld(world), observation });
     } catch (error) {
@@ -378,7 +388,10 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
         if (message.type === 'hello') {
           if (actor.hello) return;
           actor.hello = true;
-          if (message.batchVersion === 1) socket.textworldBatchVersion = 1;
+          if (message.batchVersion === 1) {
+            socket.textworldBatchVersion = 1;
+            socket.topologyDelta = message.topologyDelta === 1;
+          }
           const view = message.view && validateView(message.view);
           if (message.x !== undefined || message.y !== undefined) policy.acceptMove({ x: message.x, y: message.y, epoch: world.epoch });
           if (view) actor.observer.setView(view);

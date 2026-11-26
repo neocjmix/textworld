@@ -139,14 +139,14 @@ export class Population {
   receive(a, m) {
     if (m.type === 'snapshot') {
       a.epoch = m.world.epoch;
-      a.position = m.peers.find(p => p.id === m.selfId);
+      a.position = m.patch ? m.input.state.cursor : m.peers.find(p => p.id === m.selfId);
       if (!a.ready && !a.leaving) {
         a.ready = true;
         a.due = performance.now() + 250 * jitter(a.random, this.spread);
         this.stats.joined++;
         this.stats.peak = Math.max(this.stats.peak, [...this.actors].filter(p => p.ready && !p.leaving).length);
         a.socket.send(JSON.stringify({ type: 'hello', name: names[a.role] + ' ' + a.number,
-          view: { cols: 48, rows: 20 }, batchVersion: 1 }));
+          view: { cols: 48, rows: 20 }, batchVersion: 1, topologyDelta: 1 }));
         this.wake();
       }
     } else if (m.type === 'error') {
