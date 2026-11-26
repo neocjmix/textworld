@@ -1,0 +1,80 @@
+{
+  "id": "126f73c0-88e4-4b0e-9fb2-801b95700030",
+  "state": "finished",
+  "startedAt": "2026-11-26T19:06:47.457Z",
+  "deadline": "2026-11-26T19:14:07.457Z",
+  "phase": {
+    "name": "퇴장·정리",
+    "seconds": 15,
+    "writers": 0,
+    "walkers": 0,
+    "readers": 0,
+    "writing": "new-cells",
+    "actionIntervalMs": 850
+  },
+  "population": {
+    "attempts": 593,
+    "joined": 593,
+    "peak": 298,
+    "sent": 15144,
+    "ack": 15144,
+    "rejected": 0,
+    "unconfirmed": 0,
+    "rateLimited": 0,
+    "receivedBytes": 245367978,
+    "receivedWireBytes": 247484024,
+    "transportErrors": 0,
+    "writtenGraphemes": 7762,
+    "active": {
+      "writers": 0,
+      "walkers": 0,
+      "readers": 0
+    },
+    "departures": {
+      "lifetime": 295,
+      "target-reduced": 298
+    },
+    "botMinutes": 1770.3794179309355,
+    "ackP95Ms": 27.887,
+    "typingGapP50Ms": 236.799,
+    "typingGapP95Ms": 677.887
+  },
+  "world": {
+    "width": 277,
+    "height": 139,
+    "epoch": 872,
+    "textLayout": 2,
+    "occupiedCells": 2389,
+    "connections": 2
+  },
+  "position": null,
+  "cost": {
+    "scope": "whole-service-during-run",
+    "priceDate": "2026-11-26",
+    "billingUnit": "decimal GB",
+    "ratesUsd": {
+      "cpuCoreMinute": 0.000463,
+      "memoryGBMinute": 0.000231,
+      "volumeGBMinute": 3.472222222e-06,
+      "egressGB": 0.05
+    },
+    "elapsedSeconds": 440.008700636,
+    "cpuCoreSeconds": 86.552633,
+    "memoryGiBMinutes": 2.9269005323394266,
+    "volumeGiBMinutes": 0.3373357672904938,
+    "publicHttpBytes": 1562389,
+    "publicWebSocketBytes": 3878147,
+    "estimatedUsd": {
+      "cpu": 0.0006678978179833333,
+      "memory": 0.0007259719042562232,
+      "volume": 1.2576788959991417e-06,
+      "publicEgress": 0.00027202680000000003,
+      "subtotal": 0.0016671542011355558
+    },
+    "usdPer1000WrittenGraphemes": 0.00021478410218185465,
+    "hypotheticalBotEgressUsd": 0.0123742012
+  },
+  "finishedAt": "2026-11-26T19:14:07.466Z",
+  "reason": "deadline",
+  "error": null
+}

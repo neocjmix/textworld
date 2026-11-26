@@ -1,0 +1,10 @@
+{
+  "seed": 147741,
+  "jitterRatio": 0.3,
+  "lifetimeSeconds": [530, 600],
+  "budget": { "botMinutes": 12000, "receivedMiB": 4096, "admissions": 3000 },
+  "phases": [
+    { "name": "공개 지도 입장·교체·사람을 위한 여유석", "seconds": 900, "writers": 20, "walkers": 80, "readers": 890, "actionIntervalMs": 850 },
+    { "name": "퇴장·정리", "seconds": 30, "writers": 0, "walkers": 0, "readers": 0 }
+  ]
+}

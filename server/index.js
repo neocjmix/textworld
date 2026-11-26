@@ -60,7 +60,7 @@ export function networkKey(req, trustProxy = false) {
 export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || resolve(root, 'data/world.sqlite'),
   staticRelease = null, compression = false, compressionThreshold = 1024,
   now = Date.now, policyNow = () => performance.now(), maxParticipants = 300,
-  actionRate = 120, actionBurst = 96,
+  actionRate = 240, actionBurst = 192,
   metricsPath, metricsToken = process.env.TEXTWORLD_METRICS_TOKEN || '', metricsEnabled = true,
   trustProxy = process.env.TEXTWORLD_TRUST_PROXY || (process.env.RAILWAY_ENVIRONMENT_ID ? 'railway' : false),
   identifyNetwork = req => networkKey(req, trustProxy),
@@ -127,12 +127,12 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   const clients = new Map(), actors = new Set(), listeners = new Map();
   const spatial = new SpatialSubscriptions(world);
   const networks = new NetworkBudgets({ now: policyNow });
-  // Normal 300-person traffic offers ~30 actions/s. Bound synchronous fanout
-  // before accepting a mutation; readers and already committed views continue.
+  // Bound synchronous fanout before accepting a mutation; readers and already
+  // committed views continue. Movement is a public change with an audience too.
   const worldActions = new Budget({rate:actionRate, capacity:actionBurst, now:policyNow});
-  const admitAction = (units = 1, editAt) => {
-    const audience = editAt ? spatial.candidateCount(editAt) : 0;
-    const weight = Math.max(1, Math.min(5, audience / 70));
+  const admitAction = (units = 1, point, previous) => {
+    const audience = point ? spatial.candidateCount(point, previous) : 0;
+    const weight = Math.max(1, audience / 70);
     try { worldActions.spend(units * weight); }
     catch (error) {
       if (error.status !== 429) throw error;

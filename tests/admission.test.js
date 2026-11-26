@@ -65,7 +65,7 @@ test('one backpressured link closes with 1013 while its neighbor receives the ne
 
 test('aggregate action pressure refuses before a write, keeps the read stream and admits the next ordinal', async t => {
   let clock = 0;
-  const app = createTextworld({storagePath:':memory:',policyNow:() => clock});
+  const app = createTextworld({storagePath:':memory:',policyNow:() => clock,actionRate:120,actionBurst:96});
   t.after(() => app.close());
   const {port} = await app.listen(0,'127.0.0.1');
   const url = 'ws://127.0.0.1:'+port+'/ws';
@@ -87,10 +87,10 @@ test('aggregate action pressure refuses before a write, keeps the read stream an
   assert.equal(app.world.seq,seq+1);
 });
 
-test('an edit visible throughout a crowd costs more than an ordinary step', async t => {
+test('edits and movement both pay for their crowd before taking effect', async t => {
   let clock = 0;
   const app = createTextworld({
-    storagePath: ':memory:', policyNow: () => clock,
+    storagePath: ':memory:', policyNow: () => clock, actionRate: 120, actionBurst: 96,
     identifyNetwork: req => req.headers['x-test-network'] || 'walker',
   });
   t.after(() => app.close());
@@ -106,17 +106,42 @@ test('an edit visible throughout a crowd costs more than an ordinary step', asyn
     await response.json();
   }
   const send = (sequence, action) => writer.send({ type: 'input', epoch: 1, id: String(sequence), sequence, action });
-  for (let n = 1; n <= 95; n++) send(n, { kind: 'move', dx: n % 2 ? 1 : -1, dy: 0 });
-  await writer.next(m => m.type === 'ack' && m.id === '95');
+  for (let n = 1; n <= 93; n++) send(n, { kind: 'move', dx: n % 2 ? 1 : -1, dy: 0 });
+  await writer.next(m => m.type === 'ack' && m.id === '93');
   const version = app.world.seq;
-  send(96, { kind: 'type', text: '봄' });
-  const refusal = await writer.next(m => m.type === 'error' && m.id === '96');
+  send(94, { kind: 'type', text: '봄' });
+  const refusal = await writer.next(m => m.type === 'error' && m.id === '94');
   assert.equal(refusal.code, 'WORLD_BUSY');
   assert.equal(app.world.seq, version);
-  send(97, { kind: 'move', dx: 1, dy: 0 });
-  await writer.next(m => m.type === 'ack' && m.id === '97');
+  send(95, { kind: 'move', dx: 1, dy: 0 });
+  assert.equal((await writer.next(m => m.type === 'error' && m.id === '95')).code, 'WORLD_BUSY');
   clock += refusal.retryAfterMs;
-  send(98, { kind: 'type', text: '봄' });
-  await writer.next(m => m.type === 'ack' && m.id === '98');
+  send(96, { kind: 'type', text: '봄' });
+  await writer.next(m => m.type === 'ack' && m.id === '96');
   assert.equal(app.world.seq, version + 1);
+});
+
+test('crowd cost keeps increasing beyond the old five-unit ceiling', async t => {
+  const app = createTextworld({ storagePath: ':memory:', maxParticipants: 400,
+    actionBurst: 10, policyNow: () => 0,
+    identifyNetwork: req => req.headers['x-test-network'] || 'writer' });
+  t.after(() => app.close());
+  const { port } = await app.listen(0, '127.0.0.1');
+  const writer = connect('ws://127.0.0.1:' + port + '/ws');
+  await writer.next(m => m.type === 'snapshot');
+  writer.send({ type: 'hello', batchVersion: 1 });
+  for (let i = 0; i < 360; i++) {
+    const response = await fetch('http://127.0.0.1:' + port + '/api/agents/v1/sessions', {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-test-network': String(i) }, body: '{}',
+    });
+    assert.equal(response.status, 201); await response.json();
+  }
+  writer.send({ type: 'input', id: 'first', sequence: 1, action: { kind: 'type', text: 'x' } });
+  await writer.next(m => m.type === 'ack' && m.id === 'first');
+  const version = app.world.seq;
+  writer.send({ type: 'input', id: 'second', sequence: 2, action: { kind: 'move', dx: -1, dy: 0 } });
+  const refused = await writer.next(m => m.type === 'error' && m.id === 'second');
+  assert.equal(refused.code, 'WORLD_BUSY');
+  assert.deepEqual(refused.cursor, { x: 65, y: 32 });
+  assert.equal(app.world.seq, version);
 });

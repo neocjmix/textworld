@@ -86,8 +86,14 @@ export class SpatialSubscriptions {
 
   // Admission needs a constant-time upper bound. Delivery still tests each
   // candidate against its exact wrapping view in collect().
-  candidateCount(point) {
-    return this.subscribers.get(tile(point.x, point.y))?.size ?? 0;
+  candidateCount(point, previous) {
+    const key = tile(point.x, point.y);
+    const count = this.subscribers.get(key)?.size ?? 0;
+    const before = previous && tile(previous.x, previous.y);
+    if (!before || before === key) return count;
+    // Sum is a conservative union bound, capped by the current population.
+    // Avoid allocating or walking a crowd just to reject an overloaded action.
+    return Math.min(this.registrations.size, count + (this.subscribers.get(before)?.size ?? 0));
   }
 
   peersFor(actor) {

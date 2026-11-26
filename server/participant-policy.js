@@ -198,7 +198,8 @@ export class ParticipantPolicy {
     // A GPS/shared-address relocation may span a large world, but spends an
     // entire burst. Repeating such relocations cannot create a free scan path.
     const cost = Math.min(distance, LIMITS.move.burst);
-    consumeTogether([this.move, this.network?.move], cost, cost ? this.admitAction : undefined);
+    consumeTogether([this.move, this.network?.move], cost,
+      cost ? () => this.admitAction?.(1, point, this.peer) : undefined);
     this.peer.x = point.x; this.peer.y = point.y;
     if (native) {
       this.carets.set(cellKey(point.x, point.y), { ...point });

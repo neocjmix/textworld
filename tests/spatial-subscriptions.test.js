@@ -22,6 +22,12 @@ test('spatial subscriptions match exact wrapping views through moves, departures
         const expected = active.filter(actor => contains(rectangles.get(actor), x, y, world));
         assert.deepEqual(actual, new Set(expected));
         assert.ok(index.candidateCount({ x, y }) >= expected.length);
+        const previous = { x: (x + 19) % world.width, y: (y + 7) % world.height };
+        const union = active.filter(actor => contains(rectangles.get(actor), x, y, world)
+          || contains(rectangles.get(actor), previous.x, previous.y, world));
+        const bound = index.candidateCount({ x, y }, previous);
+        assert.ok(bound >= union.length && bound <= active.length, 'both ends are covered without exceeding the population');
+        assert.equal(index.candidateCount({ x, y }, { x, y }), index.candidateCount({ x, y }));
       }
     }
     for (const actor of active) {
