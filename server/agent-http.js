@@ -15,7 +15,7 @@ function json(res, status, value, retryAfterMs = 0) {
   res.end(status === 204 ? undefined : JSON.stringify(value));
 }
 
-function readBody(req) {
+export function readBody(req) {
   const contentType = req.headers['content-type'];
   if (contentType && !/^application\/json(?:\s*;|$)/i.test(contentType)) {
     req.resume();

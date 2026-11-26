@@ -3,7 +3,7 @@ import { randomUUID, randomInt, timingSafeEqual } from 'node:crypto';
 import { isIP } from 'node:net';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { resolve, extname, sep } from 'node:path';
+import { resolve, dirname, extname, sep } from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
 import { createViewDelivery } from './view-delivery.js';
 import { World, WorldError } from './world.js';
@@ -13,6 +13,7 @@ import { Observer, contains, viewRectangle, validateView } from './visibility.js
 import { SpatialSubscriptions } from './spatial-subscriptions.js';
 import { createTurnRunner } from './agent-turns.js';
 import { createAgentHTTP } from './agent-http.js';
+import { createLivePlaytest } from './live-playtest.js';
 import { Measurements, route as measurementRoute } from './measurements.js';
 import { createMCPAgent } from './mcp-agent.js';
 import { expire, EXPIRY_BATCH } from './expiration.js';
@@ -50,9 +51,14 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   now = Date.now, policyNow = () => performance.now(),
   metricsPath, metricsToken = process.env.TEXTWORLD_METRICS_TOKEN || '', metricsEnabled = true,
   trustProxy = process.env.TEXTWORLD_TRUST_PROXY || (process.env.RAILWAY_ENVIRONMENT_ID ? 'railway' : false),
-  identifyNetwork = req => networkKey(req, trustProxy) } = {}) {
+  identifyNetwork = req => networkKey(req, trustProxy),
+  playtestToken = process.env.TEXTWORLD_PLAYTEST_TOKEN || '', playtestDirectory = resolve(dirname(storagePath), 'playtests') } = {}) {
   const world = new World({ storagePath, now });
   world.storagePath = storagePath;
+  const live = playtestToken ? createLivePlaytest({
+    token: playtestToken, directory: playtestDirectory, upgrade: (...args) => server.emit('upgrade', ...args),
+    sampleWorld: () => ({ ...publicWorld(world), occupiedCells: world.ink, connections: wss.clients.size }),
+  }) : null;
   const measurements = new Measurements({path:metricsPath || (storagePath === ':memory:' ? ':memory:' : storagePath + '.metrics.sqlite'),enabled:metricsEnabled});
   const commit = world.commit.bind(world);
   world.commit = (...args) => {const started=performance.now();try {const result=commit(...args);measurements.record('commit.count');measurements.record('commit.cells',result.cells.length);return result;}finally {measurements.record('commit.ms',performance.now()-started);}};
@@ -199,7 +205,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   const createActor = (req, { name, view, position } = {}) => {
     const acceptedView = validateView(view);
     if (world.usedColors.size >= 113 ** 3) throw new PolicyError('COLOR_CAPACITY', '새 사용자 색을 배정할 수 없습니다.', { status: 503 });
-    const network = networks.acquire(identifyNetwork(req));
+    const network = networks.acquire(live?.network(req) ?? identifyNetwork(req));
     const usedColors = world.usedColors;
     let color;
     do { color = '#' + [randomInt(113), randomInt(113), randomInt(113)].map(v => v.toString(16).padStart(2, '0')).join(''); } while (usedColors.has(color));
@@ -261,6 +267,15 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     res.once('finish',account);res.once('close',account);
     try {
       const url = new URL(req.url, 'http://textworld.local');
+      if (url.pathname === '/api/playtest') {
+        if (!live) return json(res, 404, { error: 'Not found' });
+        return await live.handle(req, res, url, json);
+      }
+      if (url.pathname === '/playtest' && ['GET', 'HEAD'].includes(req.method)) {
+        const point = live?.position() ?? { x: Math.floor(world.width / 2), y: Math.floor(world.height / 2) };
+        res.writeHead(302, { Location: '/#x=' + point.x + '&y=' + point.y, 'Cache-Control': 'no-store' });
+        return res.end();
+      }
       if (url.pathname === '/api/metrics') {
         const actual=Buffer.from(req.headers.authorization||''),expected=Buffer.from('Bearer '+metricsToken);
         if(!metricsToken||actual.length!==expected.length||!timingSafeEqual(actual,expected))return json(res,404,{error:'Not found'});
@@ -271,7 +286,8 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       }
       if (await mcp.handle(req, res, url)) return;
       if (await agentHTTP.handle(req, res, url)) return;
-      if (url.pathname === '/health') return json(res, 200, { ok: true, world: publicWorld(world), peers: actors.size });
+      if (url.pathname === '/health') return json(res, 200, { ok: true, world: publicWorld(world), peers: actors.size,
+        playtest: live?.state ?? 'disabled', revision: process.env.RAILWAY_GIT_COMMIT_SHA || null });
       if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Unsupported method' });
       const decoded = decodeURIComponent(url.pathname);
       const base = decoded.startsWith('/shared/') ? resolve(root, 'shared') : resolve(root, 'public');
@@ -453,6 +469,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     listen: (port = 3000, host = '0.0.0.0') => new Promise(resolve => server.listen(port, host, () => resolve(server.address()))),
     close: async () => {
       closing = true; clearInterval(measurementTimer); clearInterval(heartbeat); clearInterval(adaptation); clearInterval(aging); clearImmediate(cleanupContinuation);
+      await live?.close();
       await stopResize(world);
       agentHTTP.close(); await runner.shutdown(); await mcp.close();
       for (const actor of actors) removeActor(actor);

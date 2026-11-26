@@ -9,6 +9,7 @@
     "test:browser": "node tests/browser.mjs",
     "experiment": "node experiments/topology.mjs",
     "playtest": "node experiments/playtest/run.mjs",
+    "playtest:live": "node experiments/playtest/control.mjs",
     "experiment:density": "node experiments/density.mjs && node experiments/local-continuity.mjs",
     "test:input": "node tests/input-regression.mjs",
     "test:writing": "node tests/writing-interactions.mjs",

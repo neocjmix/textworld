@@ -6,7 +6,7 @@ import { createInterface } from 'node:readline';
 import { DatabaseSync } from 'node:sqlite';
 import { parseArgs } from 'node:util';
 import { Worker } from 'node:worker_threads';
-import { Population } from './population.mjs';
+import { startTraffic } from './traffic.mjs';
 import { roles, scenario, target, writingPattern } from './scenario.mjs';
 
 const usage = 'npm run playtest -- [--scenario wave.json] [--lan] [--port 3001]';
@@ -43,8 +43,8 @@ async function run() {
   const scratch = mkdtempSync(join(tmpdir(), 'textworld-playtest-'));
   const done = Promise.withResolvers();
   const origin = performance.now();
-  let phaseStart = origin, phaseIndex = -1, phase, stopping, failure;
-  let world, mapPort, population, input, clock, deadline, startup, worker;
+  let phase, stopping, failure;
+  let world, mapPort, traffic, population, input, startup, worker;
   const log = (type, data) => appendFileSync(join(dir, 'events.jsonl'), JSON.stringify({
     type, elapsedMs: Math.round(performance.now() - origin), at: new Date().toISOString(), ...data,
   }) + '\n');
@@ -56,8 +56,7 @@ async function run() {
   };
   const interrupt = () => stop('signal');
   const joinLink = host => {
-    const writer = [...population.actors].find(a => a.ready && !a.leaving && a.role === 'writers' && a.position);
-    const point = writer?.position || { x: Math.floor(world.width/2), y: Math.floor(world.height/2) };
+    const point = traffic?.position() || { x: Math.floor(world.width/2), y: Math.floor(world.height/2) };
     return 'http://' + host + ':' + mapPort + '/#x=' + point.x + '&y=' + point.y;
   };
   function printLinks() {
@@ -86,7 +85,7 @@ async function run() {
       const counts = target.safeParse(Object.fromEntries(roles.map((r, i) => [r, Number(args[i])])));
       const pattern = writingPattern.safeParse(args[3] ?? phase.writing);
       if (counts.success && pattern.success) {
-        phase = { ...phase, ...counts.data, writing: pattern.data };
+        phase = traffic.setTarget(counts.data, pattern.data);
         log('override', { phase });
         console.log('이번 구간 목표', counts.data, pattern.data);
         return;
@@ -94,17 +93,10 @@ async function run() {
     }
     console.log(controls);
   }
-  function tick() {
-    if (stopping) return;
-    const now = performance.now();
-    while (!phase || now >= phaseStart + phase.seconds * 1000) {
-      if (phase) phaseStart += phase.seconds * 1000;
-      phase = plan.phases[++phaseIndex];
-      if (!phase) return stop('deadline');
-      log('phase', { phase });
-      console.log('구간 ' + phase.name + ' · ' + phase.seconds + '초 · 목표 ' + roles.map(r => phase[r]).join('/') + '명');
-    }
-    population.tick(now, phase);
+  function onPhase(value) {
+    phase = value;
+    log('phase', { phase });
+    console.log('구간 ' + phase.name + ' · ' + phase.seconds + '초 · 목표 ' + roles.map(r => phase[r]).join('/') + '명');
   }
 
   process.on('SIGINT', interrupt);
@@ -128,26 +120,23 @@ async function run() {
       if (stopping) return;
       if (m.type === 'ready') {
         clearTimeout(startup);
-        phaseStart = performance.now();
         mapPort = m.mapPort;
-        population = new Population(m.botPort, plan, stop);
         log('ready', { link: joinLink('127.0.0.1'), world, durationMs: duration });
         printLinks();
+        traffic = startTraffic({ port: m.botPort, plan, credential: m.credential, onPhase });
+        population = traffic.population;
+        traffic.done.then(stop, error => stop('driver-error', error));
         console.log(controls);
-        deadline = setTimeout(() => stop('deadline'), duration);
         input = createInterface({ input: process.stdin, terminal: false });
         input.on('line', command);
-        tick();
-        clock = setInterval(tick, 100);
       } else if (resized || performance.now() >= nextSample) {
         log(resized ? 'resize' : 'sample', { phase: phase.name, world, population: population.report() });
         nextSample = performance.now() + 5000;
       }
     });
     await done.promise;
-    clearInterval(clock);
     input?.close();
-    await population?.close();
+    await traffic?.stop(stopping);
     worker.postMessage('stop');
     const force = setTimeout(() => {
       stop('shutdown-timeout', Error('시험 월드 종료 시간 초과'));
@@ -165,7 +154,7 @@ async function run() {
     console.log('시험 종료 ' + JSON.stringify(record));
     if (failure) throw failure;
   } finally {
-    clearTimeout(startup); clearTimeout(deadline); clearInterval(clock);
+    clearTimeout(startup);
     input?.close();
     if (worker) await worker.terminate();
     rmSync(scratch, { recursive: true, force: true });

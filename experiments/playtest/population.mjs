@@ -34,8 +34,9 @@ function nextAction(actor, pattern) {
 }
 
 export class Population {
-  constructor(port, plan, stop) {
+  constructor(port, plan, stop, credential) {
     this.url = 'ws://127.0.0.1:' + port + '/ws';
+    this.headers = credential ? { authorization: 'Bearer ' + credential } : {};
     this.plan = plan;
     this.stop = stop;
     this.actors = new Set();
@@ -78,7 +79,7 @@ export class Population {
     const number = ++this.stats.attempts;
     const random = randomSource(Math.floor(this.random() * 0x100000000));
     const [min, max] = this.plan.lifetimeSeconds;
-    const socket = new WebSocket(this.url, { handshakeTimeout: 4000 });
+    const socket = new WebSocket(this.url, { handshakeTimeout: 4000, headers: this.headers });
     const actor = { number, role, socket, random, born: now, expires: now + 1000 * (min + random() * (max - min)),
       ready: false, steps: 0, sequence: 0, due: now, line: number, offset: 0 };
     this.actors.add(actor);
