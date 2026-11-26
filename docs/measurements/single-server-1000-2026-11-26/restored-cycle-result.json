@@ -1,0 +1,80 @@
+{
+  "id": "126f73c0-88e4-4b0e-9fb2-801b95700301",
+  "state": "finished",
+  "startedAt": "2026-11-26T21:38:15.048Z",
+  "deadline": "2026-11-26T21:53:35.048Z",
+  "phase": {
+    "name": "퇴장",
+    "seconds": 15,
+    "writers": 0,
+    "walkers": 0,
+    "readers": 0,
+    "writing": "new-cells",
+    "actionIntervalMs": 850
+  },
+  "population": {
+    "attempts": 747,
+    "joined": 747,
+    "peak": 298,
+    "sent": 19222,
+    "ack": 19222,
+    "rejected": 0,
+    "unconfirmed": 0,
+    "rateLimited": 0,
+    "receivedBytes": 470325231,
+    "receivedWireBytes": 473830499,
+    "transportErrors": 0,
+    "writtenGraphemes": 9954,
+    "active": {
+      "writers": 0,
+      "walkers": 0,
+      "readers": 0
+    },
+    "departures": {
+      "lifetime": 390,
+      "target-reduced": 357
+    },
+    "botMinutes": 4148.344074309799,
+    "ackP95Ms": 26.303,
+    "typingGapP50Ms": 236.031,
+    "typingGapP95Ms": 681.471
+  },
+  "world": {
+    "width": 159,
+    "height": 81,
+    "epoch": 1240,
+    "textLayout": 2,
+    "occupiedCells": 1395,
+    "connections": 2
+  },
+  "position": null,
+  "cost": {
+    "scope": "whole-service-during-run",
+    "priceDate": "2026-11-26",
+    "billingUnit": "decimal GB",
+    "ratesUsd": {
+      "cpuCoreMinute": 0.000463,
+      "memoryGBMinute": 0.000231,
+      "volumeGBMinute": 3.472222222e-06,
+      "egressGB": 0.05
+    },
+    "elapsedSeconds": 920.005792793,
+    "cpuCoreSeconds": 130.519269,
+    "memoryGiBMinutes": 6.579353023005444,
+    "volumeGiBMinutes": 0.9921730205809379,
+    "publicHttpBytes": 21637,
+    "publicWebSocketBytes": 7581854,
+    "estimatedUsd": {
+      "cpu": 0.00100717369245,
+      "memory": 0.0016319056251178712,
+      "volume": 3.699089127687445e-06,
+      "publicEgress": 0.00038017455,
+      "subtotal": 0.0030229529566955585
+    },
+    "usdPer1000WrittenGraphemes": 0.00030369228015828393,
+    "hypotheticalBotEgressUsd": 0.02369152495
+  },
+  "finishedAt": "2026-11-26T21:53:35.054Z",
+  "reason": "deadline",
+  "error": null
+}

@@ -1,0 +1,41 @@
+{
+  "id": "126f73c0-88e4-4b0e-9fb2-801b95700301",
+  "state": "starting",
+  "startedAt": "2026-11-26T21:38:15.048Z",
+  "deadline": "2026-11-26T21:53:35.048Z",
+  "world": {
+    "width": 347,
+    "height": 164,
+    "epoch": 1162,
+    "textLayout": 2,
+    "occupiedCells": 2050,
+    "connections": 0
+  },
+  "position": null,
+  "cost": {
+    "scope": "whole-service-during-run",
+    "priceDate": "2026-11-26",
+    "billingUnit": "decimal GB",
+    "ratesUsd": {
+      "cpuCoreMinute": 0.000463,
+      "memoryGBMinute": 0.000231,
+      "volumeGBMinute": 3.472222222e-06,
+      "egressGB": 0.05
+    },
+    "elapsedSeconds": 0,
+    "cpuCoreSeconds": 0,
+    "memoryGiBMinutes": 0,
+    "volumeGiBMinutes": 0,
+    "publicHttpBytes": 0,
+    "publicWebSocketBytes": 0,
+    "estimatedUsd": {
+      "cpu": 0,
+      "memory": 0,
+      "volume": 0,
+      "publicEgress": 0,
+      "subtotal": 0
+    },
+    "usdPer1000WrittenGraphemes": null,
+    "hypotheticalBotEgressUsd": null
+  }
+}

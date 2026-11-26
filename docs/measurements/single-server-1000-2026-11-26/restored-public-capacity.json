@@ -1,0 +1,15 @@
+{
+  "at": "2026-11-26T21:40:33.194Z",
+  "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+  "capacity": 300,
+  "observedPeersBeforeRequest": 300,
+  "status": 503,
+  "retryAfter": "5",
+  "body": {
+    "error": {
+      "code": "WORLD_FULL",
+      "message": "현재 세계가 만원입니다. 잠시 뒤 다시 접속해 주세요.",
+      "retryAfterMs": 5000
+    }
+  }
+}

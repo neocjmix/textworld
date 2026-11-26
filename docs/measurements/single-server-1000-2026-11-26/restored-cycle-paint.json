@@ -1,0 +1,2029 @@
+{
+  "startedAt": "2026-11-26T21:38:33.925Z",
+  "finishedAt": "2026-11-26T21:53:39.545Z",
+  "origin": "https://textworld-production-987c.up.railway.app",
+  "entry": "/",
+  "desktopWidth": 1200,
+  "mobileWidth": 390,
+  "glyphBase": 21602,
+  "quietFrom": 1795729520048,
+  "quietUntil": 1795729880048,
+  "screenshotAt": 300,
+  "screenshots": [
+    "/workspace/scratch/textworld-1000/restored-cycle-paint.json.desktop.png",
+    "/workspace/scratch/textworld-1000/restored-cycle-paint.json.mobile.png"
+  ],
+  "samples": [
+    {
+      "at": "2026-11-26T21:38:39.515Z",
+      "elapsedSeconds": 0.132,
+      "peers": 55,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 326,
+        "height": 164,
+        "epoch": 1163,
+        "textLayout": 2
+      },
+      "visiblePeers": 52,
+      "visibleCells": 538,
+      "inputPoint": {
+        "x": 163,
+        "y": 82
+      },
+      "inputEpoch": 1163,
+      "localMs": 12,
+      "remoteMs": 210.599853515625,
+      "transport": [
+        {
+          "receivedAt": 1795729119740.6,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729119764.8,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:38:51.516Z",
+      "elapsedSeconds": 12.133,
+      "peers": 80,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 306,
+        "height": 144,
+        "epoch": 1165,
+        "textLayout": 2
+      },
+      "visiblePeers": 78,
+      "visibleCells": 627,
+      "inputPoint": {
+        "x": 163,
+        "y": 82
+      },
+      "inputEpoch": 1165,
+      "localMs": 9.10009765625,
+      "remoteMs": 153.5,
+      "transport": [
+        {
+          "receivedAt": 1795729131654.6,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729131676.0999,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:39:03.517Z",
+      "elapsedSeconds": 24.134,
+      "peers": 108,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 268,
+        "height": 126,
+        "epoch": 1167,
+        "textLayout": 2
+      },
+      "visiblePeers": 95,
+      "visibleCells": 684,
+      "inputPoint": {
+        "x": 125,
+        "y": 82
+      },
+      "inputEpoch": 1167,
+      "localMs": 6.300048828125,
+      "remoteMs": 178.2998046875,
+      "transport": [
+        {
+          "receivedAt": 1795729143679.4001,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729143703.0999,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:39:15.528Z",
+      "elapsedSeconds": 36.145,
+      "peers": 134,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 235,
+        "height": 111,
+        "epoch": 1169,
+        "textLayout": 2
+      },
+      "visiblePeers": 92,
+      "visibleCells": 778,
+      "inputPoint": {
+        "x": 92,
+        "y": 82
+      },
+      "inputEpoch": 1169,
+      "localMs": 10.699951171875,
+      "remoteMs": 124.199951171875,
+      "transport": [
+        {
+          "receivedAt": 1795729155637.6,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729155661,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:39:27.516Z",
+      "elapsedSeconds": 48.133,
+      "peers": 161,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 206,
+        "height": 98,
+        "epoch": 1171,
+        "textLayout": 2
+      },
+      "visiblePeers": 94,
+      "visibleCells": 861,
+      "inputPoint": {
+        "x": 63,
+        "y": 69
+      },
+      "inputEpoch": 1171,
+      "localMs": 6.60009765625,
+      "remoteMs": 120.800048828125,
+      "transport": [
+        {
+          "receivedAt": 1795729167624,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729167644.2,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:39:39.531Z",
+      "elapsedSeconds": 60.148,
+      "peers": 187,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 101,
+      "visibleCells": 889,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 5.7998046875,
+      "remoteMs": 183.499755859375,
+      "transport": [
+        {
+          "receivedAt": 1795729179704.1,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729179727.3,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:39:52.448Z",
+      "elapsedSeconds": 73.065,
+      "peers": 216,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 109,
+      "visibleCells": 923,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 6.10009765625,
+      "remoteMs": 179.2998046875,
+      "transport": [
+        {
+          "receivedAt": 1795729192607.7002,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729192633.8,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:40:03.522Z",
+      "elapsedSeconds": 84.139,
+      "peers": 239,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 114,
+      "visibleCells": 969,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 5.2001953125,
+      "remoteMs": 164.39990234375,
+      "transport": [
+        {
+          "receivedAt": 1795729203671,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729203693,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:40:15.560Z",
+      "elapsedSeconds": 96.177,
+      "peers": 265,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 124,
+      "visibleCells": 1011,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 8.5,
+      "remoteMs": 173.399658203125,
+      "transport": [
+        {
+          "receivedAt": 1795729215719.4001,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729215743.4,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:40:27.519Z",
+      "elapsedSeconds": 108.136,
+      "peers": 291,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 127,
+      "visibleCells": 1044,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 16.300048828125,
+      "remoteMs": 118.7998046875,
+      "transport": [
+        {
+          "receivedAt": 1795729227623.9001,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729227647.4,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:40:39.507Z",
+      "elapsedSeconds": 120.124,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 128,
+      "visibleCells": 1073,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 11.400146484375,
+      "remoteMs": 169,
+      "transport": [
+        {
+          "receivedAt": 1795729239658.6,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729239683,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:40:51.519Z",
+      "elapsedSeconds": 132.136,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 130,
+      "visibleCells": 1112,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 5.199951171875,
+      "remoteMs": 165.199951171875,
+      "transport": [
+        {
+          "receivedAt": 1795729251670.6,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729251691,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:41:03.569Z",
+      "elapsedSeconds": 144.186,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 129,
+      "visibleCells": 1157,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 7.39990234375,
+      "remoteMs": 142.19970703125,
+      "transport": [
+        {
+          "receivedAt": 1795729263701.7002,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729263719,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:41:15.520Z",
+      "elapsedSeconds": 156.137,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 131,
+      "visibleCells": 1188,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 11.60009765625,
+      "remoteMs": 140.199951171875,
+      "transport": [
+        {
+          "receivedAt": 1795729275661.2002,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729275670.3,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:41:27.517Z",
+      "elapsedSeconds": 168.134,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 129,
+      "visibleCells": 1174,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 14.199951171875,
+      "remoteMs": 133,
+      "transport": [
+        {
+          "receivedAt": 1795729287634.7002,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729287659.8,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:41:39.510Z",
+      "elapsedSeconds": 180.128,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 128,
+      "visibleCells": 1161,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 5.800048828125,
+      "remoteMs": 193.599853515625,
+      "transport": [
+        {
+          "receivedAt": 1795729299641.5,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729299707,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:41:51.506Z",
+      "elapsedSeconds": 192.123,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 128,
+      "visibleCells": 1181,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 6.599853515625,
+      "remoteMs": 160.39990234375,
+      "transport": [
+        {
+          "receivedAt": 1795729311648.3,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729311669.7,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:42:03.532Z",
+      "elapsedSeconds": 204.149,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 130,
+      "visibleCells": 1162,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 11.099853515625,
+      "remoteMs": 171.7998046875,
+      "transport": [
+        {
+          "receivedAt": 1795729323687.3,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729323713.2,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:42:15.510Z",
+      "elapsedSeconds": 216.127,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 127,
+      "visibleCells": 1114,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 5.300048828125,
+      "remoteMs": 165.499755859375,
+      "transport": [
+        {
+          "receivedAt": 1795729335664.7002,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729335684.8,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:42:27.515Z",
+      "elapsedSeconds": 228.132,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 126,
+      "visibleCells": 1071,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 4.5,
+      "remoteMs": 147.19970703125,
+      "transport": [
+        {
+          "receivedAt": 1795729347647,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729347667.8,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:42:39.517Z",
+      "elapsedSeconds": 240.134,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 129,
+      "visibleCells": 1027,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 4.10009765625,
+      "remoteMs": 144.5,
+      "transport": [
+        {
+          "receivedAt": 1795729359647.6,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729359667,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:42:51.510Z",
+      "elapsedSeconds": 252.127,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 124,
+      "visibleCells": 995,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 5.60009765625,
+      "remoteMs": 118.599853515625,
+      "transport": [
+        {
+          "receivedAt": 1795729371613,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729371634.5,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:43:03.516Z",
+      "elapsedSeconds": 264.133,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 120,
+      "visibleCells": 966,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 9.699951171875,
+      "remoteMs": 164.2998046875,
+      "transport": [
+        {
+          "receivedAt": 1795729383668.9001,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729383692.2,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:43:15.515Z",
+      "elapsedSeconds": 276.132,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 122,
+      "visibleCells": 919,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 5.900146484375,
+      "remoteMs": 165.2998046875,
+      "transport": [
+        {
+          "receivedAt": 1795729395664.6,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729395687.5,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:43:27.503Z",
+      "elapsedSeconds": 288.12,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 116,
+      "visibleCells": 883,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 5.39990234375,
+      "remoteMs": 127.399658203125,
+      "transport": [
+        {
+          "receivedAt": 1795729407616.1,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729407636.9,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:43:39.512Z",
+      "elapsedSeconds": 300.129,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 115,
+      "visibleCells": 839,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 6.900146484375,
+      "remoteMs": 163.89990234375,
+      "transport": [
+        {
+          "receivedAt": 1795729419660.8,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729419680.9,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:43:51.528Z",
+      "elapsedSeconds": 312.145,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 113,
+      "visibleCells": 798,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 4.300048828125,
+      "remoteMs": 197.199951171875,
+      "transport": [
+        {
+          "receivedAt": 1795729431709.8,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729431731.2,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:44:03.556Z",
+      "elapsedSeconds": 324.173,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 114,
+      "visibleCells": 750,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 5.5,
+      "remoteMs": 138.699951171875,
+      "transport": [
+        {
+          "receivedAt": 1795729443676.4001,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729443700.3,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:44:15.518Z",
+      "elapsedSeconds": 336.135,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 114,
+      "visibleCells": 710,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 9.699951171875,
+      "remoteMs": 150.89990234375,
+      "transport": [
+        {
+          "receivedAt": 1795729455650.4001,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729455676.0999,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:44:27.518Z",
+      "elapsedSeconds": 348.135,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 107,
+      "visibleCells": 670,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 6.60009765625,
+      "remoteMs": 127.699951171875,
+      "transport": [
+        {
+          "receivedAt": 1795729467645.7002,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729467662.4,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:44:39.523Z",
+      "elapsedSeconds": 360.14,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 108,
+      "visibleCells": 624,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 17.5,
+      "remoteMs": 127.7998046875,
+      "transport": [
+        {
+          "receivedAt": 1795729479641.6,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729479660.8,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:44:51.522Z",
+      "elapsedSeconds": 372.139,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 181,
+        "height": 96,
+        "epoch": 1173,
+        "textLayout": 2
+      },
+      "visiblePeers": 107,
+      "visibleCells": 603,
+      "inputPoint": {
+        "x": 63,
+        "y": 67
+      },
+      "inputEpoch": 1173,
+      "localMs": 6.2998046875,
+      "remoteMs": 134.499755859375,
+      "transport": [
+        {
+          "receivedAt": 1795729491640.7002,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729491667,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:45:03.590Z",
+      "elapsedSeconds": 384.207,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 203,
+        "height": 96,
+        "epoch": 1174,
+        "textLayout": 2
+      },
+      "visiblePeers": 102,
+      "visibleCells": 590,
+      "inputPoint": {
+        "x": 85,
+        "y": 67
+      },
+      "inputEpoch": 1174,
+      "localMs": 6.300048828125,
+      "remoteMs": 171.300048828125,
+      "transport": [
+        {
+          "receivedAt": 1795729503743.5,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729503766.4,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:45:15.518Z",
+      "elapsedSeconds": 396.135,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 52,
+      "visibleCells": 223,
+      "inputPoint": {
+        "x": 85,
+        "y": 92
+      },
+      "inputEpoch": 1177,
+      "localMs": 6.300048828125,
+      "remoteMs": 155.499755859375,
+      "transport": [
+        {
+          "receivedAt": 1795729515656.3,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729515680.8,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:45:27.526Z",
+      "elapsedSeconds": 408.143,
+      "peers": 280,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 45,
+      "visibleCells": 217,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:45:39.518Z",
+      "elapsedSeconds": 420.135,
+      "peers": 298,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 45,
+      "visibleCells": 183,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:45:51.523Z",
+      "elapsedSeconds": 432.14,
+      "peers": 299,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 37,
+      "visibleCells": 171,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:46:03.516Z",
+      "elapsedSeconds": 444.133,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 34,
+      "visibleCells": 150,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:46:15.523Z",
+      "elapsedSeconds": 456.14,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 33,
+      "visibleCells": 128,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:46:27.510Z",
+      "elapsedSeconds": 468.127,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 28,
+      "visibleCells": 103,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:46:39.526Z",
+      "elapsedSeconds": 480.143,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 25,
+      "visibleCells": 60,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:46:51.509Z",
+      "elapsedSeconds": 492.126,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 24,
+      "visibleCells": 28,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:47:03.507Z",
+      "elapsedSeconds": 504.124,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 22,
+      "visibleCells": 9,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:47:15.529Z",
+      "elapsedSeconds": 516.146,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 20,
+      "visibleCells": 2,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:47:27.509Z",
+      "elapsedSeconds": 528.126,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 15,
+      "visibleCells": 2,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:47:39.521Z",
+      "elapsedSeconds": 540.138,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 12,
+      "visibleCells": 2,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:47:51.516Z",
+      "elapsedSeconds": 552.133,
+      "peers": 299,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 228,
+        "height": 121,
+        "epoch": 1177,
+        "textLayout": 2
+      },
+      "visiblePeers": 9,
+      "visibleCells": 2,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:48:03.509Z",
+      "elapsedSeconds": 564.126,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 200,
+        "height": 106,
+        "epoch": 1179,
+        "textLayout": 2
+      },
+      "visiblePeers": 63,
+      "visibleCells": 2,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:48:15.529Z",
+      "elapsedSeconds": 576.146,
+      "peers": 298,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 175,
+        "height": 93,
+        "epoch": 1181,
+        "textLayout": 2
+      },
+      "visiblePeers": 97,
+      "visibleCells": 69,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:48:27.540Z",
+      "elapsedSeconds": 588.157,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 154,
+        "height": 82,
+        "epoch": 1183,
+        "textLayout": 2
+      },
+      "visiblePeers": 98,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:48:39.512Z",
+      "elapsedSeconds": 600.129,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 135,
+        "height": 72,
+        "epoch": 1185,
+        "textLayout": 2
+      },
+      "visiblePeers": 98,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:48:51.508Z",
+      "elapsedSeconds": 612.125,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 119,
+        "height": 63,
+        "epoch": 1187,
+        "textLayout": 2
+      },
+      "visiblePeers": 97,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:49:03.614Z",
+      "elapsedSeconds": 624.231,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 105,
+        "height": 56,
+        "epoch": 1189,
+        "textLayout": 2
+      },
+      "visiblePeers": 185,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:49:15.517Z",
+      "elapsedSeconds": 636.134,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 92,
+        "height": 49,
+        "epoch": 1191,
+        "textLayout": 2
+      },
+      "visiblePeers": 259,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:49:27.514Z",
+      "elapsedSeconds": 648.131,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 81,
+        "height": 43,
+        "epoch": 1193,
+        "textLayout": 2
+      },
+      "visiblePeers": 287,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:49:39.515Z",
+      "elapsedSeconds": 660.132,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 71,
+        "height": 38,
+        "epoch": 1195,
+        "textLayout": 2
+      },
+      "visiblePeers": 287,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:49:51.522Z",
+      "elapsedSeconds": 672.139,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 63,
+        "height": 34,
+        "epoch": 1197,
+        "textLayout": 2
+      },
+      "visiblePeers": 286,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:50:03.519Z",
+      "elapsedSeconds": 684.136,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 56,
+        "height": 30,
+        "epoch": 1199,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:50:15.527Z",
+      "elapsedSeconds": 696.144,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 49,
+        "height": 27,
+        "epoch": 1201,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:50:27.535Z",
+      "elapsedSeconds": 708.152,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 43,
+        "height": 24,
+        "epoch": 1203,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:50:39.520Z",
+      "elapsedSeconds": 720.137,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 38,
+        "height": 21,
+        "epoch": 1205,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:50:51.509Z",
+      "elapsedSeconds": 732.126,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 38,
+        "height": 17,
+        "epoch": 1207,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:51:03.525Z",
+      "elapsedSeconds": 744.142,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 34,
+        "height": 16,
+        "epoch": 1209,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:51:15.534Z",
+      "elapsedSeconds": 756.151,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 32,
+        "height": 16,
+        "epoch": 1210,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T21:51:27.519Z",
+      "elapsedSeconds": 768.136,
+      "peers": 283,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 40,
+        "height": 18,
+        "epoch": 1213,
+        "textLayout": 2
+      },
+      "visiblePeers": 282,
+      "visibleCells": 195,
+      "inputPoint": {
+        "x": 6,
+        "y": 16
+      },
+      "inputEpoch": 1213,
+      "localMs": 7.199951171875,
+      "remoteMs": 162.199951171875,
+      "transport": [
+        {
+          "receivedAt": 1795729887661.7002,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729887686.4,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:51:39.523Z",
+      "elapsedSeconds": 780.14,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 50,
+        "height": 27,
+        "epoch": 1219,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 345,
+      "inputPoint": {
+        "x": 6,
+        "y": 25
+      },
+      "inputEpoch": 1219,
+      "localMs": 5.699951171875,
+      "remoteMs": 175.5,
+      "transport": [
+        {
+          "receivedAt": 1795729899699,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729899711.8,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:51:51.524Z",
+      "elapsedSeconds": 792.141,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 70,
+        "height": 37,
+        "epoch": 1225,
+        "textLayout": 2
+      },
+      "visiblePeers": 289,
+      "visibleCells": 516,
+      "inputPoint": {
+        "x": 6,
+        "y": 35
+      },
+      "inputEpoch": 1225,
+      "localMs": 4.7001953125,
+      "remoteMs": 135.099853515625,
+      "transport": [
+        {
+          "receivedAt": 1795729911642.8,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729911666.3,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:52:03.518Z",
+      "elapsedSeconds": 804.135,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 97,
+        "height": 51,
+        "epoch": 1231,
+        "textLayout": 2
+      },
+      "visiblePeers": 277,
+      "visibleCells": 614,
+      "inputPoint": {
+        "x": 6,
+        "y": 49
+      },
+      "inputEpoch": 1231,
+      "localMs": 5.10009765625,
+      "remoteMs": 164.699951171875,
+      "transport": [
+        {
+          "receivedAt": 1795729923665.9001,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729923690.3,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:52:15.508Z",
+      "elapsedSeconds": 816.125,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 137,
+        "height": 72,
+        "epoch": 1237,
+        "textLayout": 2
+      },
+      "visiblePeers": 269,
+      "visibleCells": 641,
+      "inputPoint": {
+        "x": 6,
+        "y": 70
+      },
+      "inputEpoch": 1237,
+      "localMs": 16.199951171875,
+      "remoteMs": 171.099853515625,
+      "transport": [
+        {
+          "receivedAt": 1795729935662.2002,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729935686.2,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:52:27.532Z",
+      "elapsedSeconds": 828.149,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 159,
+        "height": 81,
+        "epoch": 1240,
+        "textLayout": 2
+      },
+      "visiblePeers": 260,
+      "visibleCells": 685,
+      "inputPoint": {
+        "x": 6,
+        "y": 79
+      },
+      "inputEpoch": 1240,
+      "localMs": 5.7998046875,
+      "remoteMs": 179.399658203125,
+      "transport": [
+        {
+          "receivedAt": 1795729947696.2002,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729947721,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:52:39.525Z",
+      "elapsedSeconds": 840.142,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 159,
+        "height": 81,
+        "epoch": 1240,
+        "textLayout": 2
+      },
+      "visiblePeers": 247,
+      "visibleCells": 726,
+      "inputPoint": {
+        "x": 6,
+        "y": 79
+      },
+      "inputEpoch": 1240,
+      "localMs": 5.7998046875,
+      "remoteMs": 180.899658203125,
+      "transport": [
+        {
+          "receivedAt": 1795729959690.2002,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729959712.5999,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:52:51.515Z",
+      "elapsedSeconds": 852.132,
+      "peers": 299,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 159,
+        "height": 81,
+        "epoch": 1240,
+        "textLayout": 2
+      },
+      "visiblePeers": 240,
+      "visibleCells": 757,
+      "inputPoint": {
+        "x": 6,
+        "y": 79
+      },
+      "inputEpoch": 1240,
+      "localMs": 10.300048828125,
+      "remoteMs": 167.599853515625,
+      "transport": [
+        {
+          "receivedAt": 1795729971675.5,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729971685.8,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:53:03.505Z",
+      "elapsedSeconds": 864.122,
+      "peers": 299,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 159,
+        "height": 81,
+        "epoch": 1240,
+        "textLayout": 2
+      },
+      "visiblePeers": 231,
+      "visibleCells": 785,
+      "inputPoint": {
+        "x": 6,
+        "y": 79
+      },
+      "inputEpoch": 1240,
+      "localMs": 6.699951171875,
+      "remoteMs": 126.2998046875,
+      "transport": [
+        {
+          "receivedAt": 1795729983613.3,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729983636,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:53:15.521Z",
+      "elapsedSeconds": 876.138,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 159,
+        "height": 81,
+        "epoch": 1240,
+        "textLayout": 2
+      },
+      "visiblePeers": 219,
+      "visibleCells": 823,
+      "inputPoint": {
+        "x": 6,
+        "y": 79
+      },
+      "inputEpoch": 1240,
+      "localMs": 4.800048828125,
+      "remoteMs": 128.89990234375,
+      "transport": [
+        {
+          "receivedAt": 1795729995638.3,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795729995656.7,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:53:27.514Z",
+      "elapsedSeconds": 888.131,
+      "peers": 2,
+      "capacity": 300,
+      "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+      "world": {
+        "width": 159,
+        "height": 81,
+        "epoch": 1240,
+        "textLayout": 2
+      },
+      "visiblePeers": 2,
+      "visibleCells": 826,
+      "inputPoint": {
+        "x": 6,
+        "y": 79
+      },
+      "inputEpoch": 1240,
+      "localMs": 6.699951171875,
+      "remoteMs": 181.199951171875,
+      "transport": [
+        {
+          "receivedAt": 1795730007675,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795730007701,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

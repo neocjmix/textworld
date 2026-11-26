@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-26T21:37:55.247Z",
+  "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+  "origin": "https://textworld-production-987c.up.railway.app",
+  "capacity": 300,
+  "loadedFontParts": 2,
+  "checks": [
+    "public HTTPS",
+    "two WSS participants",
+    "CJK overwrite",
+    "Enter",
+    "remote observation",
+    "reconnect convergence",
+    "desktop/mobile screenshots",
+    "no runtime errors"
+  ]
+}

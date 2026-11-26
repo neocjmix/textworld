@@ -1,0 +1,17 @@
+{
+  "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+  "url": "https://textworld-production-987c.up.railway.app/cost.html",
+  "widths": [
+    390,
+    1200
+  ],
+  "checks": [
+    "independent measured 1000 and historical 300 profiles",
+    "CDN hypothesis endpoints",
+    "invalid inputs",
+    "historical model",
+    "no horizontal overflow",
+    "no runtime errors"
+  ],
+  "passed": true
+}

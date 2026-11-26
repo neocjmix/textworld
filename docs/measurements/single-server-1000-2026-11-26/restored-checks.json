@@ -1,0 +1,75 @@
+{
+  "revision": "2bef23e0dfbaf0f7cb6c644edfb254f2da2dcf27",
+  "node": "v24.22.3",
+  "sourceDigest": "d81f3dfd69c6740e44562cddc4240f9019d762cf8922b0d0df11f64c4a5939d6",
+  "sameServerAndSharedAs": "166cc2c",
+  "defaultCapacity": 300,
+  "unitIntegration": {
+    "tests": 297,
+    "pass": 297,
+    "fail": 0,
+    "durationMs": 31501.49327
+  },
+  "build": "176689a8119567681dfc",
+  "builtBrowsers": [
+    {
+      "engine": "chromium",
+      "version": "156.0.8078.79",
+      "status": "passed",
+      "checks": [
+        "two independent views",
+        "CJK width",
+        "Enter",
+        "Backspace",
+        "overwrite",
+        "arrow",
+        "touch input",
+        "mobile viewport",
+        "reload convergence",
+        "no runtime errors"
+      ]
+    },
+    {
+      "engine": "firefox",
+      "version": "157.0",
+      "status": "passed",
+      "checks": [
+        "two independent views",
+        "CJK width",
+        "Enter",
+        "Backspace",
+        "overwrite",
+        "arrow",
+        "touch input",
+        "mobile viewport",
+        "reload convergence",
+        "no runtime errors"
+      ]
+    },
+    {
+      "engine": "webkit",
+      "version": "27.2",
+      "status": "passed",
+      "checks": [
+        "two independent views",
+        "CJK width",
+        "Enter",
+        "Backspace",
+        "overwrite",
+        "arrow",
+        "touch input",
+        "mobile viewport",
+        "reload convergence",
+        "no runtime errors"
+      ]
+    }
+  ],
+  "costCalculator": {
+    "widths": [
+      390,
+      1200
+    ],
+    "builtAssets": true,
+    "passed": true
+  }
+}

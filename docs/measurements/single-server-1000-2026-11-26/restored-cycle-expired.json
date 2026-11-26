@@ -1,0 +1,77 @@
+{
+  "id": "126f73c0-88e4-4b0e-9fb2-801b95700301",
+  "state": "running",
+  "startedAt": "2026-11-26T21:38:15.048Z",
+  "deadline": "2026-11-26T21:53:35.048Z",
+  "phase": {
+    "name": "독자 유지·풍화·축소",
+    "seconds": 360,
+    "writers": 0,
+    "walkers": 0,
+    "readers": 298,
+    "writing": "new-cells",
+    "actionIntervalMs": 850
+  },
+  "population": {
+    "attempts": 593,
+    "joined": 593,
+    "peak": 298,
+    "sent": 15175,
+    "ack": 15175,
+    "rejected": 0,
+    "unconfirmed": 0,
+    "rateLimited": 0,
+    "receivedBytes": 197523581,
+    "receivedWireBytes": 199522371,
+    "transportErrors": 0,
+    "writtenGraphemes": 7849,
+    "active": {
+      "writers": 0,
+      "walkers": 0,
+      "readers": 298
+    },
+    "departures": {
+      "lifetime": 265,
+      "target-reduced": 30
+    },
+    "botMinutes": 2765.768195784336,
+    "ackP95Ms": 22.399,
+    "typingGapP50Ms": 233.983,
+    "typingGapP95Ms": 674.303
+  },
+  "world": {
+    "width": 135,
+    "height": 72,
+    "epoch": 1185,
+    "textLayout": 2,
+    "occupiedCells": 0,
+    "connections": 300
+  },
+  "position": null,
+  "cost": {
+    "scope": "whole-service-during-run",
+    "priceDate": "2026-11-26",
+    "billingUnit": "decimal GB",
+    "ratesUsd": {
+      "cpuCoreMinute": 0.000463,
+      "memoryGBMinute": 0.000231,
+      "volumeGBMinute": 3.472222222e-06,
+      "egressGB": 0.05
+    },
+    "elapsedSeconds": 626.222545904,
+    "cpuCoreSeconds": 81.113844,
+    "memoryGiBMinutes": 4.335799183960507,
+    "volumeGiBMinutes": 0.6737705405201184,
+    "publicHttpBytes": 14462,
+    "publicWebSocketBytes": 5122842,
+    "estimatedUsd": {
+      "cpu": 0.0006259284961999999,
+      "memory": 0.0010754271815094807,
+      "volume": 2.511998642670961e-06,
+      "publicEgress": 0.0002568652,
+      "subtotal": 0.0019607328763521516
+    },
+    "usdPer1000WrittenGraphemes": 0.0002498067112182637,
+    "hypotheticalBotEgressUsd": 0.009976118550000001
+  }
+}

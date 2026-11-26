@@ -19,6 +19,8 @@
 | `fixed-1000.json` | 고정 시야 1,000명에서 중간 덮어쓰기를 포함한 72,000개 기대 관측 전수 대조. 실제 시계 장기 시험과 다르다 |
 | `render-before.json`, `render-after-cached.json`, `render-motion-before.json`, `render-motion-after.json` | 1,000개의 가상 커서를 사용하는 클라이언트만의 그리기 비교. 서버 동접 증거가 아니다 |
 | `partial-render-three-engines.json` | 세 엔진의 전체/부분 렌더링 픽셀 대조 |
+| `restored-cycle-*.json`, `restored-cycle-*.png` | 최종 300명 공개 920초. 성장·풍화·최소 크기 축소·재성장, 승인/수신/그리기 분리와 역할 교체의 인원 변동까지 기록 |
+| `restored-checks.json`, `restored-public-*.json`, `restored-cdn.json` | 300명 운영값 복원 후 단위/통합·세 브라우저·공개 HTTPS/WSS·캐시 무효화·비용 화면 검증 |
 | `public-cycle-*.json` | 공개 서버의 300명 성장·풍화·축소·회복과 외부 두 브라우저 관측 |
 | `public-300-*.json` | 중간 후보의 앞선 공개 300명 실행. 최종 구현 인증으로 합산하지 않는다 |
 | `failed-crowded-1000.json`, `rejected-sliced-delivery.json` | 실제 실패한 밀집 보호·송신 분할 후보. 대기·이탈을 숨기지 않고 남긴 자료 |
