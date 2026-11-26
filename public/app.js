@@ -784,7 +784,8 @@ function connect() {
     browserMeasurements.reset();
     clearTimeout(viewTimer); clearTimeout(recoveryTimer);
     cancelMove(); connection(false); resetComposition(); schedule();
-    notice(pending.size ? '연결이 끊겼습니다. 전송 중이던 글자는 다시 연결한 뒤 확인해 주세요.' : '다시 연결하고 있습니다.');
+    const retryNotice = reconnectAttempts > 0 ? '입장을 기다리는 중입니다. 잠시 뒤 자동으로 다시 연결합니다.' : '다시 연결하고 있습니다.';
+    notice(pending.size ? '연결이 끊겼습니다. 전송 중이던 글자는 다시 연결한 뒤 확인해 주세요.' : retryNotice);
     if (pending.size) writing.reset(cursor);
     pending.clear(); actions.clear(); refreshLocalCells(); clearTimeout(reconnectTimer);
     const delay = Math.min(12000, 1000 * 2 ** Math.min(reconnectAttempts++, 4));

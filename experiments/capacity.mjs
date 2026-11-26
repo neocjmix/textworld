@@ -5,13 +5,13 @@
 import { fork, execFileSync } from 'node:child_process';
 import { mkdtemp, mkdir, writeFile, rm, readFile } from 'node:fs/promises';
 import { tmpdir, cpus } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHistogram, performance } from 'node:perf_hooks';
 import { WebSocket } from 'ws';
-import { createTextworld } from '../server/index.js';
+
 import { empty, merge, summary } from '../shared/measurement.js';
 import { EXPIRY_AGE_MS } from '../shared/freshness.js';
 
@@ -64,12 +64,29 @@ if (process.argv[2] === '--server') {
   const base = process.env.CAPACITY_WORKDIR || tmpdir();
   await mkdir(base, {recursive:true});
   const directory = await mkdtemp(join(base, 'textworld-capacity-'));
-  const app = createTextworld({ storagePath: join(directory, 'world.sqlite'), now: config.liveClock ? Date.now : () => 1_000_000, trustProxy: false });
+  const sourceRoot = process.env.CAPACITY_TARGET_ROOT || resolve(dirname(filename), '..');
+  const { createTextworld } = await import(pathToFileURL(join(sourceRoot, 'server/index.js')));
+  const seededAt = Date.now() - EXPIRY_AGE_MS;
+  let seedClock = config.aged ? seededAt : null;
+  const app = createTextworld({ storagePath: join(directory, 'world.sqlite'), trustProxy: false,
+    now: () => seedClock ?? (config.liveClock ? Date.now() : 1_000_000),
+    maxParticipants: config.maxParticipants ?? Math.max(300, config.peers || 0) });
   app.world.resize(512, 256, [], { seed: 1 });
-  for (let y=0; y<256; y++) {
-    const cells=[];
-    for (let x=0; x<512; x++) if (config.layout === 'hotspot' ? y>=120 && y<136 : (x+5*y)%13===0) cells.push({x,y,text:'A'});
-    if (cells.length) app.world.commit(cells, { author:'fixture',id:`seed-${y}`,cursor:null,reason:'write' });
+  if (config.aged) {
+    app.world.reserveAuthor('earlier-local-writers', '#586678');
+    for (let n = 0; n < 6000; n++) {
+      seedClock = seededAt + n * 30;
+      const point = (n * 34211 + 93) % 65536;
+      app.world.applyWrite({ author: 'earlier-local-writers', id: 'seed-' + n, epoch: app.world.epoch,
+        x: 2 * (point % 256), y: Math.floor(point / 256), text: n % 4 === 0 ? 'A' : '가' });
+    }
+    seedClock = null;
+  } else {
+    for (let y=0; y<256; y++) {
+      const cells=[];
+      for (let x=0; x<512; x++) if (config.layout === 'hotspot' ? y>=120 && y<136 : (x+5*y)%13===0) cells.push({x,y,text:'A'});
+      if (cells.length) app.world.commit(cells, { author:'fixture',id:`seed-${y}`,cursor:null,reason:'write' });
+    }
   }
   const {port}=await app.listen(0,'127.0.0.1');
   let start, cpu, samplingTimer;
@@ -125,13 +142,15 @@ if (process.argv[2] === '--server') {
         expirationAgeMaxMs:expiryAges.count ? expiryAges.max : null, elapsedMs, cpuMs:(used.user+used.system)/1000,
         rssBytes:process.memoryUsage().rss, eventLoopP99Ms:app.measurements.loop.percentile(99)/1e6,
         readyP95Ms:readyTimes.count ? readyTimes.percentile(95) / 1000 : null, readyCount:readyTimes.count, storage, metrics, world:app.world.metadata(), ink:app.world.ink});
+    } else if(message.kind==='quiet') {
+      process.send({kind:'quiet',sample:storageSample(app.world, Math.round(performance.now()-start))});
     } else if(message.kind==='stop') {
       await app.close(); await rm(directory,{recursive:true,force:true}); process.exit(0);
     }
   });
   const digest = createHash('sha256');
-  for (const directory of ['server','shared']) for (const name of readdirSync(directory).sort()) {
-    if (name.endsWith('.js')) digest.update(name).update(readFileSync(join(directory, name)));
+  for (const directory of ['server','shared']) for (const name of readdirSync(join(sourceRoot,directory)).sort()) {
+    if (name.endsWith('.js')) digest.update(name).update(readFileSync(join(sourceRoot,directory,name)));
   }
   process.send({kind:'ready',port,ink:app.world.ink,sourceDigest:digest.digest('hex')});
 } else {

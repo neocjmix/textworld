@@ -148,6 +148,56 @@ function publicCell(cell) {
   return publicCells.get(cell);
 }
 
+// A resize publishes a barrier to every socket in one turn. Share the immutable
+// world projections for that turn; each observer still selects its own rectangle.
+export function createSnapshotFrame(world, participants) {
+  const now = world.now(), versions = new Map(), rows = [], spans = new WeakMap();
+  const peers = participants.map(peer => Object.freeze(peerRecord(peer))).sort((a,b) => a.id.localeCompare(b.id));
+  for (const source of world.cells.values()) {
+    const row = rows[source.y] ??= [];
+    row[source.x] = source;
+  }
+  function version(source) {
+    let info = versions.get(source.version);
+    if (!info) {
+      const band = freshness(source.updatedAt, now);
+      info = { band, stamp: source.updatedAt, color: world.authorColors.get(source.author) || '#314137' };
+      versions.set(source.version, info);
+    }
+    return info;
+  }
+  return {
+    version: cell => version(rows[cell.y][cell.x]),
+    peers(self, rectangle) {
+      const visible = [peerRecord(self)];
+      for (const other of peers) if (other.id !== self.id && contains(rectangle, other.x, other.y, world)) visible.push(other);
+      return visible;
+    },
+    cells(rectangle, marks) {
+      const visible = new Map();
+      for (let r = 0, y = rectangle.y; r < rectangle.rows; r++, y = (y+1) % world.height) {
+        const row = rows[y];
+        if (!row) continue;
+        for (let c = 0, x = rectangle.x; c < rectangle.cols; c++, x = (x+1) % world.width) {
+          const source = row[x];
+          if (!source) continue;
+          if (!occupiedCell(source)) {
+            if (markVisible(version(source).band)) marks.push({ x, y, version:source.version });
+            continue;
+          }
+          let span = spans.get(source);
+          if (!span) {
+            span = glyphSpan(world, source).map(member => [keyOf(member), publicCell(member)]);
+            spans.set(source, span);
+          }
+          for (const [key, member] of span) visible.set(key, member);
+        }
+      }
+      return visible;
+    },
+  };
+}
+
 function observationCost(world, rectangle, current, old, sameWorld) {
   let cost = 0;
   const previouslyVisible = (x, y) => sameWorld
@@ -187,6 +237,10 @@ export class Observer {
     if (!this.last) return;
     const v = this.last.view;
     if (v.x < bounds.x || v.y < bounds.y || v.x + v.cols > bounds.x + bounds.cols || v.y + v.rows > bounds.y + bounds.rows) return;
+    if (dx === 0 && dy === 0) {
+      Object.assign(this.last, {epoch:this.world.epoch, width:this.world.width, height:this.world.height});
+      return;
+    }
     const moved = cell => ({ ...cell, x: cell.x + dx, y: cell.y + dy,
       ...(Number.isInteger(cell.leadX) ? { leadX: cell.leadX + dx } : {}) });
     this.last = { ...this.last, epoch: this.world.epoch, width: this.world.width, height: this.world.height,
@@ -340,25 +394,27 @@ export class Observer {
     return Object.freeze(delta);
   }
 
-  read(peers = [], { since, force = false } = {}) {
+  read(peers = [], { since, force = false, frame } = {}) {
     const { world, peer } = this, old = this.last, previousRevision = this.revision;
     const rectangle = viewRectangle(world, peer, this.view);
     const marks = [];
-    const current = cellsInRectangle(world, rectangle, marks);
+    const current = frame ? frame.cells(rectangle, marks) : cellsInRectangle(world, rectangle, marks);
     let ink = 0;
     for (const cell of current.values()) ink += visibleInk(cell, rectangle, world);
     const ages = {}, colors = {}, times = new Map(), now = world.now();
     let nextFreshnessAt = Infinity;
     for (const cell of [...current.values(), ...marks]) {
       if (times.has(cell.version)) continue;
-      const original = world.getCell(cell.x, cell.y);
-      const updatedAt = original?.updatedAt;
-      if (original) colors[cell.version] = world.authorColors.get(original.author) || '#314137';
+      const source = frame ? null : world.getCell(cell.x, cell.y);
+      const info = frame?.version(cell);
+      const updatedAt = info ? info.stamp : source?.updatedAt;
+      const band = info ? info.band : freshness(updatedAt, now);
+      colors[cell.version] = info ? info.color : world.authorColors.get(source?.author) || '#314137';
       times.set(cell.version, updatedAt);
-      const band = freshness(updatedAt, now); ages[cell.version] = band;
+      ages[cell.version] = band;
       if (Number.isFinite(updatedAt)) nextFreshnessAt = Math.min(nextFreshnessAt, updatedAt + FRESHNESS.find(item => item.name === band).until);
     }
-    const localPeers = peersInRectangle(world, peer, rectangle, peers);
+    const localPeers = frame ? frame.peers(peer, rectangle) : peersInRectangle(world, peer, rectangle, peers);
     const cells = [], forget = [];
     for (const [key, cell] of current) if (!sameCell(old?.cells.get(key), cell)) cells.push(cell);
     if (old) for (const [key, cell] of old.cells) if (!current.has(key)) forget.push({ x: cell.x, y: cell.y });
@@ -380,7 +436,7 @@ export class Observer {
     // comparison baseline or manufacture observations in the next response.
     this.last = { epoch: world.epoch, width: world.width, height: world.height,
       view: { ...rectangle }, marks: byAddress(marks), times, freshness: { ...ages },
-      cells: byAddress([...current.values()]), peers: byId(localPeers), counts: null };
+      cells: frame ? current : byAddress([...current.values()]), peers: frame ? new Map(localPeers.map(other => [other.id, other])) : byId(localPeers), counts: null };
     return { revision: this.revision, reset: !!reset, view: rectangle,
       cells: reset ? [...current.values()] : cells, forget: reset ? [] : forget, marks: marks.map(mark => ({ ...mark })), freshness: ages, colors, peers: localPeers };
   }

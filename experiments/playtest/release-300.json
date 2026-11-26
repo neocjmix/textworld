@@ -1,0 +1,10 @@
+{
+  "seed": 147741,
+  "jitterRatio": 0.3,
+  "lifetimeSeconds": [190, 310],
+  "budget": { "botMinutes": 2100, "receivedMiB": 1024, "admissions": 850 },
+  "phases": [
+    { "name": "밀집 입장·교체", "seconds": 425, "writers": 6, "walkers": 24, "readers": 268, "actionIntervalMs": 850 },
+    { "name": "퇴장·정리", "seconds": 15, "writers": 0, "walkers": 0, "readers": 0 }
+  ]
+}

@@ -37,3 +37,28 @@ test('a full world keeps established input live and reuses one seat across trans
   const health = await (await fetch(url + '/health')).json();
   assert.equal(health.peers, health.capacity);
 });
+
+test('one backpressured link closes with 1013 while its neighbor receives the next overwrite', async t => {
+  const app = createTextworld({ storagePath: ':memory:', maxParticipants: 3 });
+  t.after(() => app.close());
+  const { port } = await app.listen(0, '127.0.0.1');
+  const url = 'ws://127.0.0.1:' + port + '/ws';
+  const clients = [];
+  for (let i=0; i<3; i++) {
+    const client = connect(url);
+    await client.next(m => m.type === 'snapshot');
+    clients.push(client);
+  }
+  const [writer, reader, slow] = clients;
+  const backpressured = [...app.wss.clients].at(-1);
+  Object.defineProperty(backpressured, 'bufferedAmount', {get:() => 2 * 1024 * 1024});
+  const closed = once(slow.socket, 'close');
+  for (const [index, text] of ['하','늘'].entries()) {
+    writer.send({ type:'write', id:'over-'+index, epoch:1, x:64, y:32, text });
+    await writer.next(m => m.type === 'ack' && m.id === 'over-'+index);
+    await reader.next(m => m.type === 'view' && m.observation.cells.some(c => c.text === text));
+  }
+  assert.equal((await closed)[0], 1013);
+  const joined = connect(url);
+  await joined.next(m => m.type === 'snapshot' && m.cells.some(c => c.text === '늘'));
+});

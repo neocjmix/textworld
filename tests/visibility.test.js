@@ -366,3 +366,20 @@ test('typing a step moves a large viewport by reading only its changing strips',
   assert.equal(delta.view.x, 178);
   assert.ok(reads <= 8 * 48, 'two new and departed columns with adjacent closure');
 });
+
+test('a resize snapshot frame reproduces independently scoped CJK, marks, peers and address charges', async t => {
+  const { createSnapshotFrame } = await import('../server/visibility.js');
+  const { world, write } = fixture(t, { width: 32, height: 16 });
+  write('한', 31, 8); write('漢', 6, 8); write('遠', 22, 0);
+  write('A', 1, 8); world.erase({ author: 'writer', id: 'clear', epoch: world.epoch, x: 1, y: 8 });
+  const people = [peer('z', 0, 8), peer('b', 8, 7), peer('a', 30, 8)];
+  const frame = createSnapshotFrame(world, people);
+  for (const self of people) for (const view of [{ cols: 1, rows: 1 }, { cols: 8, rows: 4 }, { cols: 32, rows: 16 }]) {
+    const costs = [];
+    const make = () => new Observer({world, peer:self, view, charge:value => costs.push(value)});
+    const reference = make().read(people);
+    const snapshot = make().read([], {force:true, frame});
+    assert.deepEqual(snapshot, reference);
+    assert.equal(costs[0], costs[1]);
+  }
+});

@@ -31,7 +31,20 @@ for (const scenario of ['wide world','tall world','shrink']) {
     world.resize = (width,height,peers,options) => {
       expected = remesh(world.cells,from,{width,height},options.seed,options);
       expectedCursor = expected.cursor(peer);
-      return resize(width,height,peers,options);
+      const barrier = resize(width,height,peers,options);
+      for (let y = 0; y < from.height - 3; y += 5) for (let x = 0; x < from.width - 9; x += 7) {
+        const bounds = {x, y, cols:9, rows:3};
+        const first = barrier.mapping(x,y);
+        if (!first) { assert.equal(barrier.translates(bounds,0,0), false); continue; }
+        const dx = first.x - x, dy = first.y - y;
+        let rigid = true;
+        for (let row=y; row<y+3; row++) for (let col=x; col<x+9; col++) {
+          const p = barrier.mapping(col,row);
+          if (p?.x !== col+dx || p?.y !== row+dy) rigid = false;
+        }
+        assert.equal(barrier.translates(bounds,dx,dy), rigid);
+      }
+      return barrier;
     };
     const result = await adaptOnline(world,() => [peer],{seed:42,cooldown:0,record:() => {
       if (amended) return;

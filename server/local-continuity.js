@@ -11,7 +11,9 @@ export function localContinuity(before, peer, result, policy, writing) {
   if (bounds.x < 0 || bounds.y < 0 || bounds.x + bounds.cols > result.from.width || bounds.y + bounds.rows > result.from.height
     || bounds.x + relocation.dx < 0 || bounds.y + relocation.dy < 0
     || bounds.x + bounds.cols + relocation.dx > result.width || bounds.y + bounds.rows + relocation.dy > result.height) return null;
-  for (let y = bounds.y; y < bounds.y + bounds.rows; y++) for (let x = bounds.x; x < bounds.x + bounds.cols; x++) {
+  if (result.translates) {
+    if (!result.translates(bounds, relocation.dx, relocation.dy)) return null;
+  } else for (let y = bounds.y; y < bounds.y + bounds.rows; y++) for (let x = bounds.x; x < bounds.x + bounds.cols; x++) {
     const point = result.mapping(x, y);
     if (!point || point.x !== x + relocation.dx || point.y !== y + relocation.dy) return null;
   }

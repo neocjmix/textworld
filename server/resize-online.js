@@ -26,7 +26,22 @@ function bandGeometry(from, to, seams) {
     x = wrap(x,from.width); y = wrap(y,from.height);
     return point(x,y) ?? locate(x,y,wrap(cutAt(x,y),newSize));
   }
-  return { point, inverse, cursor };
+  // A single band per line changes its translation only once. The interval
+  // must lie entirely on the same surviving side on every intersecting line.
+  function translates(bounds, dx, dy) {
+    const shift = across ? dx : dy;
+    if ((across ? dy : dx) !== 0 || (shift !== 0 && shift !== delta)) return false;
+    const first = across ? bounds.x : bounds.y;
+    const end = first + (across ? bounds.cols : bounds.rows);
+    const startLine = across ? bounds.y : bounds.x;
+    const endLine = startLine + (across ? bounds.rows : bounds.cols);
+    for (let line = startLine; line < endLine; line++) {
+      const cut = seams.values[line];
+      if (shift === 0 ? end > cut : first < cut + Math.max(0, -delta)) return false;
+    }
+    return true;
+  }
+  return { point, inverse, cursor, translates };
 }
 
 // Mirror the remesher's CJK head reservation, then tail placement in x order.

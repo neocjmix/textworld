@@ -6,11 +6,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve, dirname, extname, sep } from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
 import { createViewDelivery } from './view-delivery.js';
+import { encodeSnapshot } from './encode-view.js';
 import { sampleResources } from '../experiments/playtest/cost.mjs';
 import { World, WorldError } from './world.js';
 import { VIEW_LIMITS } from '../shared/participant-rules.js';
 import { LIMITS, NetworkBudgets, ParticipantPolicy, PolicyError } from './participant-policy.js';
-import { Observer, contains, viewRectangle, validateView } from './visibility.js';
+import { Observer, createSnapshotFrame, contains, viewRectangle, validateView } from './visibility.js';
 import { SpatialSubscriptions } from './spatial-subscriptions.js';
 import { createTurnRunner } from './agent-turns.js';
 import { createAgentHTTP } from './agent-http.js';
@@ -95,7 +96,8 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
           actor.input.nativeBase = relocation ? translateTrail(actor.input.nativeBase, relocation) : [];
         }
         for (const actor of actors) spatial.update(actor);
-        for(const [socket,actor] of clients)scopedUpdate(socket,actor,{snapshot:true,reason:'density-resize',resize:{ ...result, relocation:relocations.get(actor) }});
+        const frame = clients.size > 1 ? createSnapshotFrame(world, peers()) : undefined;
+        for(const [socket,actor] of clients)scopedUpdate(socket,actor,{snapshot:true,frame,reason:'density-resize',resize:{ ...result, relocation:relocations.get(actor) }});
         notify();
       }
       return result;
@@ -114,12 +116,15 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   let inputStarted;
   function writeEncoded(socket, encoded, fragmentBytes) {
     if (socket.readyState !== WebSocket.OPEN) return false;
-    if (socket.bufferedAmount > 2 * 1024 * 1024) {
+    const bytes = Buffer.byteLength(encoded);
+    if (socket.bufferedAmount && socket.bufferedAmount + bytes > 2 * 1024 * 1024) {
       measurements.record('ws.slow_disconnects');
       socket.close(1013, 'Slow client; reconnect for current view');
+      const deadline = setTimeout(() => socket.terminate(), 1500);
+      deadline.unref();
+      socket.once('close', () => clearTimeout(deadline));
       return false;
     }
-    const bytes = Buffer.byteLength(encoded);
     if (socket.textworldPublicListener) outbound.publicWebSocketBytes += bytes;
     else measurements.record('ws.playtest_tx_bytes', bytes);
     measurements.record('ws.tx_bytes', bytes);
@@ -134,7 +139,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     return true;
   }
   const delivery = createViewDelivery({ write: writeEncoded, record: (name, value) => measurements.record(name, value) });
-  const send = (socket, message) => {
+  const send = (socket, message, sharedSnapshot = false) => {
     if (socket.textworldBatchVersion === 1 && message.type === 'view') {
       delivery.enqueue(socket, message, inputStarted ?? performance.now());
       return;
@@ -143,10 +148,11 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     // barriers: the client applies any preceding changes first.
     if (message.type !== 'ack') delivery.flush(socket);
     if (message.type === 'error') measurements.record(message.status === 429 ? 'ws.error_429' : 'ws.error_other');
-    return writeEncoded(socket, JSON.stringify(message));
+    return writeEncoded(socket, sharedSnapshot ? encodeSnapshot(message) : JSON.stringify(message));
   };
   const notify = () => { for (const listener of listeners.values()) listener(); };
-  const scopedUpdate = (socket, actor, { snapshot = false, delta, ...extra } = {}) => {
+  const scopedUpdate = (socket, actor, { snapshot = false, delta, frame, ...extra } = {}) => {
+    if (socket.readyState !== WebSocket.OPEN) return;
     try {
       const previous = actor.observer.revision;
       if (actor.retry) {
@@ -155,15 +161,16 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       }
       const observation = delta && socket.textworldBatchVersion === 1
         ? actor.observer.change(delta, () => spatial.peersFor(actor))
-        : actor.observer.read(spatial.peersFor(actor), { since: previous, force: snapshot });
+        : actor.observer.read(frame ? [] : spatial.peersFor(actor), { since: previous, force: snapshot, frame });
       if (!observation) return;
       clearTimeout(actor.retry); actor.retry = null;
       if (snapshot) {
         actor.input.cursor = { x: actor.peer.x, y: actor.peer.y };
-        measurements.record('input.snapshot_bytes', Buffer.byteLength(JSON.stringify(actor.input.snapshot())));
+        const inputState = actor.input.snapshot();
+        measurements.record('input.snapshot_bytes', Buffer.byteLength(JSON.stringify(inputState)));
         send(socket, { type: 'snapshot', world: publicWorld(world), selfId: actor.peer.id,
           cells: observation.cells, marks: observation.marks, freshness: observation.freshness, colors: observation.colors, peers: observation.peers, view: observation.view, viewRevision: observation.revision, limits,
-          input: { sequence: actor.inputSequence, state: actor.input.snapshot() }, ...extra });
+          input: { sequence: actor.inputSequence, state: inputState }, ...extra }, !!frame);
         actor.lastSnapshotEpoch = world.epoch;
       } else if (observation.revision !== previous || extra.force) send(socket, { type: 'view', world: publicWorld(world), observation });
     } catch (error) {
