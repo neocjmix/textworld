@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve, dirname } from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
 import { createViewDelivery } from './view-delivery.js';
-import { encodeSnapshot } from './encode-view.js';
+import { encodeSnapshot, encodeCompactSnapshot, encodingCounters } from './encode-view.js';
 import { sampleResources } from '../experiments/playtest/cost.mjs';
 import { World, WorldError } from './world.js';
 import { VIEW_LIMITS } from '../shared/participant-rules.js';
@@ -50,7 +50,7 @@ export function networkKey(req, trustProxy = false) {
 }
 
 export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || resolve(root, 'data/world.sqlite'),
-  staticRelease = null,
+  staticRelease = null, compression = false,
   now = Date.now, policyNow = () => performance.now(), maxParticipants = 300,
   metricsPath, metricsToken = process.env.TEXTWORLD_METRICS_TOKEN || '', metricsEnabled = true,
   trustProxy = process.env.TEXTWORLD_TRUST_PROXY || (process.env.RAILWAY_ENVIRONMENT_ID ? 'railway' : false),
@@ -138,6 +138,18 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   // Scoped to a synchronous input handler. Other producers (expiry, HTTP,
   // topology) start their delivery clock when they enqueue their view.
   let inputStarted;
+  const wireCounters = new WeakMap();
+  function sampleWire(socket) {
+    const counter = wireCounters.get(socket);
+    if (!counter) return;
+    const written = counter.stream.bytesWritten;
+    const bytes = Math.max(0, written - counter.written);
+    counter.written = written;
+    if (!bytes) return;
+    measurements.record('ws.wire_tx_bytes', bytes);
+    if (socket.textworldPublicListener) outbound.publicWebSocketBytes += bytes;
+    else measurements.record('ws.playtest_wire_tx_bytes', bytes);
+  }
   function writeEncoded(socket, encoded, fragmentBytes) {
     if (socket.readyState !== WebSocket.OPEN) return false;
     const bytes = Buffer.byteLength(encoded);
@@ -149,17 +161,16 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       socket.once('close', () => clearTimeout(deadline));
       return false;
     }
-    if (socket.textworldPublicListener) outbound.publicWebSocketBytes += bytes;
-    else measurements.record('ws.playtest_tx_bytes', bytes);
+    if (!socket.textworldPublicListener) measurements.record('ws.playtest_tx_bytes', bytes);
     measurements.record('ws.tx_bytes', bytes);
     measurements.record('ws.buffered_bytes', socket.bufferedAmount);
     if (fragmentBytes && bytes > fragmentBytes) {
       const data = Buffer.from(encoded);
       for (let offset = 0; offset < bytes; offset += fragmentBytes) {
         const end = Math.min(bytes, offset + fragmentBytes);
-        socket.send(data.subarray(offset, end), { binary: false, fin: end === bytes });
+        socket.send(data.subarray(offset, end), { binary: false, fin: end === bytes }, end === bytes ? () => sampleWire(socket) : undefined);
       }
-    } else socket.send(encoded);
+    } else socket.send(encoded, () => sampleWire(socket));
     return true;
   }
   const delivery = createViewDelivery({ write: writeEncoded, record: (name, value) => measurements.record(name, value) });
@@ -172,7 +183,8 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     // barriers: the client applies any preceding changes first.
     if (message.type !== 'ack') delivery.flush(socket);
     if (message.type === 'error') measurements.record(message.status === 429 ? 'ws.error_429' : 'ws.error_other');
-    return writeEncoded(socket, sharedSnapshot ? encodeSnapshot(message) : JSON.stringify(message));
+    return writeEncoded(socket, socket.textworldWireVersion === 1 && message.type === 'snapshot' ? encodeCompactSnapshot(message)
+      : sharedSnapshot ? encodeSnapshot(message) : JSON.stringify(message));
   };
   const notify = () => { for (const listener of listeners.values()) listener(); };
   const scopedUpdate = (socket, actor, { snapshot = false, delta, frame, basis, translated, ...extra } = {}) => {
@@ -351,7 +363,10 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       json(res, record.status, { error: record });
     }
   });
-  const wss = new WebSocketServer({ noServer: true, maxPayload: 65536 });
+  const wss = new WebSocketServer({ noServer: true, maxPayload: 65536,
+    perMessageDeflate: compression ? { serverNoContextTakeover: true, clientNoContextTakeover: true,
+      serverMaxWindowBits: 11, concurrencyLimit: 4, threshold: 1024,
+      zlibDeflateOptions: { level: 1, memLevel: 4 } } : false });
   server.on('upgrade', (req, socket, head) => {
     let actor;
     try {
@@ -373,6 +388,8 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     }
   });
   wss.on('connection', (socket, actor) => {
+    wireCounters.set(socket, { stream: socket._socket, written: socket._socket.bytesWritten });
+    socket.once('close', () => sampleWire(socket));
     const { peer, policy } = actor;
     actor.socket = socket;
     clients.set(socket, actor);
@@ -403,6 +420,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
           actor.hello = true;
           if (message.batchVersion === 1) {
             socket.textworldBatchVersion = 1;
+            socket.textworldWireVersion = message.wireVersion === 1 ? 1 : 0;
             socket.topologyDelta = message.topologyDelta === 1;
           }
           const view = message.view && validateView(message.view);
@@ -461,8 +479,13 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     socket.on('close', () => { clients.delete(socket); removeActor(actor); });
     socket.on('error', () => {});
   });
+  let lastEncoding = encodingCounters();
   const sampleMeasurements=()=>{
     updatePopulation();
+    for (const socket of clients.keys()) sampleWire(socket);
+    const encoding = encodingCounters();
+    for (const key of Object.keys(encoding)) measurements.record('encoding.' + key, encoding[key] - lastEncoding[key]);
+    lastEncoding = encoding;
     // Record known-zero intervals as well, so an older deployment is distinguishable.
     measurements.record('ws.playtest_tx_bytes', 0);
     measurements.sample(world,{peers:actors.size,network_entries:networks.entries.size,waiters:listeners.size,ws_peers:clients.size,http_peers:actors.size-clients.size});

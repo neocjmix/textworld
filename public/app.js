@@ -8,6 +8,7 @@ import { createNativeInput } from './native-input.js';
 import { projectLocalCells } from './local-world.js';
 import { createNativeSurface } from './native-surface.js';
 import { createCameraMotion } from './camera-motion.js';
+import { decodeWire, WIRE_VERSION } from '/shared/wire.js';
 
 const $ = id => document.getElementById(id);
 const app = $('app');
@@ -707,7 +708,7 @@ function connect() {
   sentView = '';
   socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
   socket.onmessage = event => {
-    const message = JSON.parse(event.data);
+    const message = decodeWire(JSON.parse(event.data));
     if (message.type === 'snapshot') {
       reconnectAttempts = 0;
       const wasConnected = connected, previousCursor = { ...cursor }, oldEpoch = world?.epoch;
@@ -749,7 +750,7 @@ function connect() {
       connection(true);
       if (!sameSession) {
         const view = requestedView();
-        send({ type: 'hello', batchVersion: 1, topologyDelta: 1, view });
+        send({ type: 'hello', batchVersion: 1, wireVersion: WIRE_VERSION, topologyDelta: 1, view });
         sentView = JSON.stringify(view);
       } else reportView({ immediate: true });
       if (firstSnapshot) {

@@ -1,3 +1,4 @@
+import { decodeWire } from '../shared/wire.js';
 // Real Chromium pointer/wheel/touch integration. This is not a physical device
 // or OS-trackpad validation; native wheel tails are supplied explicitly below.
 import assert from 'node:assert/strict';
@@ -113,7 +114,7 @@ try {
   const a = await first.newPage(), b = await second.newPage();
   let actor;
   a.on('websocket', socket => socket.on('framereceived', frame => {
-    const msg = JSON.parse(frame.payload.toString()); if (msg.type === 'snapshot') actor = msg.selfId;
+    const msg = decodeWire(JSON.parse(frame.payload.toString())); if (msg.type === 'snapshot') actor = msg.selfId;
   }));
   await Promise.all([ready(a), ready(b)]);
   await mouseFlick(a);

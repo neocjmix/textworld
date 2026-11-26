@@ -7,6 +7,7 @@ import { createHistogram } from 'node:perf_hooks';
 import { WebSocket } from 'ws';
 import { ObservationAudit } from './observation-audit.mjs';
 import { randomSource as random } from './playtest/scenario.mjs';
+import { decodeWire } from '../shared/wire.js';
 
 // Loopback-only, open-loop release workload. The target revision may be a separate checkout.
 const [peerArg, durationArg, plazaArg, filename] = process.argv.slice(2);
@@ -203,7 +204,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
     });
     ws.on('message', (data) => {
       if (recording) bytes += data.length;
-      const envelope = JSON.parse(data);
+      const envelope = decodeWire(JSON.parse(data));
       for (const m of envelope.type === 'batch' ? envelope.messages : [envelope]) {
         c.audit?.receive(m);
         if (m.type === 'snapshot') {
@@ -217,7 +218,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
           if (!c.hello) {
             c.hello = true;
             if (recording) bytesNewViews += data.length;
-            ws.send(JSON.stringify({ type: 'hello', batchVersion: 1, topologyDelta: 1, view: p.view }));
+            ws.send(JSON.stringify({ type: 'hello', batchVersion: 1, wireVersion: process.env.CAPACITY_COMPACT === '0' ? 0 : 1, topologyDelta: 1, view: p.view }));
             place();
           } else if (recording) resets++;
         } else if (m.type === 'view') {
@@ -412,7 +413,10 @@ async function sample(label, hotFraction, liveClock, seconds) {
       audits,
       resets,
       bytesPerSecond: bytes / (m.elapsedMs / 1000),
-      serverBytesPerSecond: metric('ws.tx_bytes').sum / (m.elapsedMs / 1000),
+      serverBytesPerSecond: (m.metrics['ws.wire_tx_bytes'] || metric('ws.tx_bytes')).sum / (m.elapsedMs / 1000),
+      logicalBytesPerSecond: metric('ws.tx_bytes').sum / (m.elapsedMs / 1000),
+      compression: process.env.CAPACITY_COMPRESSION === '1',
+      compact: process.env.CAPACITY_COMPACT !== '0',
       ackP95Ms: q(acks, 0.95),
       scheduledAckP95Ms: q(offerAcks, 0.95),
       generatorP95Ms: q(sendLags, 0.95),

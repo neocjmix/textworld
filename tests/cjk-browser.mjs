@@ -1,3 +1,4 @@
+import { decodeWire } from '../shared/wire.js';
 // Actual Chromium composition and target ranges through the complete app and
 // two independent WebSocket clients. CDP is not a physical OS keyboard test.
 import assert from 'node:assert/strict';
@@ -141,7 +142,7 @@ async function scenario(name, run, { mobile = false, x = 10, y = 8, seed = [], l
     item.setDefaultTimeout(6000);
     item.on('pageerror', error => errors.push(error.message));
     item.on('websocket', socket => socket.on('framereceived', frame => {
-      const message = JSON.parse(frame.payload.toString());
+      const message = decodeWire(JSON.parse(frame.payload.toString()));
       if (message.type === 'batch') messages.push(...message.messages);
       else messages.push(message);
     }));

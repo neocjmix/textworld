@@ -1,3 +1,4 @@
+import { decodeWire } from '../shared/wire.js';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createTextworld } from '../server/index.js';
@@ -42,9 +43,9 @@ try {
   let corruptNext = false, patches = 0, repairs = 0;
   await recovering.routeWebSocket('**/ws', client => {
     const upstream = client.connectToServer();
-    client.onMessage(raw => { if (JSON.parse(raw).type === 'sync') repairs++; upstream.send(raw); });
+    client.onMessage(raw => { if (decodeWire(JSON.parse(raw)).type === 'sync') repairs++; upstream.send(raw); });
     upstream.onMessage(raw => {
-      const message = JSON.parse(raw);
+      const message = decodeWire(JSON.parse(raw));
       if (corruptNext && message.basis) {
         corruptNext = false; patches++; message.basis.revision++;
         client.send(JSON.stringify(message));

@@ -69,6 +69,7 @@ if (process.argv[2] === '--server') {
   const seededAt = Date.now() - EXPIRY_AGE_MS;
   let seedClock = config.aged ? seededAt : null;
   const app = createTextworld({ storagePath: join(directory, 'world.sqlite'), trustProxy: false,
+    compression: process.env.CAPACITY_COMPRESSION === '1',
     now: () => seedClock ?? (config.liveClock ? Date.now() : 1_000_000),
     maxParticipants: config.maxParticipants ?? Math.max(300, config.peers || 0) });
   app.world.resize(512, 256, [], { seed: 1 });

@@ -1,4 +1,4 @@
-import { encodeView } from './encode-view.js';
+import { encodeView, encodeCompactView } from './encode-view.js';
 
 // Limit time and bytes independently. A single large view (e.g. after a pan)
 // stays one application message, split into ordinary WebSocket continuations.
@@ -18,7 +18,7 @@ export function createViewDelivery({ write, record, intervalMs = 50, frameBytes 
       clearTimeout(timer);
       timer = undefined;
     }
-    const encoded = prefix + queue.parts.join(',') + suffix;
+    const encoded = queue.compact ? '["tw1","b",[' + queue.parts.join(',') + ']]' : prefix + queue.parts.join(',') + suffix;
     if (write(socket, encoded)) {
       const ready = now();
       for (const start of queue.starts) reportDelay(ready - start);
@@ -32,7 +32,8 @@ export function createViewDelivery({ write, record, intervalMs = 50, frameBytes 
   }
 
   function enqueue(socket, message, started) {
-    const encoded = encodeView(message);
+    const compact = socket.textworldWireVersion === 1;
+    const encoded = compact ? encodeCompactView(message) : encodeView(message);
     const bytes = Buffer.byteLength(encoded);
     let queue = pending.get(socket);
     if (queue && queue.bytes + 1 + bytes > frameBytes) {
@@ -40,12 +41,12 @@ export function createViewDelivery({ write, record, intervalMs = 50, frameBytes 
       queue = undefined;
     }
     if (bytes + envelopeBytes > frameBytes) {
-      if (write(socket, encoded, frameBytes)) reportDelay(now() - started);
+      if (write(socket, compact ? '["tw1","v",' + encoded + ']' : encoded, frameBytes)) reportDelay(now() - started);
       else record('delivery.undelivered_events', 1);
       return;
     }
     if (!queue) {
-      queue = { parts: [], starts: [], bytes: envelopeBytes };
+      queue = { parts: [], starts: [], bytes: envelopeBytes, compact };
       pending.set(socket, queue);
     }
     queue.bytes += bytes + Number(queue.parts.length > 0);

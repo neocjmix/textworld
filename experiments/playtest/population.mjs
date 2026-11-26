@@ -2,6 +2,7 @@ import { createHistogram } from 'node:perf_hooks';
 import { WebSocket } from 'ws';
 import { randomSource, roles } from './scenario.mjs';
 import { graphemes } from '../../shared/world.js';
+import { decodeWire, WIRE_VERSION } from '../../shared/wire.js';
 
 const lines = [
   '여기에서 작은 글자를 따라 한 바퀴 걸어 봅니다. 옆줄에서는 무슨 일이 일어날까요?',
@@ -131,7 +132,7 @@ export class Population {
     socket.on('message', raw => {
       this.stats.receivedBytes += raw.length;
       if (this.stats.receivedBytes >= this.plan.budget.receivedMiB * 1048576) this.stop('byte-budget');
-      const message = JSON.parse(raw);
+      const message = decodeWire(JSON.parse(raw));
       for (const entry of message.type === 'batch' ? message.messages : [message]) this.receive(actor, entry);
     });
   }
@@ -146,7 +147,7 @@ export class Population {
         this.stats.joined++;
         this.stats.peak = Math.max(this.stats.peak, [...this.actors].filter(p => p.ready && !p.leaving).length);
         a.socket.send(JSON.stringify({ type: 'hello', name: names[a.role] + ' ' + a.number,
-          view: { cols: 48, rows: 20 }, batchVersion: 1, topologyDelta: 1 }));
+          view: { cols: 48, rows: 20 }, batchVersion: 1, topologyDelta: 1, wireVersion: WIRE_VERSION }));
         this.wake();
       }
     } else if (m.type === 'error') {

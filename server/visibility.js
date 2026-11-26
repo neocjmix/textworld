@@ -35,9 +35,14 @@ const cellRecord = cell => ({
   x: cell.x, y: cell.y, text: cell.text, width: cell.width ?? 1,
   leadX: cell.leadX ?? null, version: cell.version,
 });
-const peerRecord = peer => ({
-  id: peer.id, name: peer.name, color: peer.color, x: peer.x, y: peer.y,
-});
+const publicPeers = new WeakMap();
+const peerRecord = peer => {
+  const old = publicPeers.get(peer);
+  if (old && old.x === peer.x && old.y === peer.y && old.name === peer.name && old.color === peer.color && old.id === peer.id) return old;
+  const record = Object.freeze({ id: peer.id, name: peer.name, color: peer.color, x: peer.x, y: peer.y });
+  publicPeers.set(peer, record);
+  return record;
+};
 
 function glyphSpan(world, cell) {
   if (cell.width === 2) {
@@ -87,7 +92,7 @@ function peersInRectangle(world, peer, rectangle, peers) {
 }
 
 export function visiblePeers(world, peer, view, peers = []) {
-  return peersInRectangle(world, peer, viewRectangle(world, peer, view), peers);
+  return peersInRectangle(world, peer, viewRectangle(world, peer, view), peers).map(other => ({ ...other }));
 }
 
 const sameCell = (a, b) => a && a.x === b.x && a.y === b.y && a.text === b.text
@@ -456,6 +461,7 @@ export class Observer {
         departed:[...old.peers.keys()].filter(id => !this.last.peers.has(id)) };
     }
     return { revision: this.revision, reset: !!reset, view: rectangle,
-      cells: reset ? [...current.values()] : cells, forget: reset ? [] : forget, marks: marks.map(mark => ({ ...mark })), freshness: ages, colors, peers: localPeers };
+      cells: reset ? [...current.values()] : cells, forget: reset ? [] : forget, marks: marks.map(mark => ({ ...mark })), freshness: ages, colors,
+      peers: frame ? localPeers : localPeers.map(other => ({ ...other })) };
   }
 }

@@ -1,3 +1,4 @@
+import { decodeWire } from '../shared/wire.js';
 // User-intent regressions for spatial writing. Native Chromium keyboard/IME paths
 // are mixed with explicit beforeinput contracts for mobile intents and replacement
 // ranges; these do not claim physical Android/iOS keyboard coverage.
@@ -75,7 +76,7 @@ async function scenario(name, run, { x = 10, y = 8, mobile = false, seed = [] } 
   const page = await context.newPage(), observer = await observerContext.newPage();
   let actorId;
   page.on('websocket', socket => socket.on('framereceived', frame => {
-    const message = JSON.parse(frame.payload.toString());
+    const message = decodeWire(JSON.parse(frame.payload.toString()));
     if (message.type === 'snapshot') actorId = message.selfId;
   }));
   const errors = [];

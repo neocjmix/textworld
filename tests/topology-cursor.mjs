@@ -1,3 +1,4 @@
+import { decodeWire } from '../shared/wire.js';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createTextworld } from '../server/index.js';
@@ -15,11 +16,11 @@ try {
   await context.routeWebSocket('**/ws', ws => {
     const server = ws.connectToServer();
     ws.onMessage(data => {
-      const m = JSON.parse(String(data));
+      const m = decodeWire(JSON.parse(String(data)));
       if (hold && m.type === 'input') queued.push(() => server.send(data)); else server.send(data);
     });
     server.onMessage(data => {
-      const m = JSON.parse(String(data));
+      const m = decodeWire(JSON.parse(String(data)));
       if (m.type === 'error') errors.push(m);
       ws.send(data);
     });

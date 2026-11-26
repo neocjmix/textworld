@@ -1,3 +1,4 @@
+import { decodeWire } from '../shared/wire.js';
 // Real browser editing against a real server with held inbound messages.
 // A 300ms minimum delivery delay exposes optimistic paint/ack handoff bugs
 // without making correctness depend on a test machine's animation frame rate.
@@ -32,11 +33,11 @@ async function transport(context) {
   await context.routeWebSocket('**/ws', ws => {
     const server = ws.connectToServer();
     server.onMessage(data => {
-      if (holding) frames.push({ data, send: () => ws.send(data), message: JSON.parse(String(data)) });
+      if (holding) frames.push({ data, send: () => ws.send(data), message: decodeWire(JSON.parse(String(data))) });
       else ws.send(data);
     });
     ws.onMessage(data => {
-      if (throttleSync && JSON.parse(String(data)).type === 'sync') {
+      if (throttleSync && decodeWire(JSON.parse(String(data))).type === 'sync') {
         throttleSync = false;
         ws.send(JSON.stringify({ type: 'error', requestType: 'sync', code: 'RATE_LIMIT',
           status: 429, retryAfterMs: 100, message: 'sync retry' }));
