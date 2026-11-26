@@ -287,6 +287,19 @@ async function sample(label, hotFraction, liveClock, seconds) {
     const health = await (await fetch('http://127.0.0.1:' + ready.port + '/health')).json();
     if (health.peers !== count) throw Error('did not establish ' + count + ' connections ' + health.peers);
     console.log(label, 'connected', health.peers, 'setupSec', setupSecs.toFixed(2), 'world', health.world);
+    const capacityCheck = await new Promise((resolve, reject) => {
+      const probe = new WebSocket('ws://127.0.0.1:' + ready.port + '/ws', { localAddress: '127.127.127.2', handshakeTimeout: 5000 });
+      probe.on('error', reject);
+      probe.once('open', () => { probe.terminate(); reject(Error('capacity admitted one participant too many')); });
+      probe.once('unexpected-response', (_request, response) => {
+        const result = { connected: health.peers, limit: health.capacity, excessStatus: response.statusCode,
+          retryAfterSeconds: Number(response.headers['retry-after']) };
+        response.resume();
+        if (result.excessStatus !== 503 || !(result.retryAfterSeconds > 0)) reject(Error('capacity refusal is not retryable: ' + JSON.stringify(result)));
+        else resolve(result);
+        probe.terminate();
+      });
+    });
     const started = ipc('started');
     server.send({ kind: 'start' });
     baseSeq = (await started).seq;
@@ -373,13 +386,17 @@ async function sample(label, hotFraction, liveClock, seconds) {
     const result = {
       revision: process.env.CAPACITY_REVISION,
       sourceDigest: ready.sourceDigest,
+      runtime: ready.runtime,
+      profiled: !!process.env.CAPACITY_PROFILE,
       label,
       hotFraction,
       liveClock,
+      alignedClock: process.env.CAPACITY_ALIGNED_CLOCK === '1',
       slices,
       baseline: '6000 individual glyphs aged 0-180 seconds, 75% fullwidth, 8% occupied',
       seconds,
       peerCount: health.peers,
+      capacityCheck,
       writers,
       walkers,
       staticReaders: count - writers - walkers,
@@ -414,6 +431,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
       resets,
       bytesPerSecond: bytes / (m.elapsedMs / 1000),
       serverBytesPerSecond: (m.metrics['ws.wire_tx_bytes'] || metric('ws.tx_bytes')).sum / (m.elapsedMs / 1000),
+      wireBytesMeasured: !!m.metrics['ws.wire_tx_bytes'],
       logicalBytesPerSecond: metric('ws.tx_bytes').sum / (m.elapsedMs / 1000),
       compression: process.env.CAPACITY_COMPRESSION === '1',
       compressionThreshold: Number(process.env.CAPACITY_COMPRESSION_THRESHOLD || 1024),

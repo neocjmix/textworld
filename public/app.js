@@ -28,7 +28,7 @@ try {
 const mapFont = '"Textworld Sarasa"';
 const glyphWidths = new Map();
 const glyphBounds = new Map(), labelWidths = new Map(), paintDamage = createPaintDamage();
-let fontRevision = 0, lastPaint = null;
+let fontRevision = 0, lastPaint = null, paintedFrames = 0, fullPaints = 0;
 let fontReady = false;
 let world = null, selfId = null, cells = new Map(), peers = new Map();
 let localCells = new Map(), freshnessMarks = new Map(), freshnessBands = {}, colorBands = {};
@@ -60,7 +60,7 @@ const cameraMotion = createCameraMotion({ reducedMotion, onUpdate(position) {
   updateCursorSurface();
   // Camera, native surface and shared text must move in the same frame.
   if (frame) { cancelAnimationFrame(frame); frame = null; }
-  draw();
+  draw(true);
 } });
 const motion = createPanMotion({ pan, reducedMotion, onRest: () => center() });
 let cursorPositionReady = false;
@@ -334,7 +334,7 @@ function paintText(text, x, y, d, columns, fonts) {
   if (fonts.current !== font) { ctx.font = font; fonts.current = font; }
   ctx.fillText(text, x + d.width * columns / 2, y + d.height / 2 + 1);
 }
-function draw() {
+function draw(cameraFrame = false) {
   const drawStarted=performance.now();let drawnGlyphs=0;
   // The backing store is rounded to physical pixels. Paint its whole extent,
   // including the last fractional CSS pixel, so clipping cannot accumulate ink.
@@ -348,51 +348,59 @@ function draw() {
   const fonts = { normal: `${18 * zoom}px ${mapFont}`, compact: `${9 * zoom}px ${mapFont}`, current: null };
   const glyphs = [], cursors = [];
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  for (const cell of localCells.values()) {
-    if (!cell.text) continue;
-    const local = typeof cell.version === 'string', columns = cell.width || 1;
-    const opacity = freshnessStyle(local ? 'now' : freshnessBands[cell.version]).opacity;
-    const color = local ? (peers.get(selfId)?.color || '#314137') : (colorBands[cell.version] || '#314137');
-    const font = columns === 1 && graphemeWidth(cell.text) > 1 ? fonts.compact : fonts.normal;
-    const metricKey = font + ':' + cell.text;
-    let bounds = glyphBounds.get(metricKey);
-    if (!bounds) {
-      ctx.font = font;
-      const m = ctx.measureText(cell.text);
-      bounds = { x: -m.actualBoundingBoxLeft - 2, y: -m.actualBoundingBoxAscent - 2,
-        width: m.actualBoundingBoxLeft + m.actualBoundingBoxRight + 4,
-        height: m.actualBoundingBoxAscent + m.actualBoundingBoxDescent + 4 };
-      if (glyphBounds.size >= 4096) glyphBounds.delete(glyphBounds.keys().next().value);
-      glyphBounds.set(metricKey, bounds);
-    }
-    for (const y of visibleInstances(cell.y, world.height, startY, camera.y + v.rows)) {
-      for (const x of visibleInstances(cell.x, world.width, startX - 1, camera.x + v.cols)) {
-        const px = (x - camera.x) * d.width, py = (y - camera.y) * d.height;
-        glyphs.push({ key: `g:${x},${y}`, paint: `${columns}:${opacity}:${color}:${cell.text}`, cell, px, py, opacity, color,
-          bounds: { ...bounds, x: px + d.width * columns / 2 + bounds.x, y: py + d.height / 2 + 1 + bounds.y } });
+  // Moving the camera changes every pixel. Avoid building damage records for
+  // frames that necessarily use the direct full-paint path.
+  if (!cameraFrame) {
+    for (const cell of localCells.values()) {
+      if (!cell.text) continue;
+      const local = typeof cell.version === 'string', columns = cell.width || 1;
+      const opacity = freshnessStyle(local ? 'now' : freshnessBands[cell.version]).opacity;
+      const color = local ? (peers.get(selfId)?.color || '#314137') : (colorBands[cell.version] || '#314137');
+      const font = columns === 1 && graphemeWidth(cell.text) > 1 ? fonts.compact : fonts.normal;
+      const metricKey = font + ':' + cell.text;
+      let bounds = glyphBounds.get(metricKey);
+      if (!bounds) {
+        ctx.font = font;
+        const m = ctx.measureText(cell.text);
+        bounds = { x: -m.actualBoundingBoxLeft - 2, y: -m.actualBoundingBoxAscent - 2,
+          width: m.actualBoundingBoxLeft + m.actualBoundingBoxRight + 4,
+          height: m.actualBoundingBoxAscent + m.actualBoundingBoxDescent + 4 };
+        if (glyphBounds.size >= 4096) glyphBounds.delete(glyphBounds.keys().next().value);
+        glyphBounds.set(metricKey, bounds);
+      }
+      for (const y of visibleInstances(cell.y, world.height, startY, camera.y + v.rows)) {
+        for (const x of visibleInstances(cell.x, world.width, startX - 1, camera.x + v.cols)) {
+          const px = (x - camera.x) * d.width, py = (y - camera.y) * d.height;
+          glyphs.push({ key: `g:${x},${y}`, paint: `${columns}:${opacity}:${color}:${cell.text}`, cell, px, py, opacity, color,
+            bounds: { ...bounds, x: px + d.width * columns / 2 + bounds.x, y: py + d.height / 2 + 1 + bounds.y } });
+        }
       }
     }
-  }
-  glyphs.sort((a, b) => a.py - b.py || a.px - b.px);
-  ctx.font = '10px Arial';
-  let order = 0;
-  for (const peer of peers.values()) {
-    if (peer.id === selfId) continue;
-    const width = labelWidth(peer.name || '방문자');
-    for (const y of visibleInstances(peer.y, world.height, startY, camera.y + v.rows)) {
-      for (const x of visibleInstances(peer.x, world.width, startX, camera.x + v.cols)) {
-        const px = (x - camera.x) * d.width, py = (y - camera.y) * d.height;
-        cursors.push({ key: `p:${peer.id}:${x},${y}`, paint: `${order}:${peer.color}:${peer.name}`, peer, px, py,
-          bounds: { x: px - 2, y: py - 17, width: Math.max(d.width + 4, width + 4), height: d.height + 20 } });
+    glyphs.sort((a, b) => a.py - b.py || a.px - b.px);
+    ctx.font = '10px Arial';
+    let order = 0;
+    for (const peer of peers.values()) {
+      if (peer.id === selfId) continue;
+      const width = labelWidth(peer.name || '방문자');
+      for (const y of visibleInstances(peer.y, world.height, startY, camera.y + v.rows)) {
+        for (const x of visibleInstances(peer.x, world.width, startX, camera.x + v.cols)) {
+          const px = (x - camera.x) * d.width, py = (y - camera.y) * d.height;
+          cursors.push({ key: `p:${peer.id}:${x},${y}`, paint: `${order}:${peer.color}:${peer.name}`, peer, px, py,
+            bounds: { x: px - 2, y: py - 17, width: Math.max(d.width + 4, width + 4), height: d.height + 20 } });
+        }
       }
+      order++;
     }
-    order++;
   }
   const signature = [camera.x, camera.y, zoom, size.width, size.height, devicePixelRatio,
     world.width, world.height, world.epoch, dotOrigin.x, dotOrigin.y, fontRevision,
     observedView?.x, observedView?.y, observedView?.cols, observedView?.rows].join(':');
-  const damage = paintDamage.plan([...glyphs, ...cursors], signature, paintWidth, paintHeight, dpr);
-  lastPaint = { full: damage.full, fraction: damage.fraction, regions: damage.regions.length, glyphs: 0 };
+  if (cameraFrame) paintDamage.invalidate();
+  const damage = cameraFrame ? { full: true, fraction: 1, includes: () => true,
+    regions: [{ x: 0, y: 0, width: paintWidth, height: paintHeight }] }
+    : paintDamage.plan([...glyphs, ...cursors], signature, paintWidth, paintHeight, dpr);
+  fullPaints += Number(damage.full);
+  lastPaint = { frame: ++paintedFrames, fullFrames: fullPaints, full: damage.full, fraction: damage.fraction, regions: damage.regions.length, glyphs: 0 };
   if (!damage.regions.length) { browserMeasurements.draw(drawStarted, Math.ceil(v.cols)*Math.ceil(v.rows), 0, damage.fraction); return; }
   ctx.save();
   ctx.beginPath();
@@ -408,7 +416,7 @@ function draw() {
   for (let y = Math.floor(originY / dotSpacing) * dotSpacing; y <= originY + size.height; y += dotSpacing) {
     for (let x = Math.floor(originX / dotSpacing) * dotSpacing; x <= originX + size.width; x += dotSpacing) {
       const px = x - originX - dotSize / 2, py = y - originY - dotSize / 2;
-      if (damage.includes({ x: px, y: py, width: dotSize, height: dotSize })) ctx.fillRect(px, py, dotSize, dotSize);
+      if (damage.full || damage.includes({ x: px, y: py, width: dotSize, height: dotSize })) ctx.fillRect(px, py, dotSize, dotSize);
     }
   }
   ctx.fillStyle = '#314137';
@@ -418,7 +426,7 @@ function draw() {
     // Include a lead just off-screen when its second column is visible.
     for (let x = startX - 1; x <= camera.x + v.cols; x++) {
       const px = (x - camera.x) * d.width, py = (y - camera.y) * d.height;
-      if (!damage.includes({ x: px, y: py, width: d.width, height: d.height })) continue;
+      if (!damage.full && !damage.includes({ x: px, y: py, width: d.width, height: d.height })) continue;
       const wx = wrap(x, world.width), wy = wrap(y, world.height);
       const cell = localCells.get(cellKey(wx, wy));
       if (observedView && !cell && (wrap(wx - observedView.x, world.width) >= observedView.cols
@@ -428,6 +436,13 @@ function draw() {
         ctx.fillStyle = '#dfe4dc';
         ctx.fillRect(px + 1, py + 1, d.width - 1, d.height - 1);
         ctx.fillStyle = '#314137';
+      }
+      if (cameraFrame && cell?.text) {
+        const local = typeof cell.version === 'string';
+        ctx.globalAlpha = freshnessStyle(local ? 'now' : freshnessBands[cell.version]).opacity;
+        ctx.fillStyle = local ? (peers.get(selfId)?.color || '#314137') : (colorBands[cell.version] || '#314137');
+        paintText(cell.text, px, py, d, cell.width || 1, fonts); drawnGlyphs++;
+        ctx.globalAlpha = 1;
       }
     }
   }
@@ -441,6 +456,12 @@ function draw() {
   ctx.textBaseline = 'alphabetic';
   for (const item of cursors) {
     if (damage.includes(item.bounds)) paintCursor(item.peer, item.px, item.py, d);
+  }
+  if (cameraFrame) for (const peer of peers.values()) {
+    if (peer.id === selfId) continue;
+    for (const y of visibleInstances(peer.y, world.height, startY, camera.y + v.rows))
+      for (const x of visibleInstances(peer.x, world.width, startX, camera.x + v.cols))
+        paintCursor(peer, (x - camera.x) * d.width, (y - camera.y) * d.height, d);
   }
   ctx.restore();
   lastPaint.glyphs = drawnGlyphs;
@@ -922,5 +943,5 @@ fontStylesheetReady().then(() => document.fonts.load(`18px ${mapFont}`, 'iWM')).
   $('connection').textContent = '글꼴 로드 실패';
   notice('지도 글꼴을 불러오지 못했습니다. 페이지를 새로고침해 주세요.');
 });
-// Read-only browser diagnostics for verifying spatial invariants.
-window.textworld = { inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), observedView, viewRevision, freshnessMarks: [...freshnessMarks], freshness: freshnessBands, peers: structuredClone([...peers.values()]), cells: [...cells.values()], localCells: [...localCells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, cameraActive: cameraMotion.active, cursorActive: cursorMotion.active, keyboardVisible, paint: lastPaint, cursorVerticalFraction: cursorVerticalFraction(), fontReady }) };
+// Browser diagnostics. Repaint only invalidates pixels; it cannot change world state.
+window.textworld = { repaint: () => { paintDamage.invalidate(); schedule(); }, inspect: () => ({ world, cursor: { ...cursor }, camera: { ...camera }, viewport: visible(), observedView, viewRevision, freshnessMarks: [...freshnessMarks], freshness: freshnessBands, peers: structuredClone([...peers.values()]), cells: [...cells.values()], localCells: [...localCells.values()], connected, pending: pending.size, zoom, composing, preedit, lineStartX: writing.lineStartX, motionActive: motion.active, cameraActive: cameraMotion.active, cursorActive: cursorMotion.active, keyboardVisible, paint: lastPaint, cursorVerticalFraction: cursorVerticalFraction(), fontReady }) };

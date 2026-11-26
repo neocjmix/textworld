@@ -10,6 +10,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHistogram, performance } from 'node:perf_hooks';
+import { Session } from 'node:inspector/promises';
 import { WebSocket } from 'ws';
 
 import { empty, merge, summary } from '../shared/measurement.js';
@@ -66,13 +67,14 @@ if (process.argv[2] === '--server') {
   const directory = await mkdtemp(join(base, 'textworld-capacity-'));
   const sourceRoot = process.env.CAPACITY_TARGET_ROOT || resolve(dirname(filename), '..');
   const { createTextworld } = await import(pathToFileURL(join(sourceRoot, 'server/index.js')));
-  const seededAt = Date.now() - EXPIRY_AGE_MS;
-  let seedClock = config.aged ? seededAt : null;
+  const alignedClock = config.aged && config.liveClock && process.env.CAPACITY_ALIGNED_CLOCK === '1';
+  const seededAt = (alignedClock ? Math.floor(Date.now() / 5000) * 5000 : Date.now()) - EXPIRY_AGE_MS;
+  let seedClock = config.aged ? seededAt : null, clockOffset = 0;
   const app = createTextworld({ storagePath: join(directory, 'world.sqlite'), trustProxy: false,
     compression: process.env.CAPACITY_COMPRESSION === '1',
     compressionThreshold: Number(process.env.CAPACITY_COMPRESSION_THRESHOLD || 1024),
     actionRate: Number(process.env.CAPACITY_ACTION_RATE || 120), actionBurst: Number(process.env.CAPACITY_ACTION_BURST || 96),
-    now: () => seedClock ?? (config.liveClock ? Date.now() : 1_000_000),
+    now: () => seedClock ?? (config.liveClock ? Date.now() - clockOffset : 1_000_000),
     maxParticipants: config.maxParticipants ?? Math.max(300, config.peers || 0) });
   app.world.resize(512, 256, [], { seed: 1 });
   if (config.aged) {
@@ -83,7 +85,7 @@ if (process.argv[2] === '--server') {
       app.world.applyWrite({ author: 'earlier-local-writers', id: 'seed-' + n, epoch: app.world.epoch,
         x: 2 * (point % 256), y: Math.floor(point / 256), text: n % 4 === 0 ? 'A' : '가' });
     }
-    seedClock = null;
+    seedClock = alignedClock ? seededAt + EXPIRY_AGE_MS : null;
   } else {
     for (let y=0; y<256; y++) {
       const cells=[];
@@ -92,9 +94,11 @@ if (process.argv[2] === '--server') {
     }
   }
   const {port}=await app.listen(0,'127.0.0.1');
-  let start, cpu, samplingTimer;
+  let start, cpu, samplingTimer, startRequested = false;
   const storage = [], flushed = new Map();
   const readyTimes = createHistogram(), expiryAges = createHistogram();
+  const profiler = process.env.CAPACITY_PROFILE ? new Session() : null;
+  if (profiler) { profiler.connect(); await profiler.post('Profiler.enable'); }
   if (config.liveClock) {
     const remove = app.world.conditionalDelete.bind(app.world);
     app.world.conditionalDelete = request => {
@@ -114,6 +118,11 @@ if (process.argv[2] === '--server') {
   }
   const record = app.measurements.record.bind(app.measurements);
   app.measurements.record = (name, value) => {
+    if (startRequested && name === 'expiration.ms') {
+      startRequested = false;
+      clockOffset = Date.now() - seedClock; seedClock = null;
+      void beginMeasurements();
+    }
     if (start && name === 'delivery.ready_ms') readyTimes.record(Math.max(1, Math.round(value * 1000)));
     return record(name, value);
   };
@@ -128,18 +137,29 @@ if (process.argv[2] === '--server') {
     storage.push(item);
     process.send({kind:'sample',item});
   };
+  async function beginMeasurements() {
+    if (profiler) await profiler.post('Profiler.start');
+    app.measurements.pending.clear(); app.measurements.loop.reset();
+    cpu=process.cpuUsage(); start=performance.now();
+    if (config.liveClock) { sample(); samplingTimer = setInterval(sample, 60000); }
+    process.send({kind:'started',seq:app.world.seq});
+  }
   process.on('message', async message => {
     if(message.kind==='start') {
-      app.measurements.pending.clear(); app.measurements.loop.reset();
-      cpu=process.cpuUsage(); start=performance.now();
-      if (config.liveClock) { sample(); samplingTimer = setInterval(sample, 60000); }
-      process.send({kind:'started',seq:app.world.seq});
+      // Ramp duration differs by codec. Start with identical glyph ages and
+      // the same maintenance phase, then advance at real wall-clock speed.
+      if (alignedClock) startRequested = true;
+      else void beginMeasurements();
     } else if(message.kind==='finish') {
       const elapsedMs=performance.now()-start, used=process.cpuUsage(cpu);
       clearInterval(samplingTimer);
       if (config.liveClock) sample();
       for (const [name, h] of app.measurements.pending) flushed.set(name, merge(flushed.get(name) || empty(), h));
       const metrics=Object.fromEntries([...flushed].map(([name,h])=>[name,summary(h)]));
+      if (profiler) {
+        const { profile } = await profiler.post('Profiler.stop');
+        await writeFile(process.env.CAPACITY_PROFILE, JSON.stringify(profile)); profiler.disconnect();
+      }
       process.send({kind:'finished', expiredGlyphs:expiryAges.count,
         expirationAgeP95Ms:expiryAges.count ? expiryAges.percentile(95) : null,
         expirationAgeMaxMs:expiryAges.count ? expiryAges.max : null, elapsedMs, cpuMs:(used.user+used.system)/1000,
@@ -155,7 +175,10 @@ if (process.argv[2] === '--server') {
   for (const directory of ['server','shared']) for (const name of readdirSync(join(sourceRoot,directory)).sort()) {
     if (name.endsWith('.js')) digest.update(name).update(readFileSync(join(sourceRoot,directory,name)));
   }
-  process.send({kind:'ready',port,ink:app.world.ink,sourceDigest:digest.digest('hex')});
+  let bootHash;
+  try { bootHash = createHash('sha256').update(readFileSync('/proc/sys/kernel/random/boot_id')).digest('hex').slice(0,16); } catch {}
+  process.send({kind:'ready',port,ink:app.world.ink,sourceDigest:digest.digest('hex'),
+    runtime: { ...app.measurements.runtime, cpuModel: cpus()[0]?.model, bootHash } });
 } else {
   const durationMs=Number(process.env.CAPACITY_DURATION_MS||12000);
   const scenarios=[

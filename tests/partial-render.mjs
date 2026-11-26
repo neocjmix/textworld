@@ -38,14 +38,15 @@ for (const engine of (process.env.BROWSERS || 'chromium').split(',')) {
         const before = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
         const beforeState = window.textworld.inspect(), beforePng = canvas.toDataURL();
         const paint = window.textworld.inspect().paint;
-        document.fonts.dispatchEvent(new Event('loadingdone'));
+        window.textworld.repaint();
         await frame();
+        const forcedFull = window.textworld.inspect().paint.fullFrames - paint.fullFrames;
         const after = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
         let differingChannels = 0, maxDifference = 0;
         for (let i = 0; i < before.length; i++) if (before[i] !== after[i]) {
           differingChannels++; maxDifference = Math.max(maxDifference, Math.abs(before[i] - after[i]));
         }
-        return { differingChannels, maxDifference, channels: before.length, paint, full: window.textworld.inspect().paint,
+        return { differingChannels, maxDifference, channels: before.length, paint, forcedFull, full: window.textworld.inspect().paint,
           ...(differingChannels ? { beforeCamera: beforeState.camera, afterCamera: window.textworld.inspect().camera,
             beforePng, afterPng: canvas.toDataURL() } : {}) };
       });
@@ -62,7 +63,7 @@ for (const engine of (process.env.BROWSERS || 'chromium').split(',')) {
       // and widespread changes remain a failure.
       assert(result.maxDifference <= 1 && result.differingChannels <= result.channels * .001,
         `${engine} ${label}: ${JSON.stringify(result)}`);
-      assert.equal(result.full.full, true);
+      assert(result.forcedFull >= 1, 'A full repaint must actually occur before comparing pixels: ' + JSON.stringify(result));
       return result;
     };
     const writer = async name => {

@@ -59,7 +59,8 @@ test('only finite plans, positive budgets and bounded role targets are accepted'
   assert.equal(scenario.safeParse({ ...plan, budget: { ...plan.budget, botMinutes: 0 } }).success, false);
   assert.equal(scenario.safeParse({ ...plan, phases: [{ ...plan.phases[0], seconds: 3600 }, plan.phases[1]] }).success, false);
   assert.equal(target.safeParse({ writers: 6, walkers: 24, readers: 270 }).success, true);
-  assert.equal(target.safeParse({ writers: 6, walkers: 24, readers: 271 }).success, false);
+  assert.equal(target.safeParse({ writers: 20, walkers: 80, readers: 900 }).success, true);
+  assert.equal(target.safeParse({ writers: 20, walkers: 80, readers: 901 }).success, false);
   assert.equal(scenario.parse(plan).jitterRatio, .3);
   assert.equal(scenario.safeParse({ ...plan, jitterRatio: .61 }).success, false);
 });
@@ -100,7 +101,7 @@ test('a writer sends one grapheme at a time and rests after a delayed acknowledg
 
 test('the visitable world handles churn, operator changes, ordinary address limits, a quiet phase and shutdown', { timeout: 24000 }, async t => {
   const { link, child, end } = await start(t, plan);
-  child.stdin.write('set 301 0 0\nset 0 1 2 overwrite\nmark 입력 확인\n');
+  child.stdin.write('set 1001 0 0\nset 0 1 2 overwrite\nmark 입력 확인\n');
   const health = new URL('/health', link);
   await waitFor(async () => (await (await fetch(health)).json()).peers === 3);
   const browserSocket = new URL('/ws', link); browserSocket.protocol = 'ws:';

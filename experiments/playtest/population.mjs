@@ -70,7 +70,7 @@ export class Population {
     this.typingGaps = createHistogram();
     this.departures = {};
     this.stats = { attempts: 0, joined: 0, peak: 0, sent: 0, ack: 0, rejected: 0, unconfirmed: 0, rateLimited: 0,
-      receivedBytes: 0, transportErrors: 0, writtenGraphemes: 0 };
+      receivedBytes: 0, receivedWireBytes: 0, transportErrors: 0, writtenGraphemes: 0 };
   }
 
   counts() {
@@ -106,6 +106,9 @@ export class Population {
     const random = randomSource(Math.floor(this.random() * 0x100000000));
     const [min, max] = this.plan.lifetimeSeconds;
     const socket = new WebSocket(this.url, { handshakeTimeout: 4000, headers: this.headers });
+    // Count compressed WebSocket frames independently of the decoded safety
+    // budget. The operator ingress is loopback, so this is hypothetical egress.
+    socket.on('open', () => socket._socket.on('data', data => { this.stats.receivedWireBytes += data.length; }));
     const actor = { number, role, socket, random, born: now, expires: now + 1000 * (min + random() * (max - min)),
       pace: jitter(random, this.spread / 2), ready: false, steps: 0, sequence: 0, due: Infinity, line: number, offset: 0 };
     this.actors.add(actor);

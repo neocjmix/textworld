@@ -97,7 +97,14 @@ async function scenario(name, run, { seed = [] } = {}) {
   for (const item of [page, observer]) { item.setDefaultTimeout(6000); item.on('pageerror', error => errors.push(error.message)); }
   try {
     await Promise.all([page, observer].map(item => item.goto(`http://127.0.0.1:${port}/#x=10&y=8`)));
-    await Promise.all([page, observer].map(item => item.waitForFunction(() => window.textworld?.inspect().connected && window.textworld.inspect().peers.length === 2)));
+    await Promise.all([page, observer].map(item => item.waitForFunction(() => {
+      const s = window.textworld?.inspect();
+      return s?.connected && s.peers.length === 2 && s.peers.every(peer => peer.x === 10 && peer.y === 8);
+    })));
+    // This test measures warm-font native geometry and delayed replies. The
+    // independent font-loading tests cover first-use subset downloads.
+    await page.evaluate(() => document.fonts.load('18px "Textworld Sarasa"', '한'));
+    await settledCamera(page);
     await page.locator('#input').focus(); await paint(page);
     const cdp = await context.newCDPSession(page);
     await run({ app, page, observer, cdp, wire });

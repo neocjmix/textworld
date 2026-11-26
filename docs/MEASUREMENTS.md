@@ -11,7 +11,7 @@
 | 어느 쪽에서 느린가 | commit/observer 분포, Node event-loop p99/max·활성률, HTTP 경로별 응답 시간, 브라우저 submit→draw·ACK 왕복·draw CPU 분포 |
 | 메모리/CPU가 얼마나 필요한가 | process CPU-ms/실제 경과시간, RSS/heap, cgroup CPU·메모리 한도, 빌드별 Node/arch metadata |
 | 어디서 데이터가 늘어나나 | 세계 DB/WAL/빈 페이지, 현재 셀·점유 셀, 변경 셀 수, 계측 DB 자체 크기·flush 비용·실패 수 |
-| 통신은 어떻게 증폭되나 | WS 실제 JSON payload 송수신 bytes·송신 대기량·느린 연결 종료, HTTP 응답 payload bytes, 요청 Content-Length의 선언값 |
+| 통신은 어떻게 증폭되나 | WS 압축 전 논리 bytes와 실제 프레임 송신 bytes·송신 대기량·느린 연결 종료, HTTP 응답 payload bytes, 요청 Content-Length의 선언값 |
 | 정책에 걸린 것인가 | 경로별 HTTP 상태·WS429·turn 완료/차단/취소/진행중·telemetry 거부 |
 
 사용자가 입력한 글·좌표·IP·이름·토큰·세션 ID·전체 URL은 계측에 저장하지 않는다. 경로는 고정된8종류, metric 이름은 허용 목록이다. 배포 revision으로 구분하며, 사람 수로 단정하지 않고 **참여자 세션 시간**으로 계산한다. 브라우저처럼 접속한 봇도 WS에 포함된다.
@@ -23,8 +23,9 @@
 - event-loop histogram의 측정 해상도는20ms다. 정상 baseline 자체가 약20ms일 수 있으므로 순수한 추가 지연으로 해석하지 않는다.
 - HTTP 시간에는 long polling·의도된 paced turn 대기와 중도 연결 종료가 포함된다. 이를 서버 계산 지연이나 사용자 입력 지연으로 해석하지 않는다. event-loop·commit·observer 분포와 같이 본다.
 - 브라우저 draw는 CPU 그리기 작업 완료 시점이다. 실제 화면 광자 표시나 OS 키보드 전체 지연을 측정한 것이 아니다. draw는첫그리기와이후10번 중1번, submit/ACK는 전체를 최대2000개씩 로컬 집계하여 분당 한 번 보낸다.
-- 브라우저 수치는 **client.reported**로 구분한다. 익명 클라이언트가 조작할 수 있으므로 비용·수용 인원의 유일한 증거로 쓰지 않는다. 고정 metric6개·유한값·bin 합계·최대 표본 수를 검사하고 세션당30초보다 빠른 업로드는 버린다.
-- HTTP 입력은 선언된 Content-Length이고, egress는 압축 전 application payload다. 헤더·TLS·프록시·재전송·별도 백업 볼륨을 모두 포함하는 청구 카운터가 아니다. Railway의 컨테이너 CPU/메모리/네트워크/볼륨 지표와 대조해야 한다.
+- 브라우저 수치는 **client.reported**로 구분한다. 익명 클라이언트가 조작할 수 있으므로 비용·수용 인원의 유일한 증거로 쓰지 않는다. 고정 metric 7개·유한값·bin 합계·최대 표본 수를 검사하고 세션당 30초보다 빠른 업로드는 버린다. `paint_fraction`은 다시 그린 픽셀 면적 비율이며 0~1 값의 평균으로 본다.
+- `ws.tx_bytes`는 논리 메시지 크기, `ws.wire_tx_bytes`는 소켓의 실제 송신 증가분이다. 후자는 WebSocket 헤더와 협상된 압축을 반영한다. 내부 체험 봇의 값은 각각 `ws.playtest_tx_bytes`, `ws.playtest_wire_tx_bytes`로 분리한다. HTTP 입력은 선언된 Content-Length이고 HTTP 송신은 응답 본문이다. 이 값들은 TLS·프록시·재전송·별도 백업까지 포함하는 청구 카운터가 아니다. Railway의 컨테이너 CPU/메모리/네트워크/볼륨 지표와 대조해야 한다.
+- `encoding.records/reused/compactViews`는 주기적으로 수집하는 공유 인코딩 수다. 원시 글자·작성자 식별자·시야 내용은 계측에 남기지 않는다.
 - revision별 비교도 작업량·점유·시야·참여자 구성·자원 한도가 다르면 인과 비교가 아니다. 개선 전후에는 동일 fixture와 실제 제공량을 함께 기록한다.
 
 ## 저장 비용·고장 범위

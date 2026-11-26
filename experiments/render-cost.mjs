@@ -77,6 +77,14 @@ try {
     samples: samples.length, frameP50Ms: quantile('ms', .5), frameP95Ms: quantile('ms', .95),
     frameMaxMs: quantile('ms', 1), drawCallsP50: quantile('glyphs', .5), drawCallsP95: quantile('glyphs', .95), raw: samples };
   assert(samples.length >= 100);
+  await page.evaluate(() => { window.paintSamples = []; });
+  await page.mouse.move(500, 400);
+  for (let n = 0; n < 60; n++) { await page.mouse.wheel(n < 30 ? 9 : -9, 0); await page.waitForTimeout(25); }
+  await page.waitForFunction(() => !window.textworld.inspect().cameraActive);
+  const motion = await page.evaluate(() => window.paintSamples.map(s => s.ms).sort((a,b) => a-b));
+  assert(motion.length >= 60);
+  result.motion = { frames: motion.length, p50Ms: motion[Math.ceil(motion.length*.5)-1],
+    p95Ms: motion[Math.ceil(motion.length*.95)-1], maxMs: motion.at(-1) };
   await writeFile(process.argv[2], JSON.stringify(result, null, 2));
   console.log(JSON.stringify({ ...result, raw: undefined }));
 } finally { await browser.close(); await app.close(); }

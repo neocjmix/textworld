@@ -1,0 +1,810 @@
+[
+  {
+    "engine": "chromium",
+    "label": "overlapping peer labels and CJK",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 6,
+      "fullFrames": 4,
+      "full": false,
+      "fraction": 0.004779629629629633,
+      "regions": 1,
+      "glyphs": 17
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 7,
+      "fullFrames": 5,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 448
+    }
+  },
+  {
+    "engine": "chromium",
+    "label": "wide overwrite and moving remote cursor",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 8,
+      "fullFrames": 5,
+      "full": false,
+      "fraction": 0.005746296296296299,
+      "regions": 1,
+      "glyphs": 19
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 9,
+      "fullFrames": 6,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "chromium",
+    "label": "erase old wide glyph",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 10,
+      "fullFrames": 6,
+      "full": false,
+      "fraction": 0.00537037037037037,
+      "regions": 1,
+      "glyphs": 15
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 11,
+      "fullFrames": 7,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 446
+    }
+  },
+  {
+    "engine": "chromium",
+    "label": "combining glyph and cursor occlusion",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 12,
+      "fullFrames": 7,
+      "full": false,
+      "fraction": 0.004779629629629633,
+      "regions": 1,
+      "glyphs": 16
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 13,
+      "fullFrames": 8,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "chromium",
+    "label": "freshness opacity",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 14,
+      "fullFrames": 9,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 15,
+      "fullFrames": 10,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "chromium",
+    "label": "departed label footprint",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 16,
+      "fullFrames": 10,
+      "full": false,
+      "fraction": 0.00413518518518519,
+      "regions": 1,
+      "glyphs": 16
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 17,
+      "fullFrames": 11,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "chromium",
+    "label": "optimistic typing and camera movement",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 44,
+      "fullFrames": 38,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 45,
+      "fullFrames": 39,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "chromium",
+    "label": "mobile viewport resize",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 2059360,
+    "paint": {
+      "frame": 98,
+      "fullFrames": 92,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 399
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 99,
+      "fullFrames": 93,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 399
+    }
+  },
+  {
+    "engine": "chromium",
+    "label": "tiny torus repeats and topology correction",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 2059360,
+    "paint": {
+      "frame": 101,
+      "fullFrames": 95,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 989
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 102,
+      "fullFrames": 96,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 989
+    }
+  },
+  {
+    "engine": "chromium",
+    "label": "partial damage on repeated torus",
+    "differingChannels": 1144,
+    "maxDifference": 1,
+    "channels": 2059360,
+    "paint": {
+      "frame": 103,
+      "fullFrames": 96,
+      "full": false,
+      "fraction": 0.025009711755108393,
+      "regions": 2,
+      "glyphs": 42
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 104,
+      "fullFrames": 97,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 989
+    },
+    "beforeCamera": {
+      "x": 0.8333333333333321,
+      "y": -5.458461538461538
+    },
+    "afterCamera": {
+      "x": 0.8333333333333321,
+      "y": -5.458461538461538
+    }
+  },
+  {
+    "engine": "chromium",
+    "label": "actual expiry deletes pixels",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 2059360,
+    "paint": {
+      "frame": 105,
+      "fullFrames": 98,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 0
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 106,
+      "fullFrames": 99,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 0
+    }
+  },
+  {
+    "engine": "firefox",
+    "label": "overlapping peer labels and CJK",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 6,
+      "fullFrames": 4,
+      "full": false,
+      "fraction": 0.004779629629629633,
+      "regions": 1,
+      "glyphs": 17
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 7,
+      "fullFrames": 5,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 448
+    }
+  },
+  {
+    "engine": "firefox",
+    "label": "wide overwrite and moving remote cursor",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 8,
+      "fullFrames": 5,
+      "full": false,
+      "fraction": 0.005746296296296299,
+      "regions": 1,
+      "glyphs": 19
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 9,
+      "fullFrames": 6,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "firefox",
+    "label": "erase old wide glyph",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 10,
+      "fullFrames": 6,
+      "full": false,
+      "fraction": 0.00537037037037037,
+      "regions": 1,
+      "glyphs": 15
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 11,
+      "fullFrames": 7,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 446
+    }
+  },
+  {
+    "engine": "firefox",
+    "label": "combining glyph and cursor occlusion",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 12,
+      "fullFrames": 7,
+      "full": false,
+      "fraction": 0.004779629629629633,
+      "regions": 1,
+      "glyphs": 16
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 13,
+      "fullFrames": 8,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "firefox",
+    "label": "freshness opacity",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 14,
+      "fullFrames": 9,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 15,
+      "fullFrames": 10,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "firefox",
+    "label": "departed label footprint",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 16,
+      "fullFrames": 10,
+      "full": false,
+      "fraction": 0.00413518518518519,
+      "regions": 1,
+      "glyphs": 16
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 17,
+      "fullFrames": 11,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "firefox",
+    "label": "optimistic typing and camera movement",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 44,
+      "fullFrames": 38,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 45,
+      "fullFrames": 39,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "firefox",
+    "label": "mobile viewport resize",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 2059360,
+    "paint": {
+      "frame": 98,
+      "fullFrames": 92,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 399
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 99,
+      "fullFrames": 93,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 399
+    }
+  },
+  {
+    "engine": "firefox",
+    "label": "tiny torus repeats and topology correction",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 2059360,
+    "paint": {
+      "frame": 101,
+      "fullFrames": 95,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 978
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 102,
+      "fullFrames": 96,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 978
+    }
+  },
+  {
+    "engine": "firefox",
+    "label": "partial damage on repeated torus",
+    "differingChannels": 208,
+    "maxDifference": 1,
+    "channels": 2059360,
+    "paint": {
+      "frame": 103,
+      "fullFrames": 96,
+      "full": false,
+      "fraction": 0.025009711755108393,
+      "regions": 2,
+      "glyphs": 42
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 104,
+      "fullFrames": 97,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 976
+    },
+    "beforeCamera": {
+      "x": -0.16666666666666785,
+      "y": -5.458461538461538
+    },
+    "afterCamera": {
+      "x": -0.16666666666666785,
+      "y": -5.458461538461538
+    }
+  },
+  {
+    "engine": "firefox",
+    "label": "actual expiry deletes pixels",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 2059360,
+    "paint": {
+      "frame": 105,
+      "fullFrames": 98,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 0
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 106,
+      "fullFrames": 99,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 0
+    }
+  },
+  {
+    "engine": "webkit",
+    "label": "overlapping peer labels and CJK",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 51,
+      "fullFrames": 50,
+      "full": false,
+      "fraction": 0.004779629629629633,
+      "regions": 1,
+      "glyphs": 17
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 52,
+      "fullFrames": 51,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 448
+    }
+  },
+  {
+    "engine": "webkit",
+    "label": "wide overwrite and moving remote cursor",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 53,
+      "fullFrames": 51,
+      "full": false,
+      "fraction": 0.005961111111111112,
+      "regions": 1,
+      "glyphs": 19
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 54,
+      "fullFrames": 52,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "webkit",
+    "label": "erase old wide glyph",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 55,
+      "fullFrames": 52,
+      "full": false,
+      "fraction": 0.00537037037037037,
+      "regions": 1,
+      "glyphs": 15
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 56,
+      "fullFrames": 53,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 446
+    }
+  },
+  {
+    "engine": "webkit",
+    "label": "combining glyph and cursor occlusion",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 57,
+      "fullFrames": 53,
+      "full": false,
+      "fraction": 0.004779629629629633,
+      "regions": 1,
+      "glyphs": 16
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 58,
+      "fullFrames": 54,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "webkit",
+    "label": "freshness opacity",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 59,
+      "fullFrames": 55,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 60,
+      "fullFrames": 56,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "webkit",
+    "label": "departed label footprint",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 61,
+      "fullFrames": 56,
+      "full": false,
+      "fraction": 0.00413518518518519,
+      "regions": 1,
+      "glyphs": 16
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 62,
+      "fullFrames": 57,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "webkit",
+    "label": "optimistic typing and camera movement",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 4320000,
+    "paint": {
+      "frame": 88,
+      "fullFrames": 83,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 89,
+      "fullFrames": 84,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 447
+    }
+  },
+  {
+    "engine": "webkit",
+    "label": "mobile viewport resize",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 2059360,
+    "paint": {
+      "frame": 142,
+      "fullFrames": 137,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 399
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 143,
+      "fullFrames": 138,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 399
+    }
+  },
+  {
+    "engine": "webkit",
+    "label": "tiny torus repeats and topology correction",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 2059360,
+    "paint": {
+      "frame": 145,
+      "fullFrames": 140,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 996
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 146,
+      "fullFrames": 141,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 996
+    }
+  },
+  {
+    "engine": "webkit",
+    "label": "partial damage on repeated torus",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 2059360,
+    "paint": {
+      "frame": 147,
+      "fullFrames": 141,
+      "full": false,
+      "fraction": 0.025009711755108393,
+      "regions": 2,
+      "glyphs": 44
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 148,
+      "fullFrames": 142,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 994
+    }
+  },
+  {
+    "engine": "webkit",
+    "label": "actual expiry deletes pixels",
+    "differingChannels": 0,
+    "maxDifference": 0,
+    "channels": 2059360,
+    "paint": {
+      "frame": 150,
+      "fullFrames": 143,
+      "full": false,
+      "fraction": 0.005869784787506805,
+      "regions": 4,
+      "glyphs": 0
+    },
+    "forcedFull": 1,
+    "full": {
+      "frame": 151,
+      "fullFrames": 144,
+      "full": true,
+      "fraction": 1,
+      "regions": 1,
+      "glyphs": 0
+    }
+  }
+]

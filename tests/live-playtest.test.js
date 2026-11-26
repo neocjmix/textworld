@@ -26,14 +26,15 @@ test('cost integrates elapsed resource use and prices only public payload in the
   meter.sample({ ...first, at: 30010, rssBytes: gib * 3 });
   const end = { ...first, at: 60010, cpuMicros: 60001000, volumeBytes: gib * 3,
     publicHttpBytes: first.publicHttpBytes + gib / 2, publicWebSocketBytes: first.publicWebSocketBytes + gib / 2 };
-  const p = { receivedBytes: gib * 4, writtenGraphemes: 500 };
+  const p = { receivedBytes: gib * 4, receivedWireBytes: gib * 2, writtenGraphemes: 500 };
   const c = meter.sample(end, p);
   assert.equal(c.cpuCoreSeconds, 60);
   assert.equal(c.memoryGiBMinutes, 2);
   assert.equal(c.volumeGiBMinutes, 1.5);
-  assert.equal(c.estimatedUsd.publicEgress, .05);
-  assert.equal(c.hypotheticalBotEgressUsd, .2);
-  assert.equal(c.estimatedUsd.subtotal, .000463 + .000231 * 2 + .05 + .000003472222222 * 1.5);
+  assert.equal(c.billingUnit, 'decimal GB');
+  assert.equal(c.estimatedUsd.publicEgress, gib / 1e9 * .05);
+  assert.equal(c.hypotheticalBotEgressUsd, gib * 2 / 1e9 * .05);
+  assert.equal(c.estimatedUsd.subtotal, .000463 + 2 * gib / 1e9 * .000231 + gib / 1e9 * .05 + 1.5 * gib / 1e9 * .000003472222222);
   assert.equal(c.usdPer1000WrittenGraphemes, c.estimatedUsd.subtotal * 2);
   assert.deepEqual(meter.sample(end, p), c);
   const gap = meter.sample({ ...end, volumeBytes: null });

@@ -1,0 +1,8 @@
+{
+  "date": "2026-11-26",
+  "source": "Railway CLI usage and usage limit status",
+  "usageUsd": 10.851244117055678,
+  "softLimitUsd": 50,
+  "hardLimitUsd": 100,
+  "overLimit": false
+}

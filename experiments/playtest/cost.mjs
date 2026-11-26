@@ -1,9 +1,10 @@
 import { statfsSync } from 'node:fs';
 
 // Railway container resource prices checked 2026-11-26, in USD.
-const rates = Object.freeze({ cpuCoreMinute: .000463, memoryGiBMinute: .000231,
-  volumeGiBMinute: .000003472222222, egressGiB: .05 });
+const rates = Object.freeze({ cpuCoreMinute: .000463, memoryGBMinute: .000231,
+  volumeGBMinute: .000003472222222, egressGB: .05 });
 const GiB = 1024 ** 3;
+const GB = 1e9;
 
 export function sampleResources(outbound) {
   let volumeBytes = null;
@@ -39,18 +40,18 @@ export class PlaytestCost {
     const publicHttpBytes = current.publicHttpBytes - this.first.publicHttpBytes;
     const publicWebSocketBytes = current.publicWebSocketBytes - this.first.publicWebSocketBytes;
     const cpu = cpuCoreSeconds / 60 * rates.cpuCoreMinute;
-    const memory = this.memoryGiBMinutes * rates.memoryGiBMinute;
-    const publicEgress = (publicHttpBytes + publicWebSocketBytes) / GiB * rates.egressGiB;
-    const volume = this.volumeGiBMinutes === null ? null : this.volumeGiBMinutes * rates.volumeGiBMinute;
+    const memory = this.memoryGiBMinutes * GiB / GB * rates.memoryGBMinute;
+    const publicEgress = (publicHttpBytes + publicWebSocketBytes) / GB * rates.egressGB;
+    const volume = this.volumeGiBMinutes === null ? null : this.volumeGiBMinutes * GiB / GB * rates.volumeGBMinute;
     const subtotal = cpu + memory + publicEgress + (volume ?? 0);
     return {
-      scope: 'whole-service-during-run', priceDate: '2026-11-26', ratesUsd: rates,
+      scope: 'whole-service-during-run', priceDate: '2026-11-26', billingUnit: 'decimal GB', ratesUsd: rates,
       elapsedSeconds: (current.at - this.first.at) / 1000, cpuCoreSeconds,
       memoryGiBMinutes: this.memoryGiBMinutes, volumeGiBMinutes: this.volumeGiBMinutes,
       publicHttpBytes, publicWebSocketBytes,
       estimatedUsd: { cpu, memory, volume, publicEgress, subtotal },
       usdPer1000WrittenGraphemes: population?.writtenGraphemes ? subtotal * 1000 / population.writtenGraphemes : null,
-      hypotheticalBotEgressUsd: population ? population.receivedBytes / GiB * rates.egressGiB : null,
+      hypotheticalBotEgressUsd: population ? (population.receivedWireBytes ?? population.receivedBytes) / GB * rates.egressGB : null,
     };
   }
 }
