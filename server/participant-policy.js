@@ -267,7 +267,8 @@ export class ParticipantPolicy {
     // views. Explicit replacement addresses must belong to the bounded recent
     // input context, which the native editor may retain beyond the screen edge.
     const cost = Math.max(count, removed.size, 1);
-    consumeTogether([this.write, this.network?.write], cost, () => this.admitAction?.(Math.max(1, cost / 8), origin));
+    consumeTogether([this.write, this.network?.write], cost, () => this.admitAction?.(
+      Math.max(1, cost / 8), plan.cursor, this.peer, [...plan.cells, ...clear]));
     let result;
     try { this.world.persistAuthor(this.peer.id); result = this.world.applyWrite({ author: this.peer.id, id: message.id, epoch: message.epoch,
       ...origin, text, clear, lineStartX }); }
@@ -306,7 +307,7 @@ export class ParticipantPolicy {
     if (!allowed) forbidden('현재 칸 또는 바로 앞 글자만 지울 수 있습니다.');
     const span = cellSpan((x, y) => this.world.getCell(x, y), point.x, point.y, this.world);
     for (const cell of span.length ? span : [point]) this.visible(cell);
-    consumeTogether([this.write, this.network?.write], 1, () => this.admitAction?.(1, point));
+    consumeTogether([this.write, this.network?.write], 1, () => this.admitAction?.(1, point, this.peer, span.length ? span : [point]));
     let result;
     try { result = this.world.erase({ author: this.peer.id, id: message.id, epoch: message.epoch, ...point }); }
     catch (error) { this.write.refund(1); this.network?.write.refund(1); throw error; }

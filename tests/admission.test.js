@@ -145,3 +145,39 @@ test('crowd cost keeps increasing beyond the old five-unit ceiling', async t => 
   assert.deepEqual(refused.cursor, { x: 65, y: 32 });
   assert.equal(app.world.seq, version);
 });
+
+test('a write at a tile edge pays for readers of its CJK continuation before mutation', async t => {
+  let clock = 0;
+  const app = createTextworld({ storagePath: ':memory:', actionRate: 120, actionBurst: 10,
+    policyNow: () => clock, identifyNetwork: req => req.headers['x-test-network'] || 'writer' });
+  t.after(() => app.close());
+  const { port } = await app.listen(0, '127.0.0.1');
+  const writer = connect('ws://127.0.0.1:' + port + '/ws');
+  await writer.next(m => m.type === 'snapshot');
+  writer.send({ type: 'hello', batchVersion: 1 });
+  const send = (sequence, action) => writer.send({type:'input', id:String(sequence), sequence, action});
+  send(1, {kind:'goto',x:14,y:32,newOrigin:true});
+  await writer.next(m => m.type === 'ack' && m.id === '1');
+  for (let i = 0; i < 71; i++) {
+    clock += 1000;
+    const response = await fetch('http://127.0.0.1:' + port + '/api/agents/v1/sessions', {
+      method:'POST', headers:{'content-type':'application/json','x-test-network':String(i)},
+      body:JSON.stringify({position:{x:16,y:32},view:{cols:1,rows:1}}),
+    });
+    assert.equal(response.status,201); await response.json();
+  }
+  clock += 1000;
+  for (let i=0;i<9;i++) send(i+2,{kind:'move',dx:i%2 ? -1 : 1,dy:0});
+  await writer.next(m => m.type === 'ack' && m.id === '10');
+  const version=app.world.seq;
+  send(11,{kind:'type',text:'가'});
+  const refusal=await writer.next(m => m.type === 'error' && m.id === '11');
+  assert.equal(refusal.code,'WORLD_BUSY');
+  assert.equal(app.world.seq,version);
+  assert.deepEqual(refusal.cursor,{x:15,y:32});
+  clock += 1000;
+  send(12,{kind:'type',text:'가'});
+  await writer.next(m => m.type === 'ack' && m.id === '12');
+  assert.equal(app.world.getCell(15,32).text,'가');
+  assert.equal(app.world.getCell(16,32).width,0);
+});

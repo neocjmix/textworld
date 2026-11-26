@@ -84,10 +84,23 @@ export class SpatialSubscriptions {
     }
   }
 
-  // Admission needs a constant-time upper bound. Delivery still tests each
-  // candidate against its exact wrapping view in collect().
-  candidateCount(point, previous) {
+  // Admission reads tile sizes, never the crowd itself. Edit footprints are
+  // bounded by the existing atomic input limits; adjacent CJK halves count too.
+  candidateCount(point, previous, affected) {
     const key = tile(point.x, point.y);
+    if (affected?.length) {
+      const keys = new Set([key]);
+      if (previous) keys.add(tile(previous.x, previous.y));
+      for (const cell of affected) for (const dx of [-1, 0, 1]) {
+        keys.add(tile((cell.x + dx + this.world.width) % this.world.width, cell.y));
+      }
+      let total = 0;
+      for (const covered of keys) {
+        total += this.subscribers.get(covered)?.size ?? 0;
+        if (total >= this.registrations.size) return this.registrations.size;
+      }
+      return total;
+    }
     const count = this.subscribers.get(key)?.size ?? 0;
     const before = previous && tile(previous.x, previous.y);
     if (!before || before === key) return count;

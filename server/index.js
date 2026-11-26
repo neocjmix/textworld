@@ -130,8 +130,8 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   // Bound synchronous fanout before accepting a mutation; readers and already
   // committed views continue. Movement is a public change with an audience too.
   const worldActions = new Budget({rate:actionRate, capacity:actionBurst, now:policyNow});
-  const admitAction = (units = 1, point, previous) => {
-    const audience = point ? spatial.candidateCount(point, previous) : 0;
+  const admitAction = (units = 1, point, previous, affected) => {
+    const audience = point ? spatial.candidateCount(point, previous, affected) : 0;
     const weight = Math.max(1, audience / 70);
     try { worldActions.spend(units * weight); }
     catch (error) {

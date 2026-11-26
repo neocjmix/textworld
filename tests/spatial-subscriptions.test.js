@@ -46,3 +46,13 @@ test('spatial subscriptions match exact wrapping views through moves, departures
   for (const actor of actors) index.update(actor);
   verify();
 });
+
+test('edit admission includes an off-origin CJK half and a distant replacement footprint', () => {
+  const world = { width: 128, height: 64, epoch: 1 };
+  const index = new SpatialSubscriptions(world);
+  for (let id = 0; id < 1000; id++) index.update({ peer: { id, x: 16, y: 32 }, observer: { view: { cols: 1, rows: 1 } } });
+  const origin = { x: 15, y: 32 };
+  assert.equal(index.candidateCount(origin), 0, 'the old origin-only estimate misses the entire audience');
+  assert.equal(index.candidateCount(origin, undefined, [origin]), 1000, 'an overwritten wide glyph may extend across the tile edge');
+  assert.equal(index.candidateCount({x:0,y:32},{x:64,y:32},[{x:16,y:32}]), 1000, 'the middle of an edit can have an audience absent at both cursor endpoints');
+});
