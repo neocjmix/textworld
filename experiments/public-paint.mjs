@@ -15,6 +15,10 @@ if ((process.env.PUBLIC_PAINT_QUIET_FROM || process.env.PUBLIC_PAINT_QUIET_UNTIL
   throw Error('Quiet window requires two valid ISO times, in increasing order');
 }
 const glyphBase = 0x4e00 + Date.now() % 8000;
+const screenshotAt = Number(process.env.PUBLIC_PAINT_SCREENSHOT_AT || 0);
+if (!Number.isInteger(screenshotAt) || screenshotAt < 0 || screenshotAt > 1000) {
+  throw Error('Screenshot threshold must be an integer from 0 to 1000');
+}
 const options = { executablePath: '/usr/bin/chromium', headless: true,
   args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-background-timer-throttling',
     '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows'] };
@@ -25,7 +29,7 @@ if (process.env.HTTPS_PROXY) {
   if (proxy.password) options.proxy.password = decodeURIComponent(proxy.password);
 }
 const browser = await chromium.launch(options);
-const samples = [], errors = [], startedAt = new Date().toISOString();
+const samples = [], errors = [], screenshots = [], startedAt = new Date().toISOString();
 const watchdog = setTimeout(() => void browser.close(), (seconds + 120) * 1000);
 watchdog.unref();
 try {
@@ -75,11 +79,19 @@ try {
     } catch { sample.missed = true; }
     samples.push(sample);
     console.log(JSON.stringify(sample));
+    if (screenshotAt && before.peers >= screenshotAt && !screenshots.length) {
+      for (const [index, page] of pages.entries()) {
+        const path = output + (index ? '.mobile.png' : '.desktop.png');
+        await page.screenshot({ path, timeout: 10000 });
+        screenshots.push(path);
+      }
+    }
   }
   await sleep(Math.max(0, start + seconds * 1000 - Date.now()));
 } finally {
   clearTimeout(watchdog);
   await browser.close();
   await writeFile(output, JSON.stringify({ startedAt, finishedAt: new Date().toISOString(), origin,
-    desktopWidth: 1200, mobileWidth: 390, glyphBase, quietFrom, quietUntil, samples, errors }, null, 2));
+    desktopWidth: 1200, mobileWidth: 390, glyphBase, quietFrom, quietUntil, screenshotAt, screenshots,
+    samples, errors }, null, 2));
 }
