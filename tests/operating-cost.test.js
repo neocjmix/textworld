@@ -52,3 +52,32 @@ test('an empty world has only idle usage and an undefined per-user cost', () => 
   assert.throws(() => monthlyCost({ concurrent: NaN }), RangeError);
   assert.throws(() => monthlyCost({ concurrent: 1000, layout: 'unknown' }), TypeError);
 });
+
+test('release estimates reproduce the sustained 300-person workload and both spatial endpoints', async () => {
+  const { releaseCost, releaseProfile } = await import('../public/operating-cost-model.js');
+  const { readFile } = await import('node:fs/promises');
+  for (const [scenario, plazaHours, key, file] of [
+    ['steady', 6, 'hour', 'hour-300'],
+    ['mix', 0, 'spread', 'after-300-spread'],
+    ['mix', 24, 'plaza', 'after-300-plaza'],
+  ]) {
+    const path = new URL('../docs/measurements/initial-release-2026-11-26/' + file + '.json', import.meta.url);
+    const sample = JSON.parse(await readFile(path, 'utf8'));
+    assert.ok(Math.abs(releaseProfile[key].bytesPerSecond - sample.serverBytesPerSecond) < 0.001);
+    assert.ok(Math.abs(releaseProfile[key].cores - sample.serverCores) < 1e-6);
+    assert.ok(Math.abs(releaseProfile[key].rssGiB - sample.meanRssGiB) < 1e-6);
+    const result = releaseCost({ scenario, plazaHours });
+    near(result.live, releaseProfile[key].bytesPerSecond * 2592000 / 1e9 * 0.05);
+    near(result.memory, releaseProfile[key].rssGiB * 1024 ** 3 / 1e9 * 43200 * 0.000231);
+    near(result.assets, result.visits * (releaseProfile.mapBytes + 0.2 * releaseProfile.fontBytes) / 1e9 * 0.05);
+    near(result.week, result.total * 7 / 30);
+    near(result.total, result.live + result.server + result.assets);
+    near(result.unit, result.total * 1000 / (300 * 720));
+  }
+  const spread = releaseCost({ scenario: 'mix', plazaHours: 0 });
+  const crowded = releaseCost({ scenario: 'mix', plazaHours: 24 });
+  near(releaseCost({ scenario: 'mix', plazaHours: 6 }).total, 0.75 * spread.total + 0.25 * crowded.total);
+  near(releaseCost({ sessionMinutes: 40 }).assets, releaseCost().assets / 2);
+  assert.throws(() => releaseCost({ sessionMinutes: 0 }), RangeError);
+  assert.throws(() => releaseCost({ coldFontShare: 1.01 }), RangeError);
+});

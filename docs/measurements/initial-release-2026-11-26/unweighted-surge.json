@@ -1,0 +1,45 @@
+{
+  "revision": "dadbbf6425e7a6f9d800104d8b989ba3d3fa7b8f",
+  "secondsScheduled": 135,
+  "deadlineSeconds": 210,
+  "completed": false,
+  "reason": "Local bounded diagnostic reached its 210s deadline before delivering a final report.",
+  "slices": [
+    {
+      "elapsed": 30,
+      "bytesPerSecond": 4278446.698869097,
+      "ackP95": 65.1666839999998,
+      "pending": 0,
+      "cumulativeSent": 906,
+      "cumulativeAccepted": 906,
+      "cumulativeBusy": 0
+    },
+    {
+      "elapsed": 60,
+      "bytesPerSecond": 9868482.037449222,
+      "ackP95": 7674.047543999994,
+      "pending": 1974,
+      "cumulativeSent": 4914,
+      "cumulativeAccepted": 2940,
+      "cumulativeBusy": 0
+    },
+    {
+      "elapsed": 90,
+      "bytesPerSecond": 16340024.611472895,
+      "ackP95": 28633.358154999994,
+      "pending": 5549,
+      "cumulativeSent": 12040,
+      "cumulativeAccepted": 6254,
+      "cumulativeBusy": 0
+    },
+    {
+      "elapsed": 120,
+      "bytesPerSecond": 14435911.377810717,
+      "ackP95": 46392.191751000006,
+      "pending": 401,
+      "cumulativeSent": 12944,
+      "cumulativeAccepted": 9183,
+      "cumulativeBusy": 2506
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "profile": {
+    "concurrent": 300,
+    "hour": {
+      "bytesPerSecond": 552489.677,
+      "cores": 0.1156264,
+      "rssGiB": 0.4155079
+    },
+    "spread": {
+      "bytesPerSecond": 457268.188,
+      "cores": 0.1261353,
+      "rssGiB": 0.3585399
+    },
+    "plaza": {
+      "bytesPerSecond": 2512764.11,
+      "cores": 0.2240979,
+      "rssGiB": 0.6189078
+    },
+    "mapBytes": 123181,
+    "fontBytes": 5315944,
+    "volumeGiB": 0.0332113
+  },
+  "mapAssets": {
+    "/": 2932,
+    "/fonts/sarasa-fixed-k-regular-1.0.43.woff2": 5315944,
+    "/fonts/sarasa.css": 184,
+    "/style.css": 10189,
+    "/app.js": 42342,
+    "/measurements.js": 986,
+    "/shared/world.js": 3126,
+    "/shared/cursor-input.js": 6086,
+    "/shared/freshness.js": 713,
+    "/shared/participant-rules.js": 216,
+    "/inertia.js": 4643,
+    "/local-world.js": 1905,
+    "/native-input.js": 9309,
+    "/native-surface.js": 2905,
+    "/camera-motion.js": 4164,
+    "/shared/measurement.js": 1065,
+    "/shared/writing.js": 1355,
+    "/shared/native-projection.js": 10822,
+    "/shared/native-context.js": 772,
+    "/shared/width.js": 2166,
+    "/shared/relocation.js": 1009,
+    "/shared/unicode-width-data.js": 16292
+  },
+  "volumeSource": "7ad32dfa-e2cd-4887-bebb-6749241c82ae"
+}

@@ -1,0 +1,47 @@
+{
+  "dateUtc": "2026-11-26",
+  "runtimeCommit": "9f4ac248a74e01dd67ca8f3ead9e4f1a652c0059",
+  "baselineCommit": "f7555f7e2347180e77e901915bc5090f8213e7eb",
+  "node": "v24.22.3",
+  "fixture": {
+    "server": "single Node process with file-backed SQLite WAL, separate client process on one 4-vCPU quota host",
+    "map": "512 x 256; 6,000 aged glyphs, 75% of them width 2, sampled ages distributed over 180 seconds",
+    "initialPositionsSeed": 147741,
+    "plazaMemberOrderSeed": 299,
+    "inputScheduleSeed": 6669,
+    "worldClock": "actual elapsed time after pre-seeding; natural stochastic resize choices and scheduling are independent on each run",
+    "defaultRoles": "2% writers (3 inputs/s with jitter), 8% moving in bursts, rest stationary except replacement",
+    "replacement": "one reader per 20 minutes per concurrent participant on average; await socket close before opening its replacement",
+    "viewSizes": "25% 150x50 and 75% 52x40",
+    "plaza": "starting positions in 33x17 cells, then normal input and navigation",
+    "sourceDigest": "SHA-256 over the filename and file bytes of each .js in server then shared, each directory sorted; before/after release samples match commits; frame-300-plaza is an intermediate working-tree candidate",
+    "surge": "45s at six writers, 45s at 75, 45s at six; all 300 initially in the plaza, 24 walkers throughout, each writer ~3 actions/s.",
+    "surgeBaseline": "unweighted-surge is the partial trace of the first admission design which exceeded its 210s execution deadline."
+  },
+  "metricDefinitions": {
+    "scheduledAckP95Ms": "scheduled open-loop offer to author ACK, ms",
+    "ackP95Ms": "actual send to author ACK, ms",
+    "readyP95Ms": "start of action/delivery to server WebSocket write, ms",
+    "otherDecodeP95Ms": "correlated remote visible nonempty glyph versions in partial views that also carry their author, at stationary readers, send to parsed message. One in 16 stationary slots sampled for a one-hour run. No browser paint or internet RTT.",
+    "revisionGaps": "forward per-socket observation gaps outside explicit reset; not a full-world delivery oracle",
+    "audits": "ordinary sync on four sentinel slots compares their reconstructed client state to a complete server observation at the same sequence",
+    "delivery.undelivered_events": "pending events removed when the socket closes or the write cannot proceed; includes planned departures",
+    "eventLoopP99": "runtime monitor at finish, reset by routine minute samples; not a whole-run p99",
+    "peakRss": "storage samples at startup, every minute and finish; not instantaneous memory maximum",
+    "meanRssGiB": "trapezoidal time-weighted process RSS, 2^30 bytes per GiB",
+    "serverBytesPerSecond": "uncompressed WebSocket application payload measured on the server; excludes framing, TLS and retransmission"
+  },
+  "railway": {
+    "replicas": 1,
+    "region": "us-west2",
+    "cgroupCpuCores": 8,
+    "cgroupMemoryBytes": 8000000000,
+    "operatorChannel": "bounded real WS participants from an authenticated private loopback runner; external Chromium clients use public HTTPS/WSS",
+    "limitsCheckedUtc": "2026-11-26T13:34Z",
+    "workspaceSoftAlertUsd": 50,
+    "workspaceHardLimitUsd": 100,
+    "workspaceUsageUsdAtRead": 10.7521,
+    "pricingReference": "https://docs.railway.com/pricing/plans#resource-usage-pricing",
+    "releaseModelUnits": "Published rate per GB; the new model treats GB as 1,000,000,000 bytes, converts measured binary RSS/volume units. The Railway metrics API reports the cgroup cap 8,000,000,000 bytes as 8 GB. The legacy scenarios and operator metering use GiB."
+  }
+}

@@ -1,0 +1,268 @@
+{
+  "revision": "9f4ac248a74e01dd67ca8f3ead9e4f1a652c0059",
+  "sourceDigest": "3c190ff1bed84eb500207ccb06ce7a958be10d41c94dc8e6372235735cf3ab95",
+  "label": "surge-300",
+  "hotFraction": 1,
+  "liveClock": true,
+  "slices": [
+    {
+      "elapsed": 30,
+      "bytesPerSecond": 4279039.862944706,
+      "ackP95": 22.265480000001844,
+      "pending": 0,
+      "cumulativeSent": 905,
+      "cumulativeAccepted": 905,
+      "cumulativeBusy": 0
+    },
+    {
+      "elapsed": 60,
+      "bytesPerSecond": 5558109.304838233,
+      "ackP95": 76.4523760000011,
+      "pending": 0,
+      "cumulativeSent": 4902,
+      "cumulativeAccepted": 2123,
+      "cumulativeBusy": 2779
+    },
+    {
+      "elapsed": 90,
+      "bytesPerSecond": 6513192.256857631,
+      "ackP95": 111.7782290000032,
+      "pending": 0,
+      "cumulativeSent": 12040,
+      "cumulativeAccepted": 3624,
+      "cumulativeBusy": 8416
+    },
+    {
+      "elapsed": 120,
+      "bytesPerSecond": 2537770.5429767105,
+      "ackP95": 56.213953999991645,
+      "pending": 0,
+      "cumulativeSent": 12944,
+      "cumulativeAccepted": 4528,
+      "cumulativeBusy": 8416
+    }
+  ],
+  "baseline": "6000 individual glyphs aged 0-180 seconds, 75% fullwidth, 8% occupied",
+  "seconds": 135,
+  "peerCount": 300,
+  "writers": 75,
+  "walkers": 24,
+  "staticReaders": 201,
+  "hotUsers": 300,
+  "hotWriters": 75,
+  "hotWalkers": 24,
+  "setupSecs": 4.516383577,
+  "setupErrors": 0,
+  "worldStart": {
+    "width": 512,
+    "height": 256,
+    "epoch": 2,
+    "textLayout": 2
+  },
+  "worldEnd": {
+    "width": 448,
+    "height": 224,
+    "epoch": 4,
+    "seq": 8631,
+    "textLayout": 2
+  },
+  "inkEnd": 3456,
+  "offeredSeconds": 134.99926098599997,
+  "elapsedSeconds": 135.223089415,
+  "arrivals": 34,
+  "expectedCloses": 34,
+  "unexpectedCloses": 0,
+  "errs": {
+    "WORLD_BUSY": 8416
+  },
+  "sent": 13399,
+  "accepted": 4983,
+  "pendingAtEnd": 0,
+  "pendingAfterDrain": 0,
+  "receivedBytes": 642280180,
+  "offeredBytes": 642221622,
+  "initialSnapshotBytesDuringChurn": 2897149,
+  "viewRecords": 1183832,
+  "revisionGaps": 0,
+  "revisionRegressions": 0,
+  "topologyPatches": 600,
+  "basisMismatches": 0,
+  "audits": {
+    "sameRevision": 8,
+    "advancedOnRead": 0,
+    "differences": {}
+  },
+  "resets": 608,
+  "bytesPerSecond": 4749296.653573944,
+  "serverBytesPerSecond": 4749296.653573944,
+  "ackP95Ms": 77.35370200000034,
+  "scheduledAckP95Ms": 77.7332068063406,
+  "generatorP95Ms": 0.799897543991392,
+  "maxGeneratorMs": 56.23668857799203,
+  "rejoinP95Ms": 268.18942300000344,
+  "surge": true,
+  "readerStride": 1,
+  "otherDecodeP99Ms": 448.255,
+  "ackP99Ms": 330.3882290000038,
+  "rejoinP99Ms": 612.8837029999995,
+  "otherDecodeP95Ms": 171.007,
+  "otherDecodeCount": 360635,
+  "readyP95Ms": 63.103,
+  "readyCount": 1183829,
+  "expiryAgeP95Ms": 190207,
+  "expiryAgeMaxMs": 190463,
+  "metrics": {
+    "presence.ms": {
+      "sum": 29055.816710000716,
+      "max": 136.350907,
+      "count": 5200,
+      "p95Upper": 16
+    },
+    "expiration.ms": {
+      "sum": 2481.5232659999947,
+      "max": 127.61565500000142,
+      "count": 100,
+      "p95Upper": 128
+    },
+    "activity.peer_ms": {
+      "sum": 40193025.239806995,
+      "max": 1373739.4233000027,
+      "count": 70,
+      "p95Upper": 2097152
+    },
+    "observer.ms": {
+      "sum": 1969.6501190000236,
+      "max": 17.94008900001063,
+      "count": 844,
+      "p95Upper": 8
+    },
+    "delivery.undelivered_events": {
+      "sum": 32,
+      "max": 3,
+      "count": 20,
+      "p95Upper": 4
+    },
+    "overload.actions": {
+      "sum": 8416,
+      "max": 1,
+      "count": 8416,
+      "p95Upper": 1
+    },
+    "delivery.sync_requests": {
+      "sum": 8,
+      "max": 1,
+      "count": 8,
+      "p95Upper": 1
+    },
+    "topology.slice_ms": {
+      "sum": 156.18442899998627,
+      "max": 9.81461400000262,
+      "count": 34,
+      "p95Upper": 8
+    },
+    "topology.local_reset": {
+      "sum": 435,
+      "max": 1,
+      "count": 435,
+      "p95Upper": 1
+    },
+    "topology.local_preserved": {
+      "sum": 165,
+      "max": 1,
+      "count": 165,
+      "p95Upper": 1
+    },
+    "topology.ms": {
+      "sum": 2036.8673549999949,
+      "max": 1157.3679049999919,
+      "count": 2,
+      "p95Upper": 2048
+    }
+  },
+  "serverCores": 0.38416792390222626,
+  "meanRssGiB": 0.5642188152941497,
+  "serverRssGiB": 0.6956024169921875,
+  "eventLoopP99": 97.779711,
+  "meanDispatchRecipients": 229.2175,
+  "over100": 0.018572783738191916,
+  "peakBufferedBytes": 0,
+  "expiryCount": 4649,
+  "topologyGrowth": 0,
+  "topologyShrink": 2,
+  "serveInitialMs": 4516.383577,
+  "storage": [
+    {
+      "elapsedMs": 0,
+      "rssBytes": 390561792,
+      "heapBytes": 144224144,
+      "pageBytes": 5455872,
+      "freeBytes": 0,
+      "walBytes": 4227152,
+      "historyRows": 10792,
+      "operationRows": 6003,
+      "timeMarks": 37,
+      "cells": 10500,
+      "ink": 10208,
+      "epoch": 2,
+      "width": 512,
+      "height": 256,
+      "overdueGlyphs": 0,
+      "oldestGlyphAgeMs": 184464
+    },
+    {
+      "elapsedMs": 60012,
+      "rssBytes": 649732096,
+      "heapBytes": 154080976,
+      "pageBytes": 8290304,
+      "freeBytes": 0,
+      "walBytes": 4383712,
+      "historyRows": 16411,
+      "operationRows": 7148,
+      "timeMarks": 49,
+      "cells": 11223,
+      "ink": 7271,
+      "epoch": 2,
+      "width": 512,
+      "height": 256,
+      "overdueGlyphs": 0,
+      "oldestGlyphAgeMs": 184356
+    },
+    {
+      "elapsedMs": 120013,
+      "rssBytes": 678957056,
+      "heapBytes": 368649800,
+      "pageBytes": 10940416,
+      "freeBytes": 0,
+      "walBytes": 4474352,
+      "historyRows": 21656,
+      "operationRows": 8036,
+      "timeMarks": 59,
+      "cells": 11754,
+      "ink": 4211,
+      "epoch": 2,
+      "width": 512,
+      "height": 256,
+      "overdueGlyphs": 0,
+      "oldestGlyphAgeMs": 184236
+    },
+    {
+      "elapsedMs": 135237,
+      "rssBytes": 746897408,
+      "heapBytes": 169195704,
+      "pageBytes": 11796480,
+      "freeBytes": 2064384,
+      "walBytes": 4474352,
+      "historyRows": 22110,
+      "operationRows": 7793,
+      "timeMarks": 59,
+      "cells": 3644,
+      "ink": 3456,
+      "epoch": 4,
+      "width": 448,
+      "height": 224,
+      "overdueGlyphs": 0,
+      "oldestGlyphAgeMs": 184431
+    }
+  ],
+  "epochs": 2
+}

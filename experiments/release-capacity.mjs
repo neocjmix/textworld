@@ -167,6 +167,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
     sent = 0,
     accepted = 0;
   let setupError = 0,
+    placementRetries = 0,
     bytesNewViews = 0;
   const audits = {sameRevision:0, advancedOnRead:0, differences:{}};
   const auditSlots = new Set(seconds > 900 || surge ? [writers+walkers, Math.floor(count/3), Math.floor(2*count/3), count-1] : []);
@@ -183,12 +184,18 @@ async function sample(label, hotFraction, liveClock, seconds) {
     all.push(c);
     sockets.set(i, c);
     const joined = Promise.withResolvers();
-    let timer = setTimeout(() => joined.reject(Error('connection setup timeout ' + i)), 15000);
+    const timer = setTimeout(() => joined.reject(Error('connection setup timeout ' + i)), 15000);
+    let retryTimer;
+    const place = () => {
+      if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'input', id: 'place',
+        sequence: ++c.seq, epoch: c.epoch, action: { kind: 'goto', x: p.x, y: p.y, newOrigin: true } }));
+    };
     ws.on('error', (e) => {
       if (!c.connected) joined.reject(e);
       else if (recording) errs[e.code || 'transport'] = (errs[e.code || 'transport'] || 0) + 1;
     });
     ws.on('close', () => {
+      if (!c.connected) joined.reject(Error('connection closed before placement ' + i));
       if (recording) {
         if (c.replaced) expectedCloses++;
         else unexpectedCloses++;
@@ -211,15 +218,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
             c.hello = true;
             if (recording) bytesNewViews += data.length;
             ws.send(JSON.stringify({ type: 'hello', batchVersion: 1, topologyDelta: 1, view: p.view }));
-            ws.send(
-              JSON.stringify({
-                type: 'input',
-                id: 'place',
-                sequence: ++c.seq,
-                epoch: c.epoch,
-                action: { kind: 'goto', x: p.x, y: p.y, newOrigin: true },
-              })
-            );
+            place();
           } else if (recording) resets++;
         } else if (m.type === 'view') {
           const o = m.observation;
@@ -257,6 +256,11 @@ async function sample(label, hotFraction, liveClock, seconds) {
           offerAcks.push(at - input.due);
           if (input.kind === 'type' && Number.isSafeInteger(m.seq)) sentWrites.set(m.seq, { i, at: input.at });
         } else if (m.type === 'error') {
+          if (m.id === 'place' && m.status === 429) {
+            placementRetries++;
+            retryTimer = setTimeout(place, Math.max(100, m.retryAfterMs || 250) + i % 61);
+            continue;
+          }
           if (recording) errs[m.code] = (errs[m.code] || 0) + 1;
           else setupError++;
           if (m.id === 'place') joined.reject(Error(m.code + ' for ' + i));
@@ -266,8 +270,12 @@ async function sample(label, hotFraction, liveClock, seconds) {
     });
     try {
       await joined.promise;
+    } catch (error) {
+      ws.terminate();
+      throw error;
     } finally {
       clearTimeout(timer);
+      clearTimeout(retryTimer);
     }
   }
   try {
@@ -300,6 +308,8 @@ async function sample(label, hotFraction, liveClock, seconds) {
           ackP95: q(acks.slice(segmentAcks), 0.95),
           pending: pending.size,
           cumulativeSent: sent, cumulativeAccepted: accepted, cumulativeBusy: errs.WORLD_BUSY || 0,
+          ...(auditSlots.size ? { audits: { sameRevision: audits.sameRevision, advancedOnRead: audits.advancedOnRead,
+            differences: { ...audits.differences } }, unexpectedCloses, revisionGaps: gaps, basisMismatches } : {}),
         };
         if (slices.length % 2 === 1) for (const slot of auditSlots) {
           const observer = sockets.get(slot);
@@ -316,7 +326,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
       const c = sockets.get(evt.i);
       if (evt.replace) {
         c.replaced = true;
-        const released = once(c.ws, 'close');
+        const released = c.ws.readyState === WebSocket.CLOSED ? Promise.resolve() : once(c.ws, 'close');
         c.ws.close();
         const t = clock();
         churn.push(
@@ -377,6 +387,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
       hotWalkers: people.slice(writers, writers + walkers).filter((p) => p.hot).length,
       setupSecs,
       setupErrors: setupError,
+      placementRetries,
       worldStart: health.world,
       worldEnd: m.world,
       inkEnd: m.ink,

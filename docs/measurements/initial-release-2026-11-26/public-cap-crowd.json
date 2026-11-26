@@ -1,0 +1,10 @@
+[
+  {
+    "at": "2026-11-26T14:14:43.693Z",
+    "population": 300,
+    "capacity": 300,
+    "status": 503,
+    "code": "WORLD_FULL",
+    "retryAfter": "5"
+  }
+]

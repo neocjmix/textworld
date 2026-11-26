@@ -1,0 +1,14 @@
+{
+  "seed": 32611,
+  "jitterRatio": 0.3,
+  "lifetimeSeconds": [95, 240],
+  "budget": { "botMinutes": 2700, "receivedMiB": 960, "admissions": 1600 },
+  "phases": [
+    { "name": "평상시", "seconds": 600, "writers": 2, "walkers": 3, "readers": 17, "actionIntervalMs": 1000 },
+    { "name": "광장 유입", "seconds": 210, "writers": 6, "walkers": 24, "readers": 268, "actionIntervalMs": 850 },
+    { "name": "유입 이후", "seconds": 1050, "writers": 3, "walkers": 5, "readers": 22, "actionIntervalMs": 1000 },
+    { "name": "풍화와 축소", "seconds": 360, "writers": 0, "walkers": 0, "readers": 0 },
+    { "name": "재방문", "seconds": 1260, "writers": 2, "walkers": 3, "readers": 17, "actionIntervalMs": 1000 },
+    { "name": "퇴장", "seconds": 120, "writers": 0, "walkers": 0, "readers": 0 }
+  ]
+}

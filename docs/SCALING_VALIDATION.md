@@ -1,5 +1,7 @@
 # 단일 서버의 검증과 부하 시험
 
+공개판의 300석 상한, 실제 시계 한 시간 검증, 과부하 거절·복구와 현재 원가는 [초기 공개 검증 보고서](INITIAL_RELEASE.md)에 기록했다.
+
 2026-11-26 측정 당시 공개 버전은 `29045ba`, 비교 후보는 PR #1의 `f91a014`였다. 이후 개선을 프로덕션에 반영했다. 현재 공개 버전은 [프로덕션 상태](https://textworld-production-987c.up.railway.app/health)에서 확인한다. 11월 18일 Railway 한 시간 시험은 그보다 앞선 `4b71230`에서 실행했다. **현재 선택은 단일 서버 유지다.** 다음 용량 결정에는 같은 줄의 덮어쓰기, 넓은 세계의 새 쓰기, 관객 증가를 각각 측정한 결과를 쓴다. [구현 PR](https://github.com/neocjmix/textworld/pull/1) · [11월 18일 시험과 원자료](https://github.com/neocjmix/textworld/blob/f91a014e4987c406b8accdf6005e6225cb8be003/docs/STAGE1_VERIFICATION.md)
 
 ## 이번에 다시 확인한 범위

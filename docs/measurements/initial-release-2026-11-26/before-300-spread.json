@@ -1,0 +1,334 @@
+{
+  "revision": "f7555f7e2347180e77e901915bc5090f8213e7eb",
+  "sourceDigest": "6f677a62b732ab088aba2e1d6db3e764523929228b9d39b9fac18fda324060b0",
+  "label": "before-300-spread",
+  "hotFraction": 0,
+  "liveClock": true,
+  "slices": [
+    {
+      "elapsed": 30,
+      "bytesPerSecond": 1036814.9645960772,
+      "ackP95": 504.2695480000002,
+      "pending": 0
+    },
+    {
+      "elapsed": 60,
+      "bytesPerSecond": 1201879.6246981523,
+      "ackP95": 345.4140679999982,
+      "pending": 0
+    },
+    {
+      "elapsed": 90,
+      "bytesPerSecond": 1504029.8409523538,
+      "ackP95": 385.1856859999971,
+      "pending": 0
+    },
+    {
+      "elapsed": 120,
+      "bytesPerSecond": 1765959.7222575871,
+      "ackP95": 420.95674300000246,
+      "pending": 0
+    },
+    {
+      "elapsed": 150,
+      "bytesPerSecond": 1746275.4379920755,
+      "ackP95": 197.4571059999871,
+      "pending": 0
+    },
+    {
+      "elapsed": 180,
+      "bytesPerSecond": 1597578.6601490949,
+      "ackP95": 153.58116699999664,
+      "pending": 0
+    },
+    {
+      "elapsed": 210,
+      "bytesPerSecond": 2882868.3740577097,
+      "ackP95": 306.73910799997975,
+      "pending": 0
+    },
+    {
+      "elapsed": 240,
+      "bytesPerSecond": 2643798.2964079296,
+      "ackP95": 256.4269579999964,
+      "pending": 0
+    },
+    {
+      "elapsed": 270,
+      "bytesPerSecond": 2917691.459947344,
+      "ackP95": 247.87483300000895,
+      "pending": 0
+    },
+    {
+      "elapsed": 300,
+      "bytesPerSecond": 3108571.344169068,
+      "ackP95": 388.89165000000503,
+      "pending": 1
+    },
+    {
+      "elapsed": 330,
+      "bytesPerSecond": 3518077.690181577,
+      "ackP95": 465.9910309999832,
+      "pending": 5
+    }
+  ],
+  "baseline": "6000 individual glyphs aged 0-180 seconds, 75% fullwidth, 8% occupied",
+  "seconds": 360,
+  "peerCount": 300,
+  "writers": 6,
+  "walkers": 24,
+  "staticReaders": 270,
+  "hotUsers": 0,
+  "hotWriters": 0,
+  "hotWalkers": 0,
+  "setupSecs": 4.352686517,
+  "setupErrors": 0,
+  "worldStart": {
+    "width": 512,
+    "height": 256,
+    "epoch": 2,
+    "textLayout": 2
+  },
+  "worldEnd": {
+    "width": 343,
+    "height": 163,
+    "epoch": 9,
+    "seq": 12135,
+    "textLayout": 2
+  },
+  "inkEnd": 4445,
+  "offeredSeconds": 359.999267519,
+  "elapsedSeconds": 360.469194069,
+  "arrivals": 90,
+  "expectedCloses": 90,
+  "unexpectedCloses": 0,
+  "errs": {},
+  "sent": 10816,
+  "accepted": 10816,
+  "pendingAtEnd": 3,
+  "pendingAfterDrain": 0,
+  "receivedBytes": 827698353,
+  "offeredBytes": 825837455,
+  "initialSnapshotBytesDuringChurn": 757127,
+  "viewRecords": 249982,
+  "revisionGaps": 0,
+  "revisionRegressions": 0,
+  "topologyPatches": 0,
+  "basisMismatches": 0,
+  "resets": 2100,
+  "bytesPerSecond": 2296123.871390094,
+  "serverBytesPerSecond": 2296123.871390094,
+  "ackP95Ms": 361.3257840000442,
+  "scheduledAckP95Ms": 363.778973792796,
+  "generatorP95Ms": 0.6648036125552608,
+  "maxGeneratorMs": 112.68083973747343,
+  "rejoinP95Ms": 879.9723600000143,
+  "readerStride": 1,
+  "otherDecodeP99Ms": 788.479,
+  "ackP99Ms": 623.584354999999,
+  "rejoinP99Ms": 1621.676507000011,
+  "otherDecodeP95Ms": 466.175,
+  "otherDecodeCount": 84550,
+  "readyP95Ms": 305.407,
+  "readyCount": 249978,
+  "expiryAgeP95Ms": 190847,
+  "expiryAgeMaxMs": 191487,
+  "metrics": {
+    "presence.ms": {
+      "sum": 103793.4554650028,
+      "max": 499.0426989999978,
+      "count": 11350,
+      "p95Upper": 64
+    },
+    "observer.ms": {
+      "sum": 93602.38599799974,
+      "max": 68.72924099996453,
+      "count": 38609,
+      "p95Upper": 8
+    },
+    "expiration.ms": {
+      "sum": 18465.759944000467,
+      "max": 504.15791100000206,
+      "count": 254,
+      "p95Upper": 512
+    },
+    "delivery.undelivered_events": {
+      "sum": 39,
+      "max": 5,
+      "count": 20,
+      "p95Upper": 4
+    },
+    "activity.peer_ms": {
+      "sum": 107449679.56154999,
+      "max": 1608209.9333999984,
+      "count": 186,
+      "p95Upper": 2097152
+    },
+    "topology.slice_ms": {
+      "sum": 510.244091000146,
+      "max": 11.760787999985041,
+      "count": 105,
+      "p95Upper": 16
+    },
+    "topology.local_reset": {
+      "sum": 1895,
+      "max": 1,
+      "count": 1895,
+      "p95Upper": 1
+    },
+    "topology.local_preserved": {
+      "sum": 205,
+      "max": 1,
+      "count": 205,
+      "p95Upper": 1
+    },
+    "topology.ms": {
+      "sum": 3571.084619000001,
+      "max": 674.1119620000245,
+      "count": 7,
+      "p95Upper": 1024
+    }
+  },
+  "serverCores": 0.41019260452487893,
+  "meanRssGiB": 0.4684696842718024,
+  "serverRssGiB": 0.577880859375,
+  "eventLoopP99": 369.623039,
+  "meanDispatchRecipients": 21.591894273127753,
+  "over100": 0.16501852162990344,
+  "peakBufferedBytes": 0,
+  "expiryCount": 8721,
+  "topologyGrowth": 0,
+  "topologyShrink": 7,
+  "serveInitialMs": 4352.686517,
+  "storage": [
+    {
+      "elapsedMs": 0,
+      "rssBytes": 329162752,
+      "heapBytes": 62808896,
+      "pageBytes": 5455872,
+      "freeBytes": 0,
+      "walBytes": 4227152,
+      "historyRows": 10792,
+      "operationRows": 6003,
+      "timeMarks": 37,
+      "cells": 10500,
+      "ink": 10208,
+      "epoch": 2,
+      "overdueGlyphs": 0,
+      "oldestGlyphAgeMs": 184435
+    },
+    {
+      "elapsedMs": 60002,
+      "rssBytes": 462467072,
+      "heapBytes": 177854008,
+      "pageBytes": 8065024,
+      "freeBytes": 0,
+      "walBytes": 4227152,
+      "historyRows": 15670,
+      "operationRows": 7034,
+      "timeMarks": 49,
+      "cells": 12026,
+      "ink": 8360,
+      "epoch": 2,
+      "overdueGlyphs": 165,
+      "oldestGlyphAgeMs": 189327
+    },
+    {
+      "elapsedMs": 120002,
+      "rssBytes": 482258944,
+      "heapBytes": 172515272,
+      "pageBytes": 10588160,
+      "freeBytes": 0,
+      "walBytes": 4227152,
+      "historyRows": 20463,
+      "operationRows": 7726,
+      "timeMarks": 59,
+      "cells": 13508,
+      "ink": 5982,
+      "epoch": 2,
+      "overdueGlyphs": 0,
+      "oldestGlyphAgeMs": 184198
+    },
+    {
+      "elapsedMs": 180003,
+      "rssBytes": 502288384,
+      "heapBytes": 150713576,
+      "pageBytes": 12812288,
+      "freeBytes": 2650112,
+      "walBytes": 4441392,
+      "historyRows": 22002,
+      "operationRows": 6914,
+      "timeMarks": 60,
+      "cells": 4882,
+      "ink": 4288,
+      "epoch": 4,
+      "overdueGlyphs": 0,
+      "oldestGlyphAgeMs": 184397
+    },
+    {
+      "elapsedMs": 240003,
+      "rssBytes": 536985600,
+      "heapBytes": 104739448,
+      "pageBytes": 12812288,
+      "freeBytes": 2293760,
+      "walBytes": 4441392,
+      "historyRows": 21241,
+      "operationRows": 5755,
+      "timeMarks": 59,
+      "cells": 5925,
+      "ink": 4485,
+      "epoch": 9,
+      "overdueGlyphs": 89,
+      "oldestGlyphAgeMs": 188115
+    },
+    {
+      "elapsedMs": 300065,
+      "rssBytes": 559386624,
+      "heapBytes": 221454400,
+      "pageBytes": 12812288,
+      "freeBytes": 1572864,
+      "walBytes": 4532032,
+      "historyRows": 21198,
+      "operationRows": 5095,
+      "timeMarks": 59,
+      "cells": 7542,
+      "ink": 4457,
+      "epoch": 9,
+      "overdueGlyphs": 81,
+      "oldestGlyphAgeMs": 187369
+    },
+    {
+      "elapsedMs": 360075,
+      "rssBytes": 618577920,
+      "heapBytes": 308025416,
+      "pageBytes": 12812288,
+      "freeBytes": 1687552,
+      "walBytes": 4659752,
+      "historyRows": 19464,
+      "operationRows": 5063,
+      "timeMarks": 59,
+      "cells": 9163,
+      "ink": 4441,
+      "epoch": 9,
+      "overdueGlyphs": 80,
+      "oldestGlyphAgeMs": 186832
+    },
+    {
+      "elapsedMs": 360476,
+      "rssBytes": 620494848,
+      "heapBytes": 329936648,
+      "pageBytes": 12812288,
+      "freeBytes": 1687552,
+      "walBytes": 4659752,
+      "historyRows": 19469,
+      "operationRows": 5066,
+      "timeMarks": 59,
+      "cells": 9168,
+      "ink": 4445,
+      "epoch": 9,
+      "overdueGlyphs": 80,
+      "oldestGlyphAgeMs": 187234
+    }
+  ],
+  "epochs": 7
+}

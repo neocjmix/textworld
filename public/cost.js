@@ -1,4 +1,4 @@
-import { monthlyCost } from './operating-cost-model.js';
+import { monthlyCost, releaseCost } from './operating-cost-model.js';
 
 const get = id => document.getElementById(id);
 const form = get('parameters');
@@ -52,3 +52,27 @@ function update() {
 form.addEventListener('submit', event => event.preventDefault());
 form.addEventListener('input', update);
 update();
+
+const releaseForm = get('release-parameters');
+function updateRelease() {
+  const scenario = get('release-layout').value;
+  get('release-plaza-label').hidden = scenario !== 'mix';
+  get('release-hours').disabled = scenario !== 'mix';
+  const fields = ['total', 'live', 'assets', 'server', 'week', 'unit'];
+  if (!releaseForm.matches(':valid')) {
+    for (const field of fields) get('release-' + field).textContent = '—';
+    return;
+  }
+  const result = releaseCost({
+    scenario,
+    ...(scenario === 'mix' ? { plazaHours: get('release-hours').valueAsNumber } : {}),
+    sessionMinutes: get('release-minutes').valueAsNumber,
+    coldFontShare: get('release-cold').valueAsNumber / 100,
+  });
+  for (const field of fields) {
+    get('release-' + field).textContent = (field === 'unit' ? unitDollars : money).format(result[field]);
+  }
+}
+releaseForm.addEventListener('submit', event => event.preventDefault());
+releaseForm.addEventListener('input', updateRelease);
+updateRelease();
