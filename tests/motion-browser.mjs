@@ -13,7 +13,7 @@ const check = label => { checks.push(label); console.log(`PASS ${label}`); };
 const wrap = (n, extent) => ((n % extent) + extent) % extent;
 const settled = page => page.waitForFunction(() => {
   const s = window.textworld.inspect();
-  return !s.motionActive && !s.cameraActive;
+  return !s.motionActive && !s.cameraActive && !s.cursorActive;
 });
 async function ready(page) {
   page.on('pageerror', error => errors.push(error.message));
@@ -23,6 +23,7 @@ async function ready(page) {
 }
 async function centered(page) {
   await settled(page);
+  await attachedCursor(page);
   const s = await state(page);
   for (const [axis, extent, span] of [['x', s.world.width, s.viewport.cols], ['y', s.world.height, s.viewport.rows]]) {
     const error = wrap(s.camera[axis] + span * (axis === 'y' ? .43 : .5) - s.cursor[axis] - .5 + extent / 2, extent) - extent / 2;
@@ -31,26 +32,31 @@ async function centered(page) {
   }
 }
 async function attachedCursor(page) {
-  // During easing the caret may leave the centre, but must still mark the
-  // actual world address and remain inside the visible map in the same frame.
+  // The input target follows the logical address on every frame. The visible
+  // outline eases toward it and must meet it when the transition ends.
   const geometry = await page.evaluate(() => {
     const s = window.textworld.inspect();
     const field = document.getElementById('field').getBoundingClientRect();
     const cursor = document.getElementById('cursor').getBoundingClientRect();
-    return { state: s,
+    const css = getComputedStyle(document.getElementById('app'));
+    return { state: s, target: { x: parseFloat(css.getPropertyValue('--cursor-x')), y: parseFloat(css.getPropertyValue('--cursor-y')) },
       field: { x: field.x, y: field.y, width: field.width, height: field.height },
       cursor: { x: cursor.x, y: cursor.y, width: cursor.width, height: cursor.height },
     };
   });
-  const { state: s, field, cursor } = geometry;
+  const { state: s, field, cursor, target } = geometry;
   assert.ok(cursor.width > 0 && cursor.height > 0, 'the actual writing cursor must be visible');
   for (const [axis, dimension, extent, span] of [
     ['x', 'width', s.world.width, s.viewport.cols], ['y', 'height', s.world.height, s.viewport.rows],
   ]) {
     const cellPixels = field[dimension] / span;
-    const displayedCell = s.camera[axis] + (cursor[axis] + cursor[dimension] / 2 - field[axis]) / cellPixels - .5;
-    const error = wrap(displayedCell - s.cursor[axis] + extent / 2, extent) - extent / 2;
-    assert.ok(Math.abs(error * cellPixels) < .1, `${axis}: moving cursor detached from its world cell by ${error * cellPixels}px`);
+    const targetCell = s.camera[axis] + target[axis] / cellPixels - .5;
+    const error = wrap(targetCell - s.cursor[axis] + extent / 2, extent) - extent / 2;
+    assert.ok(Math.abs(error * cellPixels) < .1, `${axis}: input target detached from its world cell`);
+    if (!s.cursorActive) {
+      const center = cursor[axis] + cursor[dimension] / 2 - field[axis];
+      assert.ok(Math.abs(center - target[axis]) < .1, `${axis}: settled outline misses its input target`);
+    }
     assert.ok(cursor[axis] >= field[axis] - 1 && cursor[axis] + cursor[dimension] <= field[axis] + field[dimension] + 1,
       `${axis}: moving cursor must stay inside the visible map`);
   }
@@ -110,7 +116,7 @@ try {
   const final = (await state(a)).cursor;
   await b.waitForFunction(({ actor, final }) => window.textworld.inspect().peers.some(peer => peer.id === actor && peer.x === final.x && peer.y === final.y), { actor, final });
   await stable(a);
-  check('diagonal mouse flick keeps its cursor attached to the visible world cell, settles at center and sends final presence');
+  check('diagonal mouse flick keeps its input target on the cell, settles its visible cursor and sends final presence');
 
   await location(a); await mouseFlick(a); await a.keyboard.type('K');
   await attachedCursor(a);
