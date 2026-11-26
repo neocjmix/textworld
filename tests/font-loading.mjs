@@ -71,15 +71,23 @@ try {
       const late = await delayedBrowser.newContext();
       let releaseFont, requestedFont;
       const held = new Promise(resolve => { releaseFont = resolve; });
-      const requested = new Promise(resolve => { requestedFont = resolve; });
-      await late.route('**/fonts/*-hangul-*.woff2', async route => {
+      const requested = new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('Delayed font was never requested')), 10000);
+        requestedFont = () => { clearTimeout(timer); resolve(); };
+      });
+      await late.route('**/fonts/sarasa.css', async route => {
+        const response = await route.fetch();
+        await route.fulfill({ response, body: (await response.text()).replace(/(\/fonts\/[^"]*-hangul-[^"]*\.woff2)/g, '$1?late-font-test=1') });
+      });
+      await late.route('**/fonts/*-hangul-*.woff2*', async route => {
         requestedFont(); await held; await route.continue();
       });
       await late.addInitScript(() => {
-        window.fontPaints = [];
+        window.fontPaints = []; window.fontEvents = [];
+        for (const type of ['loading', 'loadingdone', 'loadingerror']) document.fonts.addEventListener(type, () => window.fontEvents.push(type));
         const original = CanvasRenderingContext2D.prototype.fillText;
         CanvasRenderingContext2D.prototype.fillText = function (text, ...rest) {
-          if (this.canvas.id === 'field' && text === '각') window.fontPaints.push([...document.fonts].find(face => face.unicodeRange.includes('U+AC00'))?.status === 'loaded');
+          if (this.canvas.id === 'field' && text === '각') window.fontPaints.push([...document.fonts].find(face => /U\+AC00/i.test(face.unicodeRange))?.status === 'loaded');
           return original.call(this, text, ...rest);
         };
       });
@@ -91,7 +99,10 @@ try {
       await delayed.waitForFunction(() => window.textworld.inspect().pending === 0 && window.fontPaints.length > 0);
       assert.equal(await delayed.evaluate(() => window.fontPaints.at(-1)), false);
       releaseFont();
-      await delayed.waitForFunction(() => window.fontPaints.at(-1) === true);
+      await delayed.waitForFunction(() => window.fontPaints.at(-1) === true, null, { timeout: 5000 }).catch(async error => {
+        console.log(await delayed.evaluate(() => ({ events: window.fontEvents, paints: window.fontPaints, faces: [...document.fonts].filter(face => /ac00/i.test(face.unicodeRange)).map(face => ({ status: face.status, range: face.unicodeRange })) })));
+        throw error;
+      });
       await delayed.keyboard.press('Backspace');
       await delayed.waitForFunction(() => window.textworld.inspect().pending === 0);
       await late.close();

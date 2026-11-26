@@ -18,8 +18,17 @@ const settled = page => page.waitForFunction(() => {
 async function ready(page) {
   page.on('pageerror', error => errors.push(error.message));
   page.setDefaultTimeout(5000); await page.goto(url);
-  await page.waitForFunction(() => window.textworld?.inspect().connected);
-  await page.evaluate(() => document.fonts.ready);
+  await page.waitForFunction(() => {
+    const s = window.textworld?.inspect();
+    return s?.connected && s.cursor.x === 64 && s.cursor.y === 32;
+  });
+  // Canvas requests unicode-range parts when the snapshot first paints.
+  // Start the timed gesture after that download and initial camera settle.
+  await page.evaluate(async () => {
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await document.fonts.ready;
+  });
+  await settled(page);
 }
 async function centered(page) {
   await settled(page);

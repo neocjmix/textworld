@@ -69,7 +69,8 @@ export function monthlyCost({
   };
 }
 
-// Observed release inputs. Source: docs/measurements/initial-release-2026-11-26.
+// Static bytes: docs/measurements/first-visit-2026-11-26 (mixed CJK first view, gzip).
+// Observed sustained release inputs. Source: docs/measurements/initial-release-2026-11-26.
 export const releaseProfile = Object.freeze({
   "concurrent": 300,
   "hour": {
@@ -87,15 +88,16 @@ export const releaseProfile = Object.freeze({
     "cores": 0.2240979,
     "rssGiB": 0.6189078
   },
-  "mapBytes": 123350,
-  "fontBytes": 5315944,
+  "mapBytes": 49206,
+  "fontBytes": 1873600,
+  "allFontBytes": 5949384,
   "volumeGiB": 0.0332113
 });
 
 // Resource measurements are available at 300 concurrent participants. The
 // historical model above estimates other population sizes with its own assumptions.
 export function releaseCost({
-  scenario = 'steady', plazaHours = 6, sessionMinutes = 20, coldFontShare = 0.2,
+  scenario = 'steady', plazaHours = 6, sessionMinutes = 20, coldFontShare = 0.2, fontScope = 'mixed',
 } = {}) {
   requireRange('plazaHours', plazaHours, 0, 24);
   requireRange('sessionMinutes', sessionMinutes, 1, 1440);
@@ -103,7 +105,9 @@ export function releaseCost({
   if (!['steady', 'mix'].includes(scenario)) throw new TypeError('Unknown release scenario');
 
   const plazaFraction = plazaHours / 24;
-  const { hour, spread, plaza, concurrent, volumeGiB, mapBytes, fontBytes } = releaseProfile;
+  if (!['mixed', 'all'].includes(fontScope)) throw new TypeError('Unknown font coverage');
+  const { hour, spread, plaza, concurrent, volumeGiB, mapBytes } = releaseProfile;
+  const fontBytes = fontScope === 'all' ? releaseProfile.allFontBytes : releaseProfile.fontBytes;
   function average(metric) {
     if (scenario === 'steady') return hour[metric];
     return spread[metric] * (1 - plazaFraction) + plaza[metric] * plazaFraction;

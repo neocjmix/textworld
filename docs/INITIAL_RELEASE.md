@@ -1,5 +1,6 @@
 # 초기 공개 검증
 
+후속: 정적 파일 압축·캐시와 글꼴 분할로 첫 접속을 개선했다. 아래 부하 실험은 당시 결과를 보존하며, 최신 초기 파일 측정과 원가는 [후속 검증](FIRST_VISIT_RELEASE.md)과 [원가 모형](OPERATING_COST_MODEL.md)을 따른다.
 2026-11-26 · 부하 시험 서버 [9f4ac24](https://github.com/neocjmix/textworld/commit/9f4ac24) · [공개 지도](https://textworld-production-987c.up.railway.app/) · [원자료](measurements/initial-release-2026-11-26/) · [원가 계산기](https://textworld-production-987c.up.railway.app/cost.html)
 
 **단일 서버 300석으로 초기 공개할 수 있다.** Railway 프로덕션은 미국 서부 한 리전의 한 인스턴스다. 브라우저와 HTTP·MCP 에이전트가 300석을 공유한다. 작성·이동 비율을 가정하고, 밀집 광장과 접속 교체, 실제 풍화와 크기 변경을 함께 시험했다. 1,000명 표본은 공개 상한 결정에서 제외했다.

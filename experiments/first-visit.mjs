@@ -8,6 +8,7 @@ import { execFileSync } from 'node:child_process';
 const root = resolve(process.env.TARGET_ROOT || '.');
 const { createTextworld } = await import(pathToFileURL(resolve(root, 'server/index.js')));
 const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+const workingTree = execFileSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' }).trim();
 const app = createTextworld({ storagePath: ':memory:', now: () => 1_000_000 });
 const address = await app.listen(0, '127.0.0.1');
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', args: ['--no-sandbox'] });
@@ -53,5 +54,5 @@ try {
   }
   const output = resolve(process.env.VISIT_OUTPUT || 'artifacts/first-visit.json');
   await mkdir(dirname(output), { recursive: true });
-  await writeFile(output, JSON.stringify({ revision, browser: browser.version(), network, viewport: { width: 390, height: 844 }, results }, null, 2));
+  await writeFile(output, JSON.stringify({ revision, workingTree, browser: browser.version(), network, viewport: { width: 390, height: 844 }, results }, null, 2));
 } finally { await browser.close(); await app.close(); }

@@ -1,0 +1,2244 @@
+{
+  "revision": "705d1f28cd1f2b8a05c69d64afad9bdc7d4f6700",
+  "workingTree": "M experiments/first-visit.mjs\n M tests/font-loading.mjs",
+  "browser": "156.0.8078.79",
+  "network": {
+    "offline": false,
+    "latency": 150,
+    "downloadThroughput": 250000,
+    "uploadThroughput": 125000
+  },
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "results": [
+    {
+      "scenario": "empty",
+      "run": 0,
+      "visit": "cold",
+      "inputReadyMs": 2823.7000000029802,
+      "bytes": 533051,
+      "paintedMs": 2890,
+      "cells": 0,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 477224,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 2373.2999999970198
+        },
+        {
+          "path": "/fonts/sarasa.css",
+          "transferSize": 8950,
+          "encodedBodySize": 8650,
+          "decodedBodySize": 27846,
+          "duration": 308.70000000298023
+        },
+        {
+          "path": "/style.css",
+          "transferSize": 3283,
+          "encodedBodySize": 2983,
+          "decodedBodySize": 10189,
+          "duration": 236.29999999701977
+        },
+        {
+          "path": "/app.js",
+          "transferSize": 13340,
+          "encodedBodySize": 13040,
+          "decodedBodySize": 42703,
+          "duration": 338.90000000596046
+        },
+        {
+          "path": "/measurements.js",
+          "transferSize": 831,
+          "encodedBodySize": 531,
+          "decodedBodySize": 986,
+          "duration": 159.29999999701977
+        },
+        {
+          "path": "/shared/world.js",
+          "transferSize": 1695,
+          "encodedBodySize": 1395,
+          "decodedBodySize": 3126,
+          "duration": 200.79999999701977
+        },
+        {
+          "path": "/shared/cursor-input.js",
+          "transferSize": 2338,
+          "encodedBodySize": 2038,
+          "decodedBodySize": 6086,
+          "duration": 205.70000000298023
+        },
+        {
+          "path": "/shared/freshness.js",
+          "transferSize": 687,
+          "encodedBodySize": 387,
+          "decodedBodySize": 713,
+          "duration": 183.19999999552965
+        },
+        {
+          "path": "/shared/participant-rules.js",
+          "transferSize": 516,
+          "encodedBodySize": 216,
+          "decodedBodySize": 216,
+          "duration": 176
+        },
+        {
+          "path": "/inertia.js",
+          "transferSize": 2034,
+          "encodedBodySize": 1734,
+          "decodedBodySize": 4643,
+          "duration": 331.19999999552965
+        },
+        {
+          "path": "/native-input.js",
+          "transferSize": 3031,
+          "encodedBodySize": 2731,
+          "decodedBodySize": 9309,
+          "duration": 385.5
+        },
+        {
+          "path": "/local-world.js",
+          "transferSize": 1162,
+          "encodedBodySize": 862,
+          "decodedBodySize": 1905,
+          "duration": 349.5
+        },
+        {
+          "path": "/native-surface.js",
+          "transferSize": 1542,
+          "encodedBodySize": 1242,
+          "decodedBodySize": 2905,
+          "duration": 390.5
+        },
+        {
+          "path": "/camera-motion.js",
+          "transferSize": 1854,
+          "encodedBodySize": 1554,
+          "decodedBodySize": 4164,
+          "duration": 402.5
+        },
+        {
+          "path": "/shared/measurement.js",
+          "transferSize": 881,
+          "encodedBodySize": 581,
+          "decodedBodySize": 1065,
+          "duration": 333.59999999403954
+        },
+        {
+          "path": "/shared/width.js",
+          "transferSize": 1356,
+          "encodedBodySize": 1056,
+          "decodedBodySize": 2166,
+          "duration": 309.8999999985099
+        },
+        {
+          "path": "/shared/writing.js",
+          "transferSize": 932,
+          "encodedBodySize": 632,
+          "decodedBodySize": 1355,
+          "duration": 341.1000000014901
+        },
+        {
+          "path": "/shared/native-projection.js",
+          "transferSize": 3549,
+          "encodedBodySize": 3249,
+          "decodedBodySize": 10822,
+          "duration": 383.1000000014901
+        },
+        {
+          "path": "/shared/native-context.js",
+          "transferSize": 709,
+          "encodedBodySize": 409,
+          "decodedBodySize": 772,
+          "duration": 364.80000000447035
+        },
+        {
+          "path": "/shared/unicode-width-data.js",
+          "transferSize": 4463,
+          "encodedBodySize": 4163,
+          "decodedBodySize": 16292,
+          "duration": 196.39999999850988
+        },
+        {
+          "path": "/shared/relocation.js",
+          "transferSize": 641,
+          "encodedBodySize": 341,
+          "decodedBodySize": 1009,
+          "duration": 160.30000000447035
+        },
+        {
+          "path": "/favicon.ico",
+          "transferSize": 321,
+          "encodedBodySize": 21,
+          "decodedBodySize": 21,
+          "duration": 154.29999999701977
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 1712,
+          "encodedBodySize": 1412
+        }
+      ]
+    },
+    {
+      "scenario": "empty",
+      "run": 0,
+      "visit": "reload",
+      "inputReadyMs": 1157.4000000059605,
+      "bytes": 6300,
+      "paintedMs": 1223.3000000044703,
+      "cells": 0,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa.css",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 156.5
+        },
+        {
+          "path": "/style.css",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 163.09999999403954
+        },
+        {
+          "path": "/app.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 168.60000000149012
+        },
+        {
+          "path": "/measurements.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 154.30000000447035
+        },
+        {
+          "path": "/shared/world.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 159.20000000298023
+        },
+        {
+          "path": "/shared/cursor-input.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 165.39999999850988
+        },
+        {
+          "path": "/shared/freshness.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 172
+        },
+        {
+          "path": "/shared/participant-rules.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 176.89999999850988
+        },
+        {
+          "path": "/inertia.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 183.5
+        },
+        {
+          "path": "/native-input.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 308.69999999552965
+        },
+        {
+          "path": "/local-world.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 314.69999999552965
+        },
+        {
+          "path": "/native-surface.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 321.29999999701977
+        },
+        {
+          "path": "/camera-motion.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 327.40000000596046
+        },
+        {
+          "path": "/shared/measurement.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 179.40000000596046
+        },
+        {
+          "path": "/shared/width.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 178.70000000298023
+        },
+        {
+          "path": "/shared/writing.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 299.6000000014901
+        },
+        {
+          "path": "/shared/native-projection.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 305.20000000298023
+        },
+        {
+          "path": "/shared/native-context.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 310.6000000014901
+        },
+        {
+          "path": "/shared/unicode-width-data.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 155.60000000149012
+        },
+        {
+          "path": "/shared/relocation.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 154.89999999850988
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 300,
+          "encodedBodySize": 1412
+        }
+      ]
+    },
+    {
+      "scenario": "empty",
+      "run": 1,
+      "visit": "cold",
+      "inputReadyMs": 2804.5,
+      "bytes": 532730,
+      "paintedMs": 2868.5,
+      "cells": 0,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 477224,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 2366.60000000149
+        },
+        {
+          "path": "/fonts/sarasa.css",
+          "transferSize": 8950,
+          "encodedBodySize": 8650,
+          "decodedBodySize": 27846,
+          "duration": 301.8999999985099
+        },
+        {
+          "path": "/style.css",
+          "transferSize": 3283,
+          "encodedBodySize": 2983,
+          "decodedBodySize": 10189,
+          "duration": 229.79999999701977
+        },
+        {
+          "path": "/app.js",
+          "transferSize": 13340,
+          "encodedBodySize": 13040,
+          "decodedBodySize": 42703,
+          "duration": 332.3999999985099
+        },
+        {
+          "path": "/measurements.js",
+          "transferSize": 831,
+          "encodedBodySize": 531,
+          "decodedBodySize": 986,
+          "duration": 164.5
+        },
+        {
+          "path": "/shared/world.js",
+          "transferSize": 1695,
+          "encodedBodySize": 1395,
+          "decodedBodySize": 3126,
+          "duration": 200.80000000447035
+        },
+        {
+          "path": "/shared/freshness.js",
+          "transferSize": 687,
+          "encodedBodySize": 387,
+          "decodedBodySize": 713,
+          "duration": 182.5
+        },
+        {
+          "path": "/shared/participant-rules.js",
+          "transferSize": 516,
+          "encodedBodySize": 216,
+          "decodedBodySize": 216,
+          "duration": 188.19999999552965
+        },
+        {
+          "path": "/shared/cursor-input.js",
+          "transferSize": 2338,
+          "encodedBodySize": 2038,
+          "decodedBodySize": 6086,
+          "duration": 205.79999999701977
+        },
+        {
+          "path": "/inertia.js",
+          "transferSize": 2034,
+          "encodedBodySize": 1734,
+          "decodedBodySize": 4643,
+          "duration": 332.59999999403954
+        },
+        {
+          "path": "/local-world.js",
+          "transferSize": 1162,
+          "encodedBodySize": 862,
+          "decodedBodySize": 1905,
+          "duration": 356.29999999701977
+        },
+        {
+          "path": "/native-input.js",
+          "transferSize": 3031,
+          "encodedBodySize": 2731,
+          "decodedBodySize": 9309,
+          "duration": 386
+        },
+        {
+          "path": "/native-surface.js",
+          "transferSize": 1542,
+          "encodedBodySize": 1242,
+          "decodedBodySize": 2905,
+          "duration": 398.40000000596046
+        },
+        {
+          "path": "/camera-motion.js",
+          "transferSize": 1854,
+          "encodedBodySize": 1554,
+          "decodedBodySize": 4164,
+          "duration": 403.6000000014901
+        },
+        {
+          "path": "/shared/measurement.js",
+          "transferSize": 881,
+          "encodedBodySize": 581,
+          "decodedBodySize": 1065,
+          "duration": 329.6000000014901
+        },
+        {
+          "path": "/shared/width.js",
+          "transferSize": 1356,
+          "encodedBodySize": 1056,
+          "decodedBodySize": 2166,
+          "duration": 316.70000000298023
+        },
+        {
+          "path": "/shared/writing.js",
+          "transferSize": 932,
+          "encodedBodySize": 632,
+          "decodedBodySize": 1355,
+          "duration": 341.6000000014901
+        },
+        {
+          "path": "/shared/native-projection.js",
+          "transferSize": 3549,
+          "encodedBodySize": 3249,
+          "decodedBodySize": 10822,
+          "duration": 382.5
+        },
+        {
+          "path": "/shared/native-context.js",
+          "transferSize": 709,
+          "encodedBodySize": 409,
+          "decodedBodySize": 772,
+          "duration": 358.80000000447035
+        },
+        {
+          "path": "/shared/unicode-width-data.js",
+          "transferSize": 4463,
+          "encodedBodySize": 4163,
+          "decodedBodySize": 16292,
+          "duration": 196.20000000298023
+        },
+        {
+          "path": "/shared/relocation.js",
+          "transferSize": 641,
+          "encodedBodySize": 341,
+          "decodedBodySize": 1009,
+          "duration": 159.80000000447035
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 1712,
+          "encodedBodySize": 1412
+        }
+      ]
+    },
+    {
+      "scenario": "empty",
+      "run": 1,
+      "visit": "reload",
+      "inputReadyMs": 1170.1000000014901,
+      "bytes": 6300,
+      "paintedMs": 1234.7000000029802,
+      "cells": 0,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa.css",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 159.60000000149012
+        },
+        {
+          "path": "/style.css",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 165.80000000447035
+        },
+        {
+          "path": "/app.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 172.5
+        },
+        {
+          "path": "/measurements.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 159.39999999850988
+        },
+        {
+          "path": "/shared/world.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 165.09999999403954
+        },
+        {
+          "path": "/shared/cursor-input.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 170.80000000447035
+        },
+        {
+          "path": "/shared/freshness.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 177.39999999850988
+        },
+        {
+          "path": "/shared/participant-rules.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 182.60000000149012
+        },
+        {
+          "path": "/inertia.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 188.60000000149012
+        },
+        {
+          "path": "/native-input.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 314.8999999985099
+        },
+        {
+          "path": "/local-world.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 321.5
+        },
+        {
+          "path": "/native-surface.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 326.3999999985099
+        },
+        {
+          "path": "/camera-motion.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 332.5
+        },
+        {
+          "path": "/shared/measurement.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 178.10000000149012
+        },
+        {
+          "path": "/shared/width.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 176
+        },
+        {
+          "path": "/shared/writing.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 297.8999999985099
+        },
+        {
+          "path": "/shared/native-projection.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 304.5
+        },
+        {
+          "path": "/shared/native-context.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 310.19999999552965
+        },
+        {
+          "path": "/shared/unicode-width-data.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 155
+        },
+        {
+          "path": "/shared/relocation.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 154.80000000447035
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 300,
+          "encodedBodySize": 1412
+        }
+      ]
+    },
+    {
+      "scenario": "empty",
+      "run": 2,
+      "visit": "cold",
+      "inputReadyMs": 2785,
+      "bytes": 532730,
+      "paintedMs": 2857.5,
+      "cells": 0,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 477224,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 2367.6999999955297
+        },
+        {
+          "path": "/style.css",
+          "transferSize": 3283,
+          "encodedBodySize": 2983,
+          "decodedBodySize": 10189,
+          "duration": 231.39999999850988
+        },
+        {
+          "path": "/fonts/sarasa.css",
+          "transferSize": 8950,
+          "encodedBodySize": 8650,
+          "decodedBodySize": 27846,
+          "duration": 303.29999999701977
+        },
+        {
+          "path": "/app.js",
+          "transferSize": 13340,
+          "encodedBodySize": 13040,
+          "decodedBodySize": 42703,
+          "duration": 333.1000000014901
+        },
+        {
+          "path": "/measurements.js",
+          "transferSize": 831,
+          "encodedBodySize": 531,
+          "decodedBodySize": 986,
+          "duration": 159
+        },
+        {
+          "path": "/shared/world.js",
+          "transferSize": 1695,
+          "encodedBodySize": 1395,
+          "decodedBodySize": 3126,
+          "duration": 195.20000000298023
+        },
+        {
+          "path": "/shared/cursor-input.js",
+          "transferSize": 2338,
+          "encodedBodySize": 2038,
+          "decodedBodySize": 6086,
+          "duration": 201.20000000298023
+        },
+        {
+          "path": "/shared/freshness.js",
+          "transferSize": 687,
+          "encodedBodySize": 387,
+          "decodedBodySize": 713,
+          "duration": 181.89999999850988
+        },
+        {
+          "path": "/shared/participant-rules.js",
+          "transferSize": 516,
+          "encodedBodySize": 216,
+          "decodedBodySize": 216,
+          "duration": 187
+        },
+        {
+          "path": "/inertia.js",
+          "transferSize": 2034,
+          "encodedBodySize": 1734,
+          "decodedBodySize": 4643,
+          "duration": 331.1000000014901
+        },
+        {
+          "path": "/native-input.js",
+          "transferSize": 3031,
+          "encodedBodySize": 2731,
+          "decodedBodySize": 9309,
+          "duration": 385.09999999403954
+        },
+        {
+          "path": "/local-world.js",
+          "transferSize": 1162,
+          "encodedBodySize": 862,
+          "decodedBodySize": 1905,
+          "duration": 353.3999999985099
+        },
+        {
+          "path": "/native-surface.js",
+          "transferSize": 1542,
+          "encodedBodySize": 1242,
+          "decodedBodySize": 2905,
+          "duration": 389.30000000447035
+        },
+        {
+          "path": "/camera-motion.js",
+          "transferSize": 1854,
+          "encodedBodySize": 1554,
+          "decodedBodySize": 4164,
+          "duration": 401.1000000014901
+        },
+        {
+          "path": "/shared/measurement.js",
+          "transferSize": 881,
+          "encodedBodySize": 581,
+          "decodedBodySize": 1065,
+          "duration": 334.5
+        },
+        {
+          "path": "/shared/width.js",
+          "transferSize": 1356,
+          "encodedBodySize": 1056,
+          "decodedBodySize": 2166,
+          "duration": 322.20000000298023
+        },
+        {
+          "path": "/shared/writing.js",
+          "transferSize": 932,
+          "encodedBodySize": 632,
+          "decodedBodySize": 1355,
+          "duration": 345.1000000014901
+        },
+        {
+          "path": "/shared/native-projection.js",
+          "transferSize": 3549,
+          "encodedBodySize": 3249,
+          "decodedBodySize": 10822,
+          "duration": 387
+        },
+        {
+          "path": "/shared/native-context.js",
+          "transferSize": 709,
+          "encodedBodySize": 409,
+          "decodedBodySize": 772,
+          "duration": 368.69999999552965
+        },
+        {
+          "path": "/shared/unicode-width-data.js",
+          "transferSize": 4463,
+          "encodedBodySize": 4163,
+          "decodedBodySize": 16292,
+          "duration": 196.79999999701977
+        },
+        {
+          "path": "/shared/relocation.js",
+          "transferSize": 641,
+          "encodedBodySize": 341,
+          "decodedBodySize": 1009,
+          "duration": 160.60000000149012
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 1712,
+          "encodedBodySize": 1412
+        }
+      ]
+    },
+    {
+      "scenario": "empty",
+      "run": 2,
+      "visit": "reload",
+      "inputReadyMs": 1154.7999999970198,
+      "bytes": 6300,
+      "paintedMs": 1221,
+      "cells": 0,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa.css",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 157.70000000298023
+        },
+        {
+          "path": "/style.css",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 164.59999999403954
+        },
+        {
+          "path": "/app.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 170.40000000596046
+        },
+        {
+          "path": "/measurements.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 153.70000000298023
+        },
+        {
+          "path": "/shared/world.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 160.39999999850988
+        },
+        {
+          "path": "/shared/cursor-input.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 166
+        },
+        {
+          "path": "/shared/freshness.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 171.30000000447035
+        },
+        {
+          "path": "/shared/participant-rules.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 177.80000000447035
+        },
+        {
+          "path": "/inertia.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 184
+        },
+        {
+          "path": "/native-input.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 309.69999999552965
+        },
+        {
+          "path": "/local-world.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 315.19999999552965
+        },
+        {
+          "path": "/native-surface.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 320.79999999701977
+        },
+        {
+          "path": "/camera-motion.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 327.19999999552965
+        },
+        {
+          "path": "/shared/measurement.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 179
+        },
+        {
+          "path": "/shared/width.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 178.70000000298023
+        },
+        {
+          "path": "/shared/writing.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 299.70000000298023
+        },
+        {
+          "path": "/shared/native-projection.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 305
+        },
+        {
+          "path": "/shared/native-context.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 310.6000000014901
+        },
+        {
+          "path": "/shared/unicode-width-data.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 155.70000000298023
+        },
+        {
+          "path": "/shared/relocation.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 155.39999999850988
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 300,
+          "encodedBodySize": 1412
+        }
+      ]
+    },
+    {
+      "scenario": "mixed",
+      "run": 0,
+      "visit": "cold",
+      "inputReadyMs": 2857,
+      "bytes": 1931206,
+      "paintedMs": 8695.5,
+      "cells": 44,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 477224,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 2356.4000000059605
+        },
+        {
+          "path": "/fonts/sarasa.css",
+          "transferSize": 8950,
+          "encodedBodySize": 8650,
+          "decodedBodySize": 27846,
+          "duration": 303.29999999701977
+        },
+        {
+          "path": "/style.css",
+          "transferSize": 3283,
+          "encodedBodySize": 2983,
+          "decodedBodySize": 10189,
+          "duration": 230.70000000298023
+        },
+        {
+          "path": "/app.js",
+          "transferSize": 13340,
+          "encodedBodySize": 13040,
+          "decodedBodySize": 42703,
+          "duration": 328
+        },
+        {
+          "path": "/measurements.js",
+          "transferSize": 831,
+          "encodedBodySize": 531,
+          "decodedBodySize": 986,
+          "duration": 161
+        },
+        {
+          "path": "/shared/world.js",
+          "transferSize": 1695,
+          "encodedBodySize": 1395,
+          "decodedBodySize": 3126,
+          "duration": 196.29999999701977
+        },
+        {
+          "path": "/shared/freshness.js",
+          "transferSize": 687,
+          "encodedBodySize": 387,
+          "decodedBodySize": 713,
+          "duration": 184.10000000149012
+        },
+        {
+          "path": "/shared/participant-rules.js",
+          "transferSize": 516,
+          "encodedBodySize": 216,
+          "decodedBodySize": 216,
+          "duration": 190.80000000447035
+        },
+        {
+          "path": "/shared/cursor-input.js",
+          "transferSize": 2338,
+          "encodedBodySize": 2038,
+          "decodedBodySize": 6086,
+          "duration": 202.40000000596046
+        },
+        {
+          "path": "/inertia.js",
+          "transferSize": 2034,
+          "encodedBodySize": 1734,
+          "decodedBodySize": 4643,
+          "duration": 334.20000000298023
+        },
+        {
+          "path": "/native-input.js",
+          "transferSize": 3031,
+          "encodedBodySize": 2731,
+          "decodedBodySize": 9309,
+          "duration": 388.29999999701977
+        },
+        {
+          "path": "/local-world.js",
+          "transferSize": 1162,
+          "encodedBodySize": 862,
+          "decodedBodySize": 1905,
+          "duration": 358.5
+        },
+        {
+          "path": "/native-surface.js",
+          "transferSize": 1542,
+          "encodedBodySize": 1242,
+          "decodedBodySize": 2905,
+          "duration": 393.6000000014901
+        },
+        {
+          "path": "/camera-motion.js",
+          "transferSize": 1854,
+          "encodedBodySize": 1554,
+          "decodedBodySize": 4164,
+          "duration": 406.5
+        },
+        {
+          "path": "/shared/measurement.js",
+          "transferSize": 881,
+          "encodedBodySize": 581,
+          "decodedBodySize": 1065,
+          "duration": 334.5
+        },
+        {
+          "path": "/shared/width.js",
+          "transferSize": 1356,
+          "encodedBodySize": 1056,
+          "decodedBodySize": 2166,
+          "duration": 323.1000000014901
+        },
+        {
+          "path": "/shared/writing.js",
+          "transferSize": 932,
+          "encodedBodySize": 632,
+          "decodedBodySize": 1355,
+          "duration": 346.80000000447035
+        },
+        {
+          "path": "/shared/native-projection.js",
+          "transferSize": 3549,
+          "encodedBodySize": 3249,
+          "decodedBodySize": 10822,
+          "duration": 388.79999999701977
+        },
+        {
+          "path": "/shared/native-context.js",
+          "transferSize": 709,
+          "encodedBodySize": 409,
+          "decodedBodySize": 772,
+          "duration": 371.1000000014901
+        },
+        {
+          "path": "/shared/unicode-width-data.js",
+          "transferSize": 4463,
+          "encodedBodySize": 4163,
+          "decodedBodySize": 16292,
+          "duration": 196.10000000149012
+        },
+        {
+          "path": "/shared/relocation.js",
+          "transferSize": 641,
+          "encodedBodySize": 341,
+          "decodedBodySize": 1009,
+          "duration": 160.29999999701977
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-hangul-2c178d772125-1.0.43.woff2",
+          "transferSize": 592560,
+          "encodedBodySize": 592260,
+          "decodedBodySize": 592260,
+          "duration": 5778.60000000149
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6400-cc31d9a7db38-1.0.43.woff2",
+          "transferSize": 156588,
+          "encodedBodySize": 156288,
+          "decodedBodySize": 156288,
+          "duration": 3905.5
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8800-01fc782336fc-1.0.43.woff2",
+          "transferSize": 162884,
+          "encodedBodySize": 162584,
+          "decodedBodySize": 162584,
+          "duration": 4006.2999999970198
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-4c00-4c01aa04458f-1.0.43.woff2",
+          "transferSize": 153068,
+          "encodedBodySize": 152768,
+          "decodedBodySize": 152768,
+          "duration": 3849.2000000029802
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6800-1d4a1e51d616-1.0.43.woff2",
+          "transferSize": 171812,
+          "encodedBodySize": 171512,
+          "decodedBodySize": 171512,
+          "duration": 4082.60000000149
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8c00-e2aa1e35e680-1.0.43.woff2",
+          "transferSize": 161564,
+          "encodedBodySize": 161264,
+          "decodedBodySize": 161264,
+          "duration": 3992.2999999970198
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 1712,
+          "encodedBodySize": 1412
+        }
+      ]
+    },
+    {
+      "scenario": "mixed",
+      "run": 0,
+      "visit": "reload",
+      "inputReadyMs": 1260.8000000044703,
+      "bytes": 6300,
+      "paintedMs": 1325.5,
+      "cells": 44,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa.css",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 155.29999999701977
+        },
+        {
+          "path": "/style.css",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 160.60000000149012
+        },
+        {
+          "path": "/app.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 166.39999999850988
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-hangul-2c178d772125-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 592260,
+          "decodedBodySize": 592260,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-4c00-4c01aa04458f-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 152768,
+          "decodedBodySize": 152768,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6400-cc31d9a7db38-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 156288,
+          "decodedBodySize": 156288,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6800-1d4a1e51d616-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 171512,
+          "decodedBodySize": 171512,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8800-01fc782336fc-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 162584,
+          "decodedBodySize": 162584,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8c00-e2aa1e35e680-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 161264,
+          "decodedBodySize": 161264,
+          "duration": 0
+        },
+        {
+          "path": "/measurements.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 165.69999999552965
+        },
+        {
+          "path": "/shared/world.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 171.69999999552965
+        },
+        {
+          "path": "/shared/cursor-input.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 177.60000000149012
+        },
+        {
+          "path": "/shared/freshness.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 183.30000000447035
+        },
+        {
+          "path": "/shared/participant-rules.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 189.60000000149012
+        },
+        {
+          "path": "/inertia.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 195.10000000149012
+        },
+        {
+          "path": "/native-input.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 320.79999999701977
+        },
+        {
+          "path": "/local-world.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 326.8999999985099
+        },
+        {
+          "path": "/native-surface.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 333.3999999985099
+        },
+        {
+          "path": "/camera-motion.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 339.29999999701977
+        },
+        {
+          "path": "/shared/measurement.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 179
+        },
+        {
+          "path": "/shared/width.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 179.10000000149012
+        },
+        {
+          "path": "/shared/writing.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 298.8999999985099
+        },
+        {
+          "path": "/shared/native-projection.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 304.5
+        },
+        {
+          "path": "/shared/native-context.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 310.30000000447035
+        },
+        {
+          "path": "/shared/unicode-width-data.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 155.40000000596046
+        },
+        {
+          "path": "/shared/relocation.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 155.89999999850988
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 300,
+          "encodedBodySize": 1412
+        }
+      ]
+    },
+    {
+      "scenario": "mixed",
+      "run": 1,
+      "visit": "cold",
+      "inputReadyMs": 2871.10000000149,
+      "bytes": 1931206,
+      "paintedMs": 8709.20000000298,
+      "cells": 44,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 477224,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 2369.60000000149
+        },
+        {
+          "path": "/fonts/sarasa.css",
+          "transferSize": 8950,
+          "encodedBodySize": 8650,
+          "decodedBodySize": 27846,
+          "duration": 299.20000000298023
+        },
+        {
+          "path": "/style.css",
+          "transferSize": 3283,
+          "encodedBodySize": 2983,
+          "decodedBodySize": 10189,
+          "duration": 226.80000000447035
+        },
+        {
+          "path": "/app.js",
+          "transferSize": 13340,
+          "encodedBodySize": 13040,
+          "decodedBodySize": 42703,
+          "duration": 329.20000000298023
+        },
+        {
+          "path": "/measurements.js",
+          "transferSize": 831,
+          "encodedBodySize": 531,
+          "decodedBodySize": 986,
+          "duration": 159.10000000149012
+        },
+        {
+          "path": "/shared/world.js",
+          "transferSize": 1695,
+          "encodedBodySize": 1395,
+          "decodedBodySize": 3126,
+          "duration": 194.79999999701977
+        },
+        {
+          "path": "/shared/cursor-input.js",
+          "transferSize": 2338,
+          "encodedBodySize": 2038,
+          "decodedBodySize": 6086,
+          "duration": 201.19999999552965
+        },
+        {
+          "path": "/shared/freshness.js",
+          "transferSize": 687,
+          "encodedBodySize": 387,
+          "decodedBodySize": 713,
+          "duration": 177.70000000298023
+        },
+        {
+          "path": "/shared/participant-rules.js",
+          "transferSize": 516,
+          "encodedBodySize": 216,
+          "decodedBodySize": 216,
+          "duration": 183
+        },
+        {
+          "path": "/inertia.js",
+          "transferSize": 2034,
+          "encodedBodySize": 1734,
+          "decodedBodySize": 4643,
+          "duration": 332.20000000298023
+        },
+        {
+          "path": "/local-world.js",
+          "transferSize": 1162,
+          "encodedBodySize": 862,
+          "decodedBodySize": 1905,
+          "duration": 350.5
+        },
+        {
+          "path": "/native-input.js",
+          "transferSize": 3031,
+          "encodedBodySize": 2731,
+          "decodedBodySize": 9309,
+          "duration": 386.30000000447035
+        },
+        {
+          "path": "/native-surface.js",
+          "transferSize": 1542,
+          "encodedBodySize": 1242,
+          "decodedBodySize": 2905,
+          "duration": 392.70000000298023
+        },
+        {
+          "path": "/camera-motion.js",
+          "transferSize": 1854,
+          "encodedBodySize": 1554,
+          "decodedBodySize": 4164,
+          "duration": 398.19999999552965
+        },
+        {
+          "path": "/shared/measurement.js",
+          "transferSize": 881,
+          "encodedBodySize": 581,
+          "decodedBodySize": 1065,
+          "duration": 333.20000000298023
+        },
+        {
+          "path": "/shared/width.js",
+          "transferSize": 1356,
+          "encodedBodySize": 1056,
+          "decodedBodySize": 2166,
+          "duration": 312.1000000014901
+        },
+        {
+          "path": "/shared/writing.js",
+          "transferSize": 932,
+          "encodedBodySize": 632,
+          "decodedBodySize": 1355,
+          "duration": 341.3999999985099
+        },
+        {
+          "path": "/shared/native-projection.js",
+          "transferSize": 3549,
+          "encodedBodySize": 3249,
+          "decodedBodySize": 10822,
+          "duration": 384.1000000014901
+        },
+        {
+          "path": "/shared/native-context.js",
+          "transferSize": 709,
+          "encodedBodySize": 409,
+          "decodedBodySize": 772,
+          "duration": 363.70000000298023
+        },
+        {
+          "path": "/shared/unicode-width-data.js",
+          "transferSize": 4463,
+          "encodedBodySize": 4163,
+          "decodedBodySize": 16292,
+          "duration": 190.89999999850988
+        },
+        {
+          "path": "/shared/relocation.js",
+          "transferSize": 641,
+          "encodedBodySize": 341,
+          "decodedBodySize": 1009,
+          "duration": 160.10000000149012
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-hangul-2c178d772125-1.0.43.woff2",
+          "transferSize": 592560,
+          "encodedBodySize": 592260,
+          "decodedBodySize": 592260,
+          "duration": 5775.29999999702
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6400-cc31d9a7db38-1.0.43.woff2",
+          "transferSize": 156588,
+          "encodedBodySize": 156288,
+          "decodedBodySize": 156288,
+          "duration": 3905.3000000044703
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8800-01fc782336fc-1.0.43.woff2",
+          "transferSize": 162884,
+          "encodedBodySize": 162584,
+          "decodedBodySize": 162584,
+          "duration": 4006.39999999851
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-4c00-4c01aa04458f-1.0.43.woff2",
+          "transferSize": 153068,
+          "encodedBodySize": 152768,
+          "decodedBodySize": 152768,
+          "duration": 3848.60000000149
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6800-1d4a1e51d616-1.0.43.woff2",
+          "transferSize": 171812,
+          "encodedBodySize": 171512,
+          "decodedBodySize": 171512,
+          "duration": 4081.7999999970198
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8c00-e2aa1e35e680-1.0.43.woff2",
+          "transferSize": 161564,
+          "encodedBodySize": 161264,
+          "decodedBodySize": 161264,
+          "duration": 3992.1999999955297
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 1712,
+          "encodedBodySize": 1412
+        }
+      ]
+    },
+    {
+      "scenario": "mixed",
+      "run": 1,
+      "visit": "reload",
+      "inputReadyMs": 1243.7999999970198,
+      "bytes": 6300,
+      "paintedMs": 1307.3999999985099,
+      "cells": 44,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa.css",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 155.29999999701977
+        },
+        {
+          "path": "/style.css",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 161.5
+        },
+        {
+          "path": "/app.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 170.5
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-hangul-2c178d772125-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 592260,
+          "decodedBodySize": 592260,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-4c00-4c01aa04458f-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 152768,
+          "decodedBodySize": 152768,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6400-cc31d9a7db38-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 156288,
+          "decodedBodySize": 156288,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6800-1d4a1e51d616-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 171512,
+          "decodedBodySize": 171512,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8800-01fc782336fc-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 162584,
+          "decodedBodySize": 162584,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8c00-e2aa1e35e680-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 161264,
+          "decodedBodySize": 161264,
+          "duration": 0
+        },
+        {
+          "path": "/measurements.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 157.29999999701977
+        },
+        {
+          "path": "/shared/world.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 163.60000000149012
+        },
+        {
+          "path": "/shared/cursor-input.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 169.19999999552965
+        },
+        {
+          "path": "/shared/freshness.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 175.19999999552965
+        },
+        {
+          "path": "/shared/participant-rules.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 181.30000000447035
+        },
+        {
+          "path": "/inertia.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 187
+        },
+        {
+          "path": "/native-input.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 312.70000000298023
+        },
+        {
+          "path": "/local-world.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 319
+        },
+        {
+          "path": "/native-surface.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 325.20000000298023
+        },
+        {
+          "path": "/camera-motion.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 331.1000000014901
+        },
+        {
+          "path": "/shared/measurement.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 178.5
+        },
+        {
+          "path": "/shared/width.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 179.30000000447035
+        },
+        {
+          "path": "/shared/writing.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 299
+        },
+        {
+          "path": "/shared/native-projection.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 304.80000000447035
+        },
+        {
+          "path": "/shared/native-context.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 311.29999999701977
+        },
+        {
+          "path": "/shared/unicode-width-data.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 154.69999999552965
+        },
+        {
+          "path": "/shared/relocation.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 155
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 300,
+          "encodedBodySize": 1412
+        }
+      ]
+    },
+    {
+      "scenario": "mixed",
+      "run": 2,
+      "visit": "cold",
+      "inputReadyMs": 2874.10000000149,
+      "bytes": 1931206,
+      "paintedMs": 9026.60000000149,
+      "cells": 44,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 477224,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 2375.2999999970198
+        },
+        {
+          "path": "/fonts/sarasa.css",
+          "transferSize": 8950,
+          "encodedBodySize": 8650,
+          "decodedBodySize": 27846,
+          "duration": 297.30000000447035
+        },
+        {
+          "path": "/style.css",
+          "transferSize": 3283,
+          "encodedBodySize": 2983,
+          "decodedBodySize": 10189,
+          "duration": 225.20000000298023
+        },
+        {
+          "path": "/app.js",
+          "transferSize": 13340,
+          "encodedBodySize": 13040,
+          "decodedBodySize": 42703,
+          "duration": 354.1000000014901
+        },
+        {
+          "path": "/measurements.js",
+          "transferSize": 831,
+          "encodedBodySize": 531,
+          "decodedBodySize": 986,
+          "duration": 161.70000000298023
+        },
+        {
+          "path": "/shared/world.js",
+          "transferSize": 1695,
+          "encodedBodySize": 1395,
+          "decodedBodySize": 3126,
+          "duration": 206.20000000298023
+        },
+        {
+          "path": "/shared/freshness.js",
+          "transferSize": 687,
+          "encodedBodySize": 387,
+          "decodedBodySize": 713,
+          "duration": 205.70000000298023
+        },
+        {
+          "path": "/shared/cursor-input.js",
+          "transferSize": 2338,
+          "encodedBodySize": 2038,
+          "decodedBodySize": 6086,
+          "duration": 206.29999999701977
+        },
+        {
+          "path": "/shared/participant-rules.js",
+          "transferSize": 516,
+          "encodedBodySize": 216,
+          "decodedBodySize": 216,
+          "duration": 205.69999999552965
+        },
+        {
+          "path": "/inertia.js",
+          "transferSize": 2034,
+          "encodedBodySize": 1734,
+          "decodedBodySize": 4643,
+          "duration": 334.3999999985099
+        },
+        {
+          "path": "/native-input.js",
+          "transferSize": 3031,
+          "encodedBodySize": 2731,
+          "decodedBodySize": 9309,
+          "duration": 418.5
+        },
+        {
+          "path": "/local-world.js",
+          "transferSize": 1162,
+          "encodedBodySize": 862,
+          "decodedBodySize": 1905,
+          "duration": 370.6000000014901
+        },
+        {
+          "path": "/native-surface.js",
+          "transferSize": 1542,
+          "encodedBodySize": 1242,
+          "decodedBodySize": 2905,
+          "duration": 400.20000000298023
+        },
+        {
+          "path": "/camera-motion.js",
+          "transferSize": 1854,
+          "encodedBodySize": 1554,
+          "decodedBodySize": 4164,
+          "duration": 406.90000000596046
+        },
+        {
+          "path": "/shared/measurement.js",
+          "transferSize": 881,
+          "encodedBodySize": 581,
+          "decodedBodySize": 1065,
+          "duration": 291.5
+        },
+        {
+          "path": "/shared/width.js",
+          "transferSize": 1356,
+          "encodedBodySize": 1056,
+          "decodedBodySize": 2166,
+          "duration": 322.29999999701977
+        },
+        {
+          "path": "/shared/writing.js",
+          "transferSize": 932,
+          "encodedBodySize": 632,
+          "decodedBodySize": 1355,
+          "duration": 351
+        },
+        {
+          "path": "/shared/native-context.js",
+          "transferSize": 709,
+          "encodedBodySize": 409,
+          "decodedBodySize": 772,
+          "duration": 374.69999999552965
+        },
+        {
+          "path": "/shared/native-projection.js",
+          "transferSize": 3549,
+          "encodedBodySize": 3249,
+          "decodedBodySize": 10822,
+          "duration": 393
+        },
+        {
+          "path": "/shared/unicode-width-data.js",
+          "transferSize": 4463,
+          "encodedBodySize": 4163,
+          "decodedBodySize": 16292,
+          "duration": 196.5
+        },
+        {
+          "path": "/shared/relocation.js",
+          "transferSize": 641,
+          "encodedBodySize": 341,
+          "decodedBodySize": 1009,
+          "duration": 161
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-hangul-2c178d772125-1.0.43.woff2",
+          "transferSize": 592560,
+          "encodedBodySize": 592260,
+          "decodedBodySize": 592260,
+          "duration": 5778.29999999702
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6400-cc31d9a7db38-1.0.43.woff2",
+          "transferSize": 156588,
+          "encodedBodySize": 156288,
+          "decodedBodySize": 156288,
+          "duration": 3944
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8800-01fc782336fc-1.0.43.woff2",
+          "transferSize": 162884,
+          "encodedBodySize": 162584,
+          "decodedBodySize": 162584,
+          "duration": 4009.2000000029802
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-4c00-4c01aa04458f-1.0.43.woff2",
+          "transferSize": 153068,
+          "encodedBodySize": 152768,
+          "decodedBodySize": 152768,
+          "duration": 3834.7999999970198
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6800-1d4a1e51d616-1.0.43.woff2",
+          "transferSize": 171812,
+          "encodedBodySize": 171512,
+          "decodedBodySize": 171512,
+          "duration": 4085.2000000029802
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8c00-e2aa1e35e680-1.0.43.woff2",
+          "transferSize": 161564,
+          "encodedBodySize": 161264,
+          "decodedBodySize": 161264,
+          "duration": 3995
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 1712,
+          "encodedBodySize": 1412
+        }
+      ]
+    },
+    {
+      "scenario": "mixed",
+      "run": 2,
+      "visit": "reload",
+      "inputReadyMs": 1311,
+      "bytes": 6300,
+      "paintedMs": 1374.5,
+      "cells": 44,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa.css",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 158.5
+        },
+        {
+          "path": "/style.css",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 164
+        },
+        {
+          "path": "/app.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 181.09999999403954
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-hangul-2c178d772125-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 592260,
+          "decodedBodySize": 592260,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-4c00-4c01aa04458f-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 152768,
+          "decodedBodySize": 152768,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6400-cc31d9a7db38-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 156288,
+          "decodedBodySize": 156288,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6800-1d4a1e51d616-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 171512,
+          "decodedBodySize": 171512,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8800-01fc782336fc-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 162584,
+          "decodedBodySize": 162584,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8c00-e2aa1e35e680-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 161264,
+          "decodedBodySize": 161264,
+          "duration": 0
+        },
+        {
+          "path": "/measurements.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 159.69999999552965
+        },
+        {
+          "path": "/shared/world.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 165.60000000149012
+        },
+        {
+          "path": "/shared/cursor-input.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 170.60000000149012
+        },
+        {
+          "path": "/shared/freshness.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 177.29999999701977
+        },
+        {
+          "path": "/shared/participant-rules.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 182.39999999850988
+        },
+        {
+          "path": "/inertia.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 188.59999999403954
+        },
+        {
+          "path": "/native-input.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 314.80000000447035
+        },
+        {
+          "path": "/local-world.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 320.80000000447035
+        },
+        {
+          "path": "/native-surface.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 325.79999999701977
+        },
+        {
+          "path": "/camera-motion.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 331.79999999701977
+        },
+        {
+          "path": "/shared/measurement.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 179.10000000149012
+        },
+        {
+          "path": "/shared/width.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 178.69999999552965
+        },
+        {
+          "path": "/shared/writing.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 299.5
+        },
+        {
+          "path": "/shared/native-projection.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 304.8999999985099
+        },
+        {
+          "path": "/shared/native-context.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 311.5
+        },
+        {
+          "path": "/shared/unicode-width-data.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 154.89999999850988
+        },
+        {
+          "path": "/shared/relocation.js",
+          "transferSize": 300,
+          "encodedBodySize": 0,
+          "decodedBodySize": 0,
+          "duration": 160.40000000596046
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 300,
+          "encodedBodySize": 1412
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "at": "2026-11-26T17:30:36.044Z",
+  "revision": "705d1f28cd1f2b8a05c69d64afad9bdc7d4f6700",
+  "assets": {
+    "/": 1412,
+    "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2": 476924,
+    "/fonts/sarasa.css": 8650,
+    "/style.css": 2983,
+    "/app.js": 13040,
+    "/measurements.js": 531,
+    "/shared/world.js": 1395,
+    "/shared/cursor-input.js": 2038,
+    "/shared/freshness.js": 387,
+    "/inertia.js": 1734,
+    "/shared/participant-rules.js": 216,
+    "/local-world.js": 862,
+    "/native-input.js": 2731,
+    "/native-surface.js": 1242,
+    "/camera-motion.js": 1554,
+    "/shared/measurement.js": 581,
+    "/shared/width.js": 1056,
+    "/shared/native-projection.js": 3249,
+    "/shared/writing.js": 632,
+    "/shared/native-context.js": 409,
+    "/shared/unicode-width-data.js": 4163,
+    "/shared/relocation.js": 341
+  },
+  "simulatedKeyboard": {
+    "viewportHeight": 440,
+    "settledCursorY": 384
+  }
+}

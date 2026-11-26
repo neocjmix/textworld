@@ -50,6 +50,9 @@
         <label>평균 체류 시간(분)
           <input id="release-minutes" type="number" min="1" max="1440" step="any" value="20" required>
         </label>
+        <label>다운로드하는 글꼴 범위
+          <select id="release-font-scope"><option value="mixed">한·중·일 혼합 첫 시야 · 실측</option><option value="all">모든 문자 범위 · 보수적 가정</option></select>
+        </label>
         <label>폰트를 새로 받는 방문 비율(%)
           <input id="release-cold" type="number" min="0" max="100" step="any" value="20" required>
         </label>
@@ -64,7 +67,7 @@
           <div class="row"><dt>같은 조건의 일주일</dt><dd id="release-week">—</dd></div>
           <div class="row"><dt>이용 1,000시간당</dt><dd id="release-unit">—</dd></div>
         </dl>
-        <small>입력 6명·이동 24명·독자 270명입니다. 시간대와 폰트 캐시 비율은 가정입니다. 체류 시간은 정적 파일 방문 횟수에만 적용합니다. 실시간 접속 교체는 실험에서 쓴 20분 기준입니다.</small>
+        <small>입력 6명·이동 24명·독자 270명입니다. 시간대·폰트 캐시 비율·방문 중 읽는 문자 범위는 가정입니다. 새 문자 범위를 탐색하면 글꼴을 추가로 받습니다. 페이지는 gzip 전송량을 적용하며 캐시 재사용 절감은 계산하지 않습니다. 체류 시간은 정적 파일 방문 횟수에만 적용합니다. 실시간 접속 교체는 실험에서 쓴 20분 기준입니다.</small>
       </section>
     </div>
     <details>

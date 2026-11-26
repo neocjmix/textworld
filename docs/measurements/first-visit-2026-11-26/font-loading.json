@@ -1,0 +1,498 @@
+{
+  "parts": 30,
+  "characters": 51228,
+  "reports": [
+    {
+      "engine": "chromium",
+      "version": "156.0.8078.79",
+      "results": [
+        {
+          "text": "iWM",
+          "originalWidth": 26.99981689453125,
+          "subsetWidth": 26.99981689453125,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "한",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0.05285379997965205,
+          "maxDifference": 68,
+          "differingChannels": 31
+        },
+        {
+          "text": "글",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0.14830328987621783,
+          "maxDifference": 72,
+          "differingChannels": 69
+        },
+        {
+          "text": "한글",
+          "originalWidth": 35.999786376953125,
+          "subsetWidth": 35.999786376953125,
+          "inkDifference": 0.1024324654687691,
+          "maxDifference": 72,
+          "differingChannels": 100
+        },
+        {
+          "text": "한",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0.05285379997965205,
+          "maxDifference": 68,
+          "differingChannels": 31
+        },
+        {
+          "text": "中文日本語",
+          "originalWidth": 89.99946594238281,
+          "subsetWidth": 89.99946594238281,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "あアｶ",
+          "originalWidth": 44.999725341796875,
+          "subsetWidth": 44.999725341796875,
+          "inkDifference": 0.018842690994196738,
+          "maxDifference": 59,
+          "differingChannels": 124
+        },
+        {
+          "text": "éΩ—Ａ",
+          "originalWidth": 44.99971008300781,
+          "subsetWidth": 44.99971008300781,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "각",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0.08034246575342466,
+          "maxDifference": 187,
+          "differingChannels": 26
+        },
+        {
+          "text": "字󠄀",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "0︀",
+          "originalWidth": 8.99993896484375,
+          "subsetWidth": 8.99993896484375,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "！︀",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "가〮",
+          "originalWidth": 26.999832153320312,
+          "subsetWidth": 26.999832153320312,
+          "inkDifference": 0.03236375794048813,
+          "maxDifference": 64,
+          "differingChannels": 30
+        },
+        {
+          "text": "Á",
+          "originalWidth": 8.99993896484375,
+          "subsetWidth": 8.99993896484375,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "العربية",
+          "originalWidth": 45.773712158203125,
+          "subsetWidth": 45.773712158203125,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "⠁⠂↔⬛",
+          "originalWidth": 35.999755859375,
+          "subsetWidth": 35.999755859375,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "𠮷",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0.028961225466730495,
+          "maxDifference": 155,
+          "differingChannels": 6
+        },
+        {
+          "text": "한 NFC/NFD",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "각 NFC/NFD",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "힣 NFC/NFD",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0,
+          "differingChannels": 0
+        }
+      ],
+      "fontRequests": 31
+    },
+    {
+      "engine": "firefox",
+      "version": "157.0",
+      "results": [
+        {
+          "text": "iWM",
+          "originalWidth": 27,
+          "subsetWidth": 27,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "한",
+          "originalWidth": 18,
+          "subsetWidth": 18,
+          "inkDifference": 0.062192797672785634,
+          "maxDifference": 72,
+          "differingChannels": 90
+        },
+        {
+          "text": "글",
+          "originalWidth": 18,
+          "subsetWidth": 18,
+          "inkDifference": 0.12392787524366472,
+          "maxDifference": 57,
+          "differingChannels": 79
+        },
+        {
+          "text": "한글",
+          "originalWidth": 36,
+          "subsetWidth": 36,
+          "inkDifference": 0.09350437490731128,
+          "maxDifference": 72,
+          "differingChannels": 169
+        },
+        {
+          "text": "한",
+          "originalWidth": 18,
+          "subsetWidth": 18,
+          "inkDifference": 0.062192797672785634,
+          "maxDifference": 72,
+          "differingChannels": 90
+        },
+        {
+          "text": "中文日本語",
+          "originalWidth": 90,
+          "subsetWidth": 90,
+          "inkDifference": 0.0017883699478548974,
+          "maxDifference": 18,
+          "differingChannels": 28
+        },
+        {
+          "text": "あアｶ",
+          "originalWidth": 45,
+          "subsetWidth": 45,
+          "inkDifference": 0.02017974835230677,
+          "maxDifference": 66,
+          "differingChannels": 133
+        },
+        {
+          "text": "éΩ—Ａ",
+          "originalWidth": 45,
+          "subsetWidth": 45,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "각",
+          "originalWidth": 18,
+          "subsetWidth": 18,
+          "inkDifference": 0.06371282866414994,
+          "maxDifference": 160,
+          "differingChannels": 35
+        },
+        {
+          "text": "字󠄀",
+          "originalWidth": 18,
+          "subsetWidth": 18,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "0︀",
+          "originalWidth": 9,
+          "subsetWidth": 9,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "！︀",
+          "originalWidth": 18,
+          "subsetWidth": 18,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "가〮",
+          "originalWidth": 27,
+          "subsetWidth": 27,
+          "inkDifference": 0.05798067310896368,
+          "maxDifference": 84,
+          "differingChannels": 60
+        },
+        {
+          "text": "Á",
+          "originalWidth": 9,
+          "subsetWidth": 9,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "العربية",
+          "originalWidth": 49.20000076293945,
+          "subsetWidth": 49.20000076293945,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "⠁⠂↔⬛",
+          "originalWidth": 36,
+          "subsetWidth": 36,
+          "inkDifference": 0.0005148951820522251,
+          "maxDifference": 4,
+          "differingChannels": 8
+        },
+        {
+          "text": "𠮷",
+          "originalWidth": 18,
+          "subsetWidth": 18,
+          "inkDifference": 0.026178754023859118,
+          "maxDifference": 139,
+          "differingChannels": 6
+        },
+        {
+          "text": "한 NFC/NFD",
+          "originalWidth": 18,
+          "subsetWidth": 18,
+          "inkDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "각 NFC/NFD",
+          "originalWidth": 18,
+          "subsetWidth": 18,
+          "inkDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "힣 NFC/NFD",
+          "originalWidth": 18,
+          "subsetWidth": 18,
+          "inkDifference": 0,
+          "differingChannels": 0
+        }
+      ],
+      "fontRequests": 31
+    },
+    {
+      "engine": "webkit",
+      "version": "27.2",
+      "results": [
+        {
+          "text": "iWM",
+          "originalWidth": 26.99981689453125,
+          "subsetWidth": 26.99981689453125,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "한",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0.062192797672785634,
+          "maxDifference": 72,
+          "differingChannels": 90
+        },
+        {
+          "text": "글",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0.12392787524366472,
+          "maxDifference": 57,
+          "differingChannels": 79
+        },
+        {
+          "text": "한글",
+          "originalWidth": 35.999786376953125,
+          "subsetWidth": 35.999786376953125,
+          "inkDifference": 0.09350437490731128,
+          "maxDifference": 72,
+          "differingChannels": 169
+        },
+        {
+          "text": "한",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0.062192797672785634,
+          "maxDifference": 72,
+          "differingChannels": 90
+        },
+        {
+          "text": "中文日本語",
+          "originalWidth": 89.99946594238281,
+          "subsetWidth": 89.99946594238281,
+          "inkDifference": 0.0017883699478548974,
+          "maxDifference": 18,
+          "differingChannels": 28
+        },
+        {
+          "text": "あアｶ",
+          "originalWidth": 44.999725341796875,
+          "subsetWidth": 44.999725341796875,
+          "inkDifference": 0.02017974835230677,
+          "maxDifference": 66,
+          "differingChannels": 133
+        },
+        {
+          "text": "éΩ—Ａ",
+          "originalWidth": 44.99971008300781,
+          "subsetWidth": 44.99971008300781,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "각",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0.06371282866414994,
+          "maxDifference": 160,
+          "differingChannels": 35
+        },
+        {
+          "text": "字󠄀",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "0︀",
+          "originalWidth": 8.99993896484375,
+          "subsetWidth": 8.99993896484375,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "！︀",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "가〮",
+          "originalWidth": 26.999832153320312,
+          "subsetWidth": 26.999832153320312,
+          "inkDifference": 0.05798067310896368,
+          "maxDifference": 84,
+          "differingChannels": 60
+        },
+        {
+          "text": "Á",
+          "originalWidth": 8.99993896484375,
+          "subsetWidth": 8.99993896484375,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "العربية",
+          "originalWidth": 45.773712158203125,
+          "subsetWidth": 45.773712158203125,
+          "inkDifference": 0,
+          "maxDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "⠁⠂↔⬛",
+          "originalWidth": 35.999755859375,
+          "subsetWidth": 35.999755859375,
+          "inkDifference": 0.0005148951820522251,
+          "maxDifference": 4,
+          "differingChannels": 8
+        },
+        {
+          "text": "𠮷",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0.026178754023859118,
+          "maxDifference": 139,
+          "differingChannels": 6
+        },
+        {
+          "text": "한 NFC/NFD",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "각 NFC/NFD",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0,
+          "differingChannels": 0
+        },
+        {
+          "text": "힣 NFC/NFD",
+          "originalWidth": 17.999893188476562,
+          "subsetWidth": 17.999893188476562,
+          "inkDifference": 0,
+          "differingChannels": 0
+        }
+      ],
+      "fontRequests": 8
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "beforeRevision": "04461cca4e1895a9c4dba594f204dc66ef48cbe3",
+  "afterRevision": "705d1f28cd1f2b8a05c69d64afad9bdc7d4f6700",
+  "network": {
+    "offline": false,
+    "latency": 150,
+    "downloadThroughput": 250000,
+    "uploadThroughput": 125000
+  },
+  "runsPerCondition": 3,
+  "summary": {
+    "empty-cold": {
+      "before": {
+        "inputReadyMs": 23092.5,
+        "paintedMs": 23156.20000000298,
+        "bytes": 5445894
+      },
+      "after": {
+        "inputReadyMs": 2804.5,
+        "paintedMs": 2868.5,
+        "bytes": 532730
+      }
+    },
+    "empty-reload": {
+      "before": {
+        "inputReadyMs": 1487,
+        "paintedMs": 1556.8999999985099,
+        "bytes": 129650
+      },
+      "after": {
+        "inputReadyMs": 1157.4000000059605,
+        "paintedMs": 1223.3000000044703,
+        "bytes": 6300
+      }
+    },
+    "mixed-cold": {
+      "before": {
+        "inputReadyMs": 22971.79999999702,
+        "paintedMs": 23042.89999999851,
+        "bytes": 5445894
+      },
+      "after": {
+        "inputReadyMs": 2871.10000000149,
+        "paintedMs": 8709.20000000298,
+        "bytes": 1931206
+      }
+    },
+    "mixed-reload": {
+      "before": {
+        "inputReadyMs": 1544.3999999985099,
+        "paintedMs": 1608.7999999970198,
+        "bytes": 129650
+      },
+      "after": {
+        "inputReadyMs": 1260.8000000044703,
+        "paintedMs": 1325.5,
+        "bytes": 6300
+      }
+    }
+  },
+  "assets": {
+    "pageBodies": 49206,
+    "mixedFontBodies": 1873600,
+    "allFontBodies": 5949384
+  }
+}

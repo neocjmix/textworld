@@ -68,6 +68,7 @@ function updateRelease() {
     ...(scenario === 'mix' ? { plazaHours: get('release-hours').valueAsNumber } : {}),
     sessionMinutes: get('release-minutes').valueAsNumber,
     coldFontShare: get('release-cold').valueAsNumber / 100,
+    fontScope: get('release-font-scope').value,
   });
   for (const field of fields) {
     get('release-' + field).textContent = (field === 'unit' ? unitDollars : money).format(result[field]);

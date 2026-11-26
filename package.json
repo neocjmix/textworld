@@ -27,7 +27,9 @@
     "test:topology": "node tests/topology-browser.mjs && node tests/topology-cursor.mjs && node tests/topology-continuity.mjs",
     "test:fonts": "node tests/font-loading.mjs",
     "test:browsers": "node tests/cross-browser.mjs",
-    "bench:first-visit": "node experiments/first-visit.mjs"
+    "bench:first-visit": "node experiments/first-visit.mjs",
+    "test:cost-browser": "node tests/cost-browser.mjs",
+    "test:public": "node tests/public-smoke.mjs"
   },
   "engines": {
     "node": ">=24"
