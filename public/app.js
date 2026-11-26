@@ -415,16 +415,19 @@ function fitVisualViewport() {
   app.style.height = `${v?.height || window.innerHeight}px`;
   app.style.left = `${v?.offsetLeft || 0}px`;
   app.style.top = `${v?.offsetTop || 0}px`;
-  if (world && cameraAnchor && (offset.x || offset.y)) {
+  const shifted = offset.x !== 0 || offset.y !== 0;
+  const keyboardChanged = oldKeyboardVisible !== keyboardVisible;
+  if (!world || (!shifted && !keyboardChanged)) return;
+  if (shifted && cameraAnchor) {
     const d = dimensions();
-    // Keep the same world pixels on screen while the browser pans its visible
-    // viewport around the keyboard, then gently return toward its new centre.
     cameraMotion.jump({ x: camera.x + offset.x / d.width, y: camera.y + offset.y / d.height });
-    center({ timeConstant: 110, viewportChange: true });
-  } else if (world && oldKeyboardVisible !== keyboardVisible) {
-    center({ timeConstant: 110, viewportChange: true });
-    reportView();
   }
+  // ResizeObserver centres using the new canvas dimensions. Retargeting here
+  // with the old height can move a composing caret past the keyboard anchor.
+  const bounds = canvas.getBoundingClientRect();
+  if (bounds.width !== size.width || bounds.height !== size.height) return;
+  center({ timeConstant: 110, viewportChange: true });
+  if (keyboardChanged) reportView();
 }
 input.addEventListener('focus', () => { openViewportHeight = window.visualViewport?.height || window.innerHeight; });
 input.addEventListener('blur', () => { if (keyboardVisible) { keyboardVisible = false; center({ timeConstant: 110, viewportChange: true }); reportView(); } });
