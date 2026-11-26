@@ -435,7 +435,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
       logicalBytesPerSecond: metric('ws.tx_bytes').sum / (m.elapsedMs / 1000),
       compression: process.env.CAPACITY_COMPRESSION === '1',
       compressionThreshold: Number(process.env.CAPACITY_COMPRESSION_THRESHOLD || 1024),
-      actionRate: Number(process.env.CAPACITY_ACTION_RATE || 120), actionBurst: Number(process.env.CAPACITY_ACTION_BURST || 96),
+      actionRate: Number(process.env.CAPACITY_ACTION_RATE || 240), actionBurst: Number(process.env.CAPACITY_ACTION_BURST || 192),
       compact: process.env.CAPACITY_COMPACT !== '0',
       ackP95Ms: q(acks, 0.95),
       scheduledAckP95Ms: q(offerAcks, 0.95),

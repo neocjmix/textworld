@@ -74,7 +74,7 @@ if (process.argv[2] === '--server') {
   const app = createTextworld({ storagePath: join(directory, 'world.sqlite'), trustProxy: false,
     compression: process.env.CAPACITY_COMPRESSION === '1',
     compressionThreshold: Number(process.env.CAPACITY_COMPRESSION_THRESHOLD || 1024),
-    actionRate: Number(process.env.CAPACITY_ACTION_RATE || 120), actionBurst: Number(process.env.CAPACITY_ACTION_BURST || 96),
+    actionRate: Number(process.env.CAPACITY_ACTION_RATE || 240), actionBurst: Number(process.env.CAPACITY_ACTION_BURST || 192),
     now: () => seedClock ?? (config.liveClock ? Date.now() - clockOffset : 1_000_000),
     maxParticipants: config.maxParticipants ?? Math.max(300, config.peers || 0) });
   app.world.resize(512, 256, [], { seed: 1 });

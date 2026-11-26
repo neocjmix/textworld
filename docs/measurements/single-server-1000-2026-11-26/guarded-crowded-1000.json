@@ -1,0 +1,291 @@
+{
+  "sourceDigest": "44cd605fa248afcf6289adab87242376c41bdc5d1438ce14eedaff4e55c4f8d0",
+  "runtime": {
+    "node": "v24.22.3",
+    "arch": "x64",
+    "cpuLimit": 4,
+    "memoryLimit": 17179869184,
+    "cpuModel": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "bootHash": "a526752a26bed1c9"
+  },
+  "profiled": false,
+  "label": "/workspace/scratch/textworld-1000/guarded-plaza.json",
+  "hotFraction": 1,
+  "liveClock": true,
+  "alignedClock": true,
+  "slices": [
+    {
+      "elapsed": 30,
+      "bytesPerSecond": 3381247.6951619503,
+      "ackP95": 61.15052500000456,
+      "pending": 0,
+      "cumulativeSent": 3011,
+      "cumulativeAccepted": 635,
+      "cumulativeBusy": 2376
+    },
+    {
+      "elapsed": 60,
+      "bytesPerSecond": 3438296.6088407673,
+      "ackP95": 99.81302699999651,
+      "pending": 0,
+      "cumulativeSent": 6009,
+      "cumulativeAccepted": 1474,
+      "cumulativeBusy": 4535
+    },
+    {
+      "elapsed": 90,
+      "bytesPerSecond": 3393096.2989415484,
+      "ackP95": 199.11162900000636,
+      "pending": 0,
+      "cumulativeSent": 9015,
+      "cumulativeAccepted": 2439,
+      "cumulativeBusy": 6576
+    },
+    {
+      "elapsed": 120,
+      "bytesPerSecond": 3489645.3853282444,
+      "ackP95": 128.6874400000088,
+      "pending": 1,
+      "cumulativeSent": 12003,
+      "cumulativeAccepted": 3325,
+      "cumulativeBusy": 8677
+    }
+  ],
+  "baseline": "6000 individual glyphs aged 0-180 seconds, 75% fullwidth, 8% occupied",
+  "seconds": 135,
+  "peerCount": 1000,
+  "capacityCheck": {
+    "connected": 1000,
+    "limit": 1000,
+    "excessStatus": 503,
+    "retryAfterSeconds": 5
+  },
+  "writers": 20,
+  "walkers": 80,
+  "staticReaders": 900,
+  "hotUsers": 1000,
+  "hotWriters": 20,
+  "hotWalkers": 80,
+  "setupSecs": 30.628634785000003,
+  "setupErrors": 0,
+  "placementRetries": 463,
+  "worldStart": {
+    "width": 512,
+    "height": 256,
+    "epoch": 2,
+    "textLayout": 2
+  },
+  "worldEnd": {
+    "width": 512,
+    "height": 256,
+    "epoch": 2,
+    "seq": 8828,
+    "textLayout": 2
+  },
+  "inkEnd": 4961,
+  "offeredSeconds": 135.00181547000003,
+  "elapsedSeconds": 135.579270026,
+  "arrivals": 112,
+  "expectedCloses": 112,
+  "unexpectedCloses": 0,
+  "errs": {
+    "WORLD_BUSY": 9756
+  },
+  "sent": 13496,
+  "accepted": 3740,
+  "pendingAtEnd": 1,
+  "pendingAfterDrain": 0,
+  "receivedBytes": 464101264,
+  "offeredBytes": 463525337,
+  "initialSnapshotBytesDuringChurn": 17817928,
+  "viewRecords": 2315772,
+  "revisionGaps": 0,
+  "revisionRegressions": 0,
+  "topologyPatches": 0,
+  "basisMismatches": 0,
+  "audits": {
+    "sameRevision": 0,
+    "advancedOnRead": 0,
+    "differences": {}
+  },
+  "resets": 0,
+  "bytesPerSecond": 3422998.4216055456,
+  "serverBytesPerSecond": 3466082.370641868,
+  "wireBytesMeasured": true,
+  "logicalBytesPerSecond": 3422998.4216055456,
+  "compression": false,
+  "compressionThreshold": 1024,
+  "actionRate": 240,
+  "actionBurst": 192,
+  "compact": true,
+  "ackP95Ms": 117.35322900000028,
+  "scheduledAckP95Ms": 117.7203291705955,
+  "generatorP95Ms": 2.610975066811079,
+  "maxGeneratorMs": 51.01757731461839,
+  "rejoinP95Ms": 5446.182084,
+  "surge": false,
+  "readerStride": 1,
+  "otherDecodeP99Ms": 549.887,
+  "ackP99Ms": 340.5936220000003,
+  "rejoinP99Ms": 6746.177425000002,
+  "otherDecodeP95Ms": 225.919,
+  "otherDecodeCount": 882055,
+  "readyP95Ms": 103.615,
+  "readyCount": 2315762,
+  "expiryAgeP95Ms": 190207,
+  "expiryAgeMaxMs": 190335,
+  "metrics": {
+    "expiration.ms": {
+      "sum": 4484.841050999901,
+      "max": 131.37025399997947,
+      "count": 93,
+      "p95Upper": 128
+    },
+    "ws.tx_bytes": {
+      "sum": 464101264,
+      "max": 175422,
+      "count": 1462116,
+      "p95Upper": 1024
+    },
+    "presence.ms": {
+      "sum": 44457.43974900066,
+      "max": 204.18332499999087,
+      "count": 4268,
+      "p95Upper": 32
+    },
+    "ws.wire_tx_bytes": {
+      "sum": 469942726,
+      "max": 294077,
+      "count": 1455639,
+      "p95Upper": 1024
+    },
+    "overload.actions": {
+      "sum": 10055,
+      "max": 1,
+      "count": 10055,
+      "p95Upper": 1
+    },
+    "delivery.undelivered_events": {
+      "sum": 73,
+      "max": 4,
+      "count": 58,
+      "p95Upper": 4
+    },
+    "activity.peer_ms": {
+      "sum": 139518703.08234695,
+      "max": 6313655.838999999,
+      "count": 226,
+      "p95Upper": 2097152
+    },
+    "observer.ms": {
+      "sum": 1464.6230590001069,
+      "max": 33.57113100000424,
+      "count": 386,
+      "p95Upper": 8
+    },
+    "encoding.records": {
+      "sum": 784291,
+      "max": 691826,
+      "count": 2,
+      "p95Upper": 1048576
+    },
+    "encoding.reused": {
+      "sum": 3338872,
+      "max": 1678222,
+      "count": 2,
+      "p95Upper": 2097152
+    },
+    "encoding.compactViews": {
+      "sum": 2386839,
+      "max": 1367463,
+      "count": 2,
+      "p95Upper": 2097152
+    }
+  },
+  "serverCores": 0.5773356426000733,
+  "meanRssGiB": 1.0339180809252777,
+  "serverRssGiB": 1.3410263061523438,
+  "eventLoopP99": 135.921663,
+  "meanDispatchRecipients": 567.3828491096532,
+  "over100": 0.05363763633741291,
+  "peakBufferedBytes": 0,
+  "expiryCount": 4422,
+  "topologyGrowth": 0,
+  "topologyShrink": 0,
+  "serveInitialMs": 30628.634785000002,
+  "storage": [
+    {
+      "elapsedMs": 0,
+      "rssBytes": 695988224,
+      "heapBytes": 473624664,
+      "pageBytes": 5341184,
+      "freeBytes": 0,
+      "walBytes": 4227152,
+      "historyRows": 10500,
+      "operationRows": 6000,
+      "timeMarks": 36,
+      "cells": 10500,
+      "ink": 10500,
+      "epoch": 2,
+      "width": 512,
+      "height": 256,
+      "overdueGlyphs": 0,
+      "oldestGlyphAgeMs": 180000
+    },
+    {
+      "elapsedMs": 60003,
+      "rssBytes": 1067266048,
+      "heapBytes": 523508536,
+      "pageBytes": 7966720,
+      "freeBytes": 0,
+      "walBytes": 4235392,
+      "historyRows": 15274,
+      "operationRows": 7079,
+      "timeMarks": 48,
+      "cells": 11743,
+      "ink": 8669,
+      "epoch": 2,
+      "width": 512,
+      "height": 256,
+      "overdueGlyphs": 166,
+      "oldestGlyphAgeMs": 189903
+    },
+    {
+      "elapsedMs": 120018,
+      "rssBytes": 1439178752,
+      "heapBytes": 462244736,
+      "pageBytes": 11276288,
+      "freeBytes": 0,
+      "walBytes": 4470232,
+      "historyRows": 21586,
+      "operationRows": 8513,
+      "timeMarks": 60,
+      "cells": 12854,
+      "ink": 5928,
+      "epoch": 2,
+      "width": 512,
+      "height": 256,
+      "overdueGlyphs": 0,
+      "oldestGlyphAgeMs": 184789
+    },
+    {
+      "elapsedMs": 135583,
+      "rssBytes": 1439916032,
+      "heapBytes": 696402048,
+      "pageBytes": 11800576,
+      "freeBytes": 36864,
+      "walBytes": 4470232,
+      "historyRows": 22122,
+      "operationRows": 8159,
+      "timeMarks": 60,
+      "cells": 12994,
+      "ink": 4961,
+      "epoch": 2,
+      "width": 512,
+      "height": 256,
+      "overdueGlyphs": 37,
+      "oldestGlyphAgeMs": 185324
+    }
+  ],
+  "epochs": 0
+}
