@@ -35,6 +35,7 @@ if (!Number.isInteger(quietSeconds) || quietSeconds < 0 || quietSeconds > 600) t
 const writers = Number(process.env.CAPACITY_WRITERS ?? Math.max(1, Math.round(count * 0.02))),
   walkers = Math.round(count * 0.08);
 if (!Number.isSafeInteger(writers) || writers < 1 || writers + walkers >= count) throw Error('Invalid writer count');
+const surge = process.env.CAPACITY_SURGE === '1';
 const q = (samples, fraction) => {
   const values = [...samples].sort((a, b) => a - b);
   return values.length ? values[Math.ceil(values.length * fraction) - 1] : null;
@@ -104,7 +105,9 @@ function workload(seconds) {
   for (let t = 600; t < total; t += 1200000 / count) {
     events.push({ t, i: writers + walkers + (arrival++ % (count - writers - walkers)), replace: true });
   }
-  return events.sort((a, b) => a.t - b.t);
+  const scheduled = surge ? events.filter(e => e.i >= writers || e.i < Math.max(1, Math.round(count*.02))
+    || (e.t >= total/3 && e.t < total*2/3)) : events;
+  return scheduled.sort((a, b) => a.t - b.t);
 }
 async function sample(label, hotFraction, liveClock, seconds) {
   const server = fork(
@@ -166,7 +169,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
   let setupError = 0,
     bytesNewViews = 0;
   const audits = {sameRevision:0, advancedOnRead:0, differences:{}};
-  const auditSlots = new Set(seconds > 900 ? [writers+walkers, Math.floor(count/3), Math.floor(2*count/3), count-1] : []);
+  const auditSlots = new Set(seconds > 900 || surge ? [writers+walkers, Math.floor(count/3), Math.floor(2*count/3), count-1] : []);
   const clock = () => performance.now();
   const ready = await ipc('ready');
   async function connect(i) {
@@ -296,6 +299,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
           bytesPerSecond: ((bytes - segmentBytes) * 1000) / (now - segmentStart),
           ackP95: q(acks.slice(segmentAcks), 0.95),
           pending: pending.size,
+          cumulativeSent: sent, cumulativeAccepted: accepted, cumulativeBusy: errs.WORLD_BUSY || 0,
         };
         if (slices.length % 2 === 1) for (const slot of auditSlots) {
           const observer = sockets.get(slot);
@@ -403,6 +407,7 @@ async function sample(label, hotFraction, liveClock, seconds) {
       generatorP95Ms: q(sendLags, 0.95),
       maxGeneratorMs: sendLags.reduce((max, n) => Math.max(max, n), 0),
       rejoinP95Ms: q(churnTimes, 0.95),
+      surge,
       readerStride,
       otherDecodeP99Ms: remote.count ? remote.percentile(99) / 1000 : null,
       ackP99Ms: q(acks, 0.99),

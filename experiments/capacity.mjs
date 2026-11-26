@@ -33,7 +33,7 @@ function storageSample(world, elapsedMs) {
     pageBytes:pages('page_count') * pages('page_size'), freeBytes:pages('freelist_count') * pages('page_size'),
     walBytes:statSync(world.storagePath + '-wal', {throwIfNoEntry:false})?.size || 0,
     historyRows:rows('history'), operationRows:rows('operations'), timeMarks:rows('change_times'),
-    cells:world.cells.size, ink:world.ink, epoch:world.epoch, overdueGlyphs, oldestGlyphAgeMs };
+    cells:world.cells.size, ink:world.ink, epoch:world.epoch, width:world.width, height:world.height, overdueGlyphs, oldestGlyphAgeMs };
 }
 
 // Keep client receive timestamps per observed committed version. For fixed-clock

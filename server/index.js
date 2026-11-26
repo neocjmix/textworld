@@ -205,9 +205,13 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       }
     }
   };
-  const dispatch = (actor, cells, acknowledge) => {
+  const dispatch = (actor, cells, acknowledge, onlyIfMoved = false) => {
     const previous = actor && spatial.update(actor);
     if (closing) return;
+    if (onlyIfMoved && !cells.length && previous?.x === actor.peer.x && previous.y === actor.peer.y) {
+      acknowledge?.();
+      return;
+    }
     const started = performance.now();
     const delta = { cells, peer: actor?.peer, removed: actor?.closed };
     let recipients = 0;
@@ -235,8 +239,9 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     measurements.record('presence.recipients', recipients);
   };
   const presence = actor => dispatch(actor, []);
+  const movement = actor => dispatch(actor, [], undefined, true);
   const publish = (result, actor) => { if (!result.duplicate) dispatch(actor, result.cells); };
-  const runner = createTurnRunner({ world, publish, presence, now: policyNow });
+  const runner = createTurnRunner({ world, publish, presence:movement, now: policyNow });
   const runTurn=runner.run.bind(runner);runner.run=async(...args)=>{const started=performance.now();try{const result=await runTurn(...args);measurements.record('turn.'+result.status);measurements.record('turn.steps',result.completedSteps);return result;}catch(error){measurements.record('turn.error');throw error;}finally{measurements.record('turn.ms',performance.now()-started);}};
   const createActor = (req, { name, view, position } = {}) => {
     const acceptedView = validateView(view);
@@ -432,8 +437,8 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
           measurements.record('input.context_entries', actor.input.native.entries.length);
           if (message.epoch !== world.epoch) measurements.record('input.after_resize');
           dispatch(actor, result.cells || [], () => send(socket, { type: 'ack', id: message.id, inputSequence: message.sequence, seq: result.seq,
-            viewRevision: actor.observer.revision + Number(!!actor.retry), epoch: world.epoch, cursor: { x: peer.x, y: peer.y } }));
-        } else if (message.type === 'move') { policy.acceptMove(message); presence(actor); }
+            viewRevision: actor.observer.revision + Number(!!actor.retry), epoch: world.epoch, cursor: { x: peer.x, y: peer.y } }), true);
+        } else if (message.type === 'move') { policy.acceptMove(message); movement(actor); }
         else if (message.type === 'view') {
           actor.observer.setView({ cols: message.cols, rows: message.rows });
           spatial.update(actor);
