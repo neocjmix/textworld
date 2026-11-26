@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+date: Thu, 26 Nov 2026 17:57:29 GMT
+server: envoy
+
+HTTP/2 200 
+cache-control: public, max-age=0, s-maxage=30, must-revalidate
+content-type: text/html; charset=utf-8
+date: Thu, 26 Nov 2026 17:57:30 GMT
+etag: W/"UGns1nk2wOFa1j65IoJjfETkAsrB0wQG09WQEvqr9Gg"
+referrer-policy: same-origin
+server: envoy
+vary: Accept-Encoding
+x-content-type-options: nosniff
+x-railway-request-id: UBMM8k7bT-OFSfykxtoGcA
+x-textworld-assets: 6a810f0f1a711370e1e1
+content-length: 9284
+age: 1
+x-cache: HIT
+x-hikari-trace: atl1.1v22
+x-railway-edge: atl1
+x-envoy-upstream-service-time: 78
+

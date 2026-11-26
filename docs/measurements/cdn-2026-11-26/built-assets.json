@@ -1,0 +1,29 @@
+{
+  "measuredAt": "2026-11-26T18:02:38.332Z",
+  "revision": "6c041b4c0e849ae1b66dae980d11224d30dec870",
+  "assetRelease": "0be4cd72306641f6a678",
+  "pageBodies": 33829,
+  "assets": [
+    {
+      "path": ".build/pages/index.html",
+      "bodyBytes": 3062,
+      "gzipBytes": 1484
+    },
+    {
+      "path": ".build/assets/app-GQF7NSDG.js",
+      "bodyBytes": 56499,
+      "gzipBytes": 21016
+    },
+    {
+      "path": ".build/assets/style-KJ2VE3VA.css",
+      "bodyBytes": 8731,
+      "gzipBytes": 2789
+    },
+    {
+      "path": ".build/assets/sarasa-SXEBVDSL.css",
+      "bodyBytes": 26827,
+      "gzipBytes": 8540
+    }
+  ],
+  "note": "Measured locally using the same gzip implementation as the origin; font bytes are unchanged. The cost calculator retains its larger pre-CDN measured baseline."
+}

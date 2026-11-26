@@ -1,0 +1,355 @@
+{
+  "at": "2026-11-26T18:03:19.084Z",
+  "origin": "https://textworld-production-987c.up.railway.app",
+  "revision": "6c041b4c0e849ae1b66dae980d11224d30dec870",
+  "assetRelease": "0be4cd72306641f6a678",
+  "note": "Controlled requests from one client; not a production traffic hit-ratio measurement.",
+  "records": [
+    {
+      "path": "/health",
+      "status": 200,
+      "cache": "DYNAMIC",
+      "age": null,
+      "policy": "no-store",
+      "bytes": 168,
+      "sha256": "15b6c8050c3d231605e3331305404daa3788551cb936beaa59cc959ddc6da6c8"
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "cache": "MISS",
+      "age": null,
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "etag": "W/\"ygg9AtBnFOGvO2RjUVJ6z3MLkc9dsf29ijxIa-SzP-I\"",
+      "release": "0be4cd72306641f6a678",
+      "bytes": 3062,
+      "sha256": "ca083d02d06714e1af3b646351527acf730b91cf5db1fdbd8a3c486be4b33fe2"
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "cache": "HIT",
+      "age": "0",
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "etag": "W/\"ygg9AtBnFOGvO2RjUVJ6z3MLkc9dsf29ijxIa-SzP-I\"",
+      "release": "0be4cd72306641f6a678",
+      "bytes": 3062,
+      "sha256": "ca083d02d06714e1af3b646351527acf730b91cf5db1fdbd8a3c486be4b33fe2"
+    },
+    {
+      "path": "/index.html",
+      "status": 200,
+      "cache": "MISS",
+      "age": null,
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "etag": "W/\"ygg9AtBnFOGvO2RjUVJ6z3MLkc9dsf29ijxIa-SzP-I\"",
+      "release": "0be4cd72306641f6a678",
+      "bytes": 3062,
+      "sha256": "ca083d02d06714e1af3b646351527acf730b91cf5db1fdbd8a3c486be4b33fe2"
+    },
+    {
+      "path": "/index.html",
+      "status": 200,
+      "cache": "HIT",
+      "age": "0",
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "etag": "W/\"ygg9AtBnFOGvO2RjUVJ6z3MLkc9dsf29ijxIa-SzP-I\"",
+      "release": "0be4cd72306641f6a678",
+      "bytes": 3062,
+      "sha256": "ca083d02d06714e1af3b646351527acf730b91cf5db1fdbd8a3c486be4b33fe2"
+    },
+    {
+      "path": "/cost.html",
+      "status": 200,
+      "cache": "MISS",
+      "age": null,
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "etag": "W/\"4966gXVl3THVkAxRCirE5nOzepYu1EXRe_TajuX5aXY\"",
+      "release": "0be4cd72306641f6a678",
+      "bytes": 9640,
+      "sha256": "e3deba817565dd31d5900c510a2ac4e673b37a962ed445d17bf4da8ee5f96976"
+    },
+    {
+      "path": "/cost.html",
+      "status": 200,
+      "cache": "HIT",
+      "age": "0",
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "etag": "W/\"4966gXVl3THVkAxRCirE5nOzepYu1EXRe_TajuX5aXY\"",
+      "release": "0be4cd72306641f6a678",
+      "bytes": 9640,
+      "sha256": "e3deba817565dd31d5900c510a2ac4e673b37a962ed445d17bf4da8ee5f96976"
+    },
+    {
+      "path": "/agents.html",
+      "status": 200,
+      "cache": "MISS",
+      "age": null,
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "etag": "W/\"WsLCVTigO423zLD4YSs1bCBH6Umjag7mK3Hhvteg6Zg\"",
+      "release": "0be4cd72306641f6a678",
+      "bytes": 4178,
+      "sha256": "5ac2c25538a03b8db7ccb0f8612b356c2047e949a36a0ee62b71e1bed7a0e998"
+    },
+    {
+      "path": "/agents.html",
+      "status": 200,
+      "cache": "HIT",
+      "age": "0",
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "etag": "W/\"WsLCVTigO423zLD4YSs1bCBH6Umjag7mK3Hhvteg6Zg\"",
+      "release": "0be4cd72306641f6a678",
+      "bytes": 4178,
+      "sha256": "5ac2c25538a03b8db7ccb0f8612b356c2047e949a36a0ee62b71e1bed7a0e998"
+    },
+    {
+      "path": "/assets/app-GQF7NSDG.js",
+      "status": 200,
+      "cache": "MISS",
+      "age": null,
+      "policy": "public, max-age=31536000, immutable",
+      "etag": "W/\"pI2caQ5nfnTQWOcEWHqM7EOui_uty2DPZGaHBAbORjI\"",
+      "bytes": 56499,
+      "sha256": "a48d9c690e677e74d058e704587a8cec43ae8bfbadcb60cf6466870406ce4632"
+    },
+    {
+      "path": "/assets/app-GQF7NSDG.js",
+      "status": 200,
+      "cache": "HIT",
+      "age": "0",
+      "policy": "public, max-age=31536000, immutable",
+      "etag": "W/\"pI2caQ5nfnTQWOcEWHqM7EOui_uty2DPZGaHBAbORjI\"",
+      "bytes": 56499,
+      "sha256": "a48d9c690e677e74d058e704587a8cec43ae8bfbadcb60cf6466870406ce4632"
+    },
+    {
+      "path": "/assets/cost-KAHGTLYH.js",
+      "status": 200,
+      "cache": "HIT",
+      "age": "291",
+      "policy": "public, max-age=31536000, immutable",
+      "etag": "W/\"8MYhurc6FDJPCFXH1t8S-OC2Gc4abka-IjKR72IPz1Y\"",
+      "bytes": 4694,
+      "sha256": "f0c621bab73a14324f0855c7d6df12f8e0b619ce1a6e46be223291ef620fcf56"
+    },
+    {
+      "path": "/assets/sarasa-SXEBVDSL.css",
+      "status": 200,
+      "cache": "HIT",
+      "age": "475",
+      "policy": "public, max-age=31536000, immutable",
+      "etag": "W/\"4RdIuItJLO8EAdlfnvKvxwaGU8K3QkoHjeiOqKja8_g\"",
+      "bytes": 26827,
+      "sha256": "e11748b88b492cef0401d95f9ef2afc7068653c2b7424a078de88ea8a8daf3f8"
+    },
+    {
+      "path": "/assets/style-KJ2VE3VA.css",
+      "status": 200,
+      "cache": "HIT",
+      "age": "474",
+      "policy": "public, max-age=31536000, immutable",
+      "etag": "W/\"05bqbKVq0VmDdHWNUw0ASTk3kmNYD9PPT2Z7iHi3O8U\"",
+      "bytes": 8731,
+      "sha256": "d396ea6ca56ad1598374758d530d004939379263580fd3cf4f667b8878b73bc5"
+    },
+    {
+      "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+      "status": 200,
+      "cache": "HIT",
+      "age": "475",
+      "policy": "public, max-age=31536000, immutable",
+      "etag": "W/\"DH_622xcIZt6cAqq_VyzYThRGR_eJE_YKZUWzqiv9ko\"",
+      "bytes": 476924,
+      "sha256": "0c7ffadb6c5c219b7a700aaafd5cb3613851191fde244fd8299516cea8aff64a"
+    },
+    {
+      "path": "/api/agents/v1",
+      "status": 200,
+      "cache": "MISS",
+      "age": null,
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "bytes": 1205,
+      "sha256": "32852fc0930e4de35587ab2cdb340669178f9645c87cd9c6e6fb40f22e577b0a"
+    },
+    {
+      "path": "/api/agents/v1",
+      "status": 200,
+      "cache": "HIT",
+      "age": "0",
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "bytes": 1205,
+      "sha256": "32852fc0930e4de35587ab2cdb340669178f9645c87cd9c6e6fb40f22e577b0a"
+    },
+    {
+      "path": "/.well-known/textworld-agent.json",
+      "status": 200,
+      "cache": "MISS",
+      "age": null,
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "bytes": 1205,
+      "sha256": "32852fc0930e4de35587ab2cdb340669178f9645c87cd9c6e6fb40f22e577b0a"
+    },
+    {
+      "path": "/.well-known/textworld-agent.json",
+      "status": 200,
+      "cache": "HIT",
+      "age": "1",
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "bytes": 1205,
+      "sha256": "32852fc0930e4de35587ab2cdb340669178f9645c87cd9c6e6fb40f22e577b0a"
+    },
+    {
+      "path": "/health",
+      "status": 200,
+      "cache": "DYNAMIC",
+      "age": null,
+      "policy": "no-store",
+      "bytes": 168,
+      "sha256": "15b6c8050c3d231605e3331305404daa3788551cb936beaa59cc959ddc6da6c8"
+    },
+    {
+      "path": "/api/metrics",
+      "status": 404,
+      "cache": "DYNAMIC",
+      "age": null,
+      "policy": "no-store",
+      "bytes": 21,
+      "sha256": "c8d3eae160a892e32837db3dcae515e843e5383fef52b8141940c8bcf8b6d59f"
+    },
+    {
+      "path": "/api/playtest",
+      "status": 404,
+      "cache": "DYNAMIC",
+      "age": null,
+      "policy": "no-store",
+      "bytes": 21,
+      "sha256": "c8d3eae160a892e32837db3dcae515e843e5383fef52b8141940c8bcf8b6d59f"
+    },
+    {
+      "path": "/api/agents/v1/sessions/missing",
+      "status": 401,
+      "cache": "DYNAMIC",
+      "age": null,
+      "policy": "no-store",
+      "bytes": 106,
+      "sha256": "cdb0a2a36cdf8ce16ac7f501a4b7b3ac80294d0963bcc30d9907e7357ce0cfe0"
+    },
+    {
+      "path": "/mcp",
+      "status": 405,
+      "cache": "DYNAMIC",
+      "age": null,
+      "policy": "no-store",
+      "bytes": 158,
+      "sha256": "a764dd42ae088f0f8e5034c9774501e03f0c2ea83d6c6d4c8314137235fcc705"
+    },
+    {
+      "path": "/playtest",
+      "status": 302,
+      "cache": "DYNAMIC",
+      "age": null,
+      "policy": "no-store",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/app.js",
+      "status": 200,
+      "cache": "DYNAMIC",
+      "age": null,
+      "policy": "no-cache, no-store, max-age=0",
+      "etag": "W/\"gnyZBJP4f4vyb6aYCurTXpMFH4UaMET4T9tLbKQBGtk\"",
+      "bytes": 43585,
+      "sha256": "827c990493f87f8bf26fa6980aead35e93051f851a3044f84fdb4b6ca4011ad9"
+    },
+    {
+      "path": "/fonts/sarasa.css",
+      "status": 404,
+      "cache": "DYNAMIC",
+      "age": null,
+      "policy": "no-store",
+      "bytes": 21,
+      "sha256": "c8d3eae160a892e32837db3dcae515e843e5383fef52b8141940c8bcf8b6d59f"
+    },
+    {
+      "path": "/assets/absent-AAAAAAAA.js",
+      "status": 404,
+      "cache": "DYNAMIC",
+      "age": null,
+      "policy": "no-store",
+      "bytes": 21,
+      "sha256": "c8d3eae160a892e32837db3dcae515e843e5383fef52b8141940c8bcf8b6d59f"
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "cache": "HIT",
+      "age": "7",
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "etag": "W/\"ygg9AtBnFOGvO2RjUVJ6z3MLkc9dsf29ijxIa-SzP-I\"",
+      "release": "0be4cd72306641f6a678",
+      "bytes": 3062,
+      "sha256": "ca083d02d06714e1af3b646351527acf730b91cf5db1fdbd8a3c486be4b33fe2"
+    },
+    {
+      "path": "/",
+      "status": 304,
+      "cache": "HIT",
+      "age": "7",
+      "policy": "public, max-age=0, s-maxage=30, must-revalidate",
+      "etag": "W/\"ygg9AtBnFOGvO2RjUVJ6z3MLkc9dsf29ijxIa-SzP-I\"",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/assets/app-TVD3VTLC.js",
+      "status": 200,
+      "cache": null,
+      "age": null,
+      "policy": "public, max-age=31536000, immutable",
+      "etag": "W/\"Kvr4MFBabhKubZJkue7Mbzw6crmVAqsnBKUZy9ozKGE\"",
+      "bytes": 56045,
+      "sha256": "2afaf830505a6e12ae6d9264b9eecc6f3c3a72b99502ab2704a519cbda332861"
+    },
+    {
+      "path": "/assets/cost-OIWJYRWQ.js",
+      "status": 200,
+      "cache": null,
+      "age": null,
+      "policy": "public, max-age=31536000, immutable",
+      "etag": "W/\"Hf2-po3e1_sj3XLAw4gYt1OOUG-FXPIxpw404y7S_3w\"",
+      "bytes": 4569,
+      "sha256": "1dfdbea68dded7fb23dd72c0c38818b7538e506f855cf231a70e34e32ed2ff7c"
+    },
+    {
+      "path": "/assets/sarasa-SXEBVDSL.css",
+      "status": 200,
+      "cache": null,
+      "age": null,
+      "policy": "public, max-age=31536000, immutable",
+      "etag": "W/\"4RdIuItJLO8EAdlfnvKvxwaGU8K3QkoHjeiOqKja8_g\"",
+      "bytes": 26827,
+      "sha256": "e11748b88b492cef0401d95f9ef2afc7068653c2b7424a078de88ea8a8daf3f8"
+    },
+    {
+      "path": "/assets/style-KJ2VE3VA.css",
+      "status": 200,
+      "cache": null,
+      "age": null,
+      "policy": "public, max-age=31536000, immutable",
+      "etag": "W/\"05bqbKVq0VmDdHWNUw0ASTk3kmNYD9PPT2Z7iHi3O8U\"",
+      "bytes": 8731,
+      "sha256": "d396ea6ca56ad1598374758d530d004939379263580fd3cf4f667b8878b73bc5"
+    },
+    {
+      "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+      "status": 200,
+      "cache": null,
+      "age": null,
+      "policy": "public, max-age=31536000, immutable",
+      "etag": "W/\"DH_622xcIZt6cAqq_VyzYThRGR_eJE_YKZUWzqiv9ko\"",
+      "bytes": 476924,
+      "sha256": "0c7ffadb6c5c219b7a700aaafd5cb3613851191fde244fd8299516cea8aff64a"
+    }
+  ]
+}

@@ -54,6 +54,7 @@ Railway 서비스 설정에서 다음 값을 관리한다. `railway.json`은 만
 
 1. Railway 배포가 `SUCCESS`에 도달했는지 확인한다.
 2. 공개 `/health`가 HTTP 200과 `ok:true`를 반환하는지 확인한다.
+   `npm run build` 후 `PUBLIC_REVISION=<커밋> npm run cdn:verify`로 HTML의 빌드 ID·CDN HIT·동적 응답 제외를 검사한다. 해시 JS/CSS는 바뀌고 이전 자산은 보존되어야 한다. 플랫폼의 HTML purge 시각은 배포 성공 이후여야 하며 수동 전체 purge는 일반 배포 절차에 넣지 않는다.
 3. 공개 주소로 브라우저를 열어 지도와 실제 WebSocket 연결을 확인한다. `/playtest` 위치 링크를 열었을 때 러너는 기존 상태를 유지해야 한다.
 4. 사용자가 시작을 요청하면 같은 지도에서 일반 브라우저와 봇의 글·커서 전파, 수명·종료, 필요 시 속도 제한을 검증한다. 정상 만료와 배포 후 복구는 당시의 셀 버전과 월드 크기를 기준으로 판정한다.
 

@@ -1,0 +1,17 @@
+
+> textworld@0.1.0 test:fonts
+> node tests/font-loading.mjs
+
+chromium: 20 loaded font, advance and canonical Hangul checks passed (raster differences recorded)
+chromium: delayed unicode-range font repaints an idle map
+chromium: an early stylesheet failure reports an error instead of waiting forever
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+firefox: 20 loaded font, advance and canonical Hangul checks passed (raster differences recorded)
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+firefox: delayed unicode-range font repaints an idle map
+firefox: an early stylesheet failure reports an error instead of waiting forever
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+webkit: 20 loaded font, advance and canonical Hangul checks passed (raster differences recorded)
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+webkit: delayed unicode-range font repaints an idle map
+webkit: an early stylesheet failure reports an error instead of waiting forever

@@ -1,0 +1,6 @@
+
+> textworld@0.1.0 test:cost-browser
+> node tests/cost-browser.mjs https://textworld-production-987c.up.railway.app/cost.html
+
+PASS 390 px, measured baseline, two endpoints, invalid inputs and historical model
+PASS 1200 px, measured baseline, two endpoints, invalid inputs and historical model

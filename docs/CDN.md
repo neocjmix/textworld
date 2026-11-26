@@ -40,3 +40,26 @@
 - 공개 CDN의 `x-cache: HIT`와 `Age`, 배포 후 HTML/asset ID, 구 파일 체크섬, HTTPS·WSS를 확인한다. 단일 위치의 반복 요청 적중률을 전체 방문자 적중률로 간주하지 않는다.
 
 CDN HIT는 서버 계측에 나타나지 않는다. `http.static.tx_bytes`는 원본이 직접 전송한 바이트다. 장기 비용은 Railway 청구/edge 자료와 실제 방문 분포를 함께 확인한다. 지역·언어·첫 방문/재방문의 byte hit ratio가 필요하며 서버 지표만으로 CDN 전체 적중률을 역산하지 않는다. 적용 결과는 아래에 추가한다.
+
+## 적용 결과 — 2026-11-26
+
+기존 `production/textworld`에 적용 완료했다. 배포용 파일을 먼저 서비스한 뒤 CDN을 활성화했다. `912fccd`에서 채운 캐시를 유지한 상태로 `91f1fa6`을 배포해 다음을 확인했다.
+
+- 배포 `1e1f8ebd-6f60-40db-95b9-9b6d23055b34`는 17:58:03 UTC에 성공했고, 플랫폼의 `htmlLastPurgedAt`은 17:58:06으로 갱신됐다. 수동 purge는 실행하지 않았다. `allLastPurgedEpoch`은 0을 유지했다.
+- 새 HTML의 자산 ID는 `6a810f0f1a711370e1e1`에서 `1015c2372b4b03546d04`로 바뀌었다. 비용 페이지는 새 `cost-KAHGTLYH.js`를 참조했다. 이전 `cost-OIWJYRWQ.js`도 CDN 우회 요청에서 원본 체크섬과 일치했다.
+- 바뀌지 않은 JS·CSS·글꼴은 배포 후에도 `HIT`, `Age: 184`였다. 새 비용 JS는 첫 요청 `MISS` 뒤 `HIT`였다. 전체 정적 캐시를 지우지 않고 새 파일만 가져온 것이다.
+- HTML·JS·CSS·글꼴·고정 API 안내의 실제 HIT, HTML ETag 304, health·세션·MCP·운영 API·오류·고정 경로의 캐시 제외를 확인했다. 최초 활성화 직후 검사는 설정 전파 중 HIT가 없어 실패했고, 실제 edge 헤더가 나타난 뒤 재검증했다.
+
+[전환 전 설정](measurements/cdn-2026-11-26/before-deploy-cdn.json) · [전환 전 HIT](measurements/cdn-2026-11-26/warm-before-deploy.txt) · [자동 purge 기록](measurements/cdn-2026-11-26/after-deploy-cdn.json) · [새 파일과 이전 파일 검증](measurements/cdn-2026-11-26/second-public.json)
+
+서버/모형 회귀 282개가 통과했다. 세 브라우저의 실제 번들 검사에서 CJK 입력·덮어쓰기·Enter·Backspace·모바일·재접속을 확인했다. 글꼴별 20개 검사와 지연 CSS/글꼴, 먼저 실패한 CSS 뒤의 오류 안내도 세 엔진에서 확인했다. WebKit의 지연 CSS 시험으로 드러난 시작 경합은 `6c041b4`에서 수정했다. 테스트 환경에 없던 공유 라이브러리를 작업 디렉터리에서 로드했고, Playwright의 시스템 라이브러리 탐지만 우회한 상태로 실제 WebKit을 실행했다. 물리 iOS/Android 키보드 시험은 아니다.
+
+공개 지도에서도 두 WSS 참여자의 한글 입력·Enter·상대 관측·강제 종료 후 재접속, 데스크톱/모바일 화면을 확인했다. [공개 브라우저 결과](measurements/cdn-2026-11-26/public-smoke.json) · [회귀 로그](measurements/cdn-2026-11-26/unit-checks.txt) · [글꼴 검사](measurements/cdn-2026-11-26/font-checks.txt)
+
+최종 지도 HTML·JS·CSS gzip 본문은 **33,829 B**다. CDN 도입 전 49,206 B보다 약 31% 작다. 이는 번들링의 효과이며 지역별 CDN 지연 개선 실측과 구분한다. [파일별 실측](measurements/cdn-2026-11-26/built-assets.json) · [같은 2Mbps/150ms 조건의 최종 방문 실험](measurements/cdn-2026-11-26/first-visit-final.json)
+
+같은 Chromium·2Mbps·150ms 조건의 3회 중앙값에서 빈 지도 입력 준비는 2.80→2.66초, 새로고침은 1.16→0.38초였다. 혼합 CJK 표시 완료는 8.71→8.60초, 새로고침 전송은 6,300→300 B였다. 이것은 로컬에서 재현한 번들/브라우저 캐시 효과이며 CDN의 지역별 네트워크 효과가 아니다. [최종 검증 요약](measurements/cdn-2026-11-26/checks.json) · [세 엔진 기록](measurements/cdn-2026-11-26/browser-checks.txt) · [최종 코드의 공개 CDN 검사](measurements/cdn-2026-11-26/final-code-public.json)
+
+비용 계산기는 전송량에 대한 CDN 비율을 가정으로 입력받고 기본은 0%를 유지한다. 기존 활동 가정에서 95%를 넣으면 $92.11→$79.06/30일이다. 실제 적중률·청구 절감·지리별 지연은 아직 장기 실측하지 않았다. 단일 서버 300석, 플랫폼 beta, 교체 후 7일 자산 보존이라는 경계는 유지한다. 다음 관측은 실제 방문자의 지역·언어별 cache HIT 바이트와 첫 입력 준비 시간이다.
+
+운영 재검증: `npm run build` 후 `PUBLIC_REVISION=<원격 커밋> npm run cdn:verify`. 이전 manifest가 있으면 `CDN_PREVIOUS_MANIFEST=<파일>`을 함께 지정해 origin의 이전 파일까지 확인한다. 결과는 기본 `artifacts/cdn-public.json`이다. 실제 글 입력 검사는 `npm run test:public`로 별도 실행한다.

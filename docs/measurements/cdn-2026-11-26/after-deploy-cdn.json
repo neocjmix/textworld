@@ -1,0 +1,26 @@
+{
+  "service": {
+    "id": "99c29cc7-7ab4-4939-85d3-48044329b4e7",
+    "name": "textworld"
+  },
+  "environment": {
+    "id": "dcf0285c-151d-4a4a-ac7a-37efab3fcb0d",
+    "name": "production"
+  },
+  "cdn": {
+    "available": true,
+    "enabled": true,
+    "caching": {
+      "htmlCaching": "auto",
+      "defaultTtlSeconds": 1800,
+      "staleWhileRevalidate": false,
+      "purgeOnDeploy": "html"
+    },
+    "purge": {
+      "htmlLastPurgedEpoch": 1795715886,
+      "htmlLastPurgedAt": "2026-11-26T17:58:06+00:00",
+      "allLastPurgedEpoch": 0,
+      "allLastPurgedAt": null
+    }
+  }
+}

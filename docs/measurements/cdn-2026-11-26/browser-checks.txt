@@ -1,0 +1,9 @@
+
+> textworld@0.1.0 test:browsers
+> node tests/cross-browser.mjs
+
+{"engine":"chromium","version":"156.0.8078.79","status":"passed","checks":["two independent views","CJK width","Enter","Backspace","overwrite","arrow","touch input","mobile viewport","reload convergence","no runtime errors"]}
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+{"engine":"firefox","version":"157.0","status":"passed","checks":["two independent views","CJK width","Enter","Backspace","overwrite","arrow","touch input","mobile viewport","reload convergence","no runtime errors"]}
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+{"engine":"webkit","version":"27.2","status":"passed","checks":["two independent views","CJK width","Enter","Backspace","overwrite","arrow","touch input","mobile viewport","reload convergence","no runtime errors"]}

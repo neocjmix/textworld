@@ -1,0 +1,66 @@
+{
+  "codeRevision": "6c041b4c0e849ae1b66dae980d11224d30dec870",
+  "serverTests": {
+    "passed": 282,
+    "failed": 0
+  },
+  "browserEngines": [
+    "Chromium 156.0.8078.79",
+    "Firefox 157.0",
+    "WebKit 27.2"
+  ],
+  "fontChecksPerEngine": 20,
+  "additionalChecks": [
+    "delayed stylesheet before font readiness",
+    "delayed Hangul font repaints idle map",
+    "stylesheet failure before JS reports error",
+    "three-engine two-participant CJK and navigation",
+    "public HTTPS/WSS/reconnect",
+    "public cache HIT and dynamic exclusions",
+    "post-success automatic HTML purge",
+    "prior assets served by origin without changed contents",
+    "local rollback and retirement-based retention"
+  ],
+  "timings": {
+    "network": {
+      "offline": false,
+      "latency": 150,
+      "downloadThroughput": 250000,
+      "uploadThroughput": 125000
+    },
+    "runsPerScenario": 3,
+    "medians": {
+      "empty-cold": {
+        "inputReadyMs": 2661.39999999851,
+        "paintedMs": 2731.10000000149,
+        "bytes": 512253
+      },
+      "empty-reload": {
+        "inputReadyMs": 377.5,
+        "paintedMs": 441.59999999403954,
+        "bytes": 300
+      },
+      "mixed-cold": {
+        "inputReadyMs": 2722.10000000149,
+        "paintedMs": 8600.40000000596,
+        "bytes": 1910729
+      },
+      "mixed-reload": {
+        "inputReadyMs": 460.90000000596046,
+        "paintedMs": 525.3000000044703,
+        "bytes": 300
+      }
+    }
+  },
+  "limitations": [
+    "CDN geographic latency and sustained production byte hit ratio are not measured",
+    "WebSocket traffic is not cached",
+    "Seven-day retired asset retention; not indefinite old-tab/protocol support",
+    "Browser engines and mobile emulation, not physical OS keyboards"
+  ],
+  "environmentNotes": [
+    "WebKit shared libraries loaded from the workspace; system-library validation skipped after checking the missing library could be loaded. Actual WebKit tests passed.",
+    "Initial CDN verification preceded edge configuration propagation; repeated after x-cache appeared.",
+    "A reproducible WebKit race with delayed CSS was fixed, not dismissed as a transient timeout."
+  ]
+}
