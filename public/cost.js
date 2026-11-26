@@ -1,4 +1,4 @@
-import { monthlyCost, releaseCost } from './operating-cost-model.js';
+import { monthlyCost, releaseCost, capacityProfile } from './operating-cost-model.js';
 
 const get = id => document.getElementById(id);
 const form = get('parameters');
@@ -55,6 +55,14 @@ update();
 
 const releaseForm = get('release-parameters');
 function updateRelease() {
+  const profile = get('release-profile').value;
+  const current = profile === 'current1000';
+  get('release-layout-label').hidden = current;
+  get('release-layout').disabled = current;
+  if (current) get('release-layout').value = 'steady';
+  get('release-evidence').textContent = current
+    ? `입력 20명·이동 80명·독자 900명, 25%가 광장에서 출발한 ${capacityProfile.seconds / 60}분 실측입니다. 이 표본만으로 장기 안정성을 보장하지 않습니다.`
+    : '이전 공개판의 입력 6명·이동 24명·독자 270명 실측입니다. 시간대 조합은 별도 분산·밀집 시험의 원가를 가중합니다. 새 전송 형식의 300명 재측정값은 아닙니다.';
   const scenario = get('release-layout').value;
   get('release-plaza-label').hidden = scenario !== 'mix';
   get('release-hours').disabled = scenario !== 'mix';
@@ -64,6 +72,7 @@ function updateRelease() {
     return;
   }
   const result = releaseCost({
+    profile,
     scenario,
     ...(scenario === 'mix' ? { plazaHours: get('release-hours').valueAsNumber } : {}),
     sessionMinutes: get('release-minutes').valueAsNumber,

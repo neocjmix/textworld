@@ -1,0 +1,1173 @@
+{
+  "startedAt": "2026-11-26T19:46:00.977Z",
+  "finishedAt": "2026-11-26T20:00:03.448Z",
+  "origin": "https://textworld-production-987c.up.railway.app",
+  "desktopWidth": 1200,
+  "mobileWidth": 390,
+  "glyphBase": 20579,
+  "quietFrom": 1795722700225,
+  "quietUntil": 1795723070225,
+  "samples": [
+    {
+      "at": "2026-11-26T19:46:03.307Z",
+      "elapsedSeconds": 0.151,
+      "peers": 184,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 90,
+      "visibleCells": 0,
+      "localMs": 10.7001953125,
+      "remoteMs": 146.60009765625
+    },
+    {
+      "at": "2026-11-26T19:46:15.300Z",
+      "elapsedSeconds": 12.144,
+      "peers": 211,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 117,
+      "visibleCells": 2,
+      "localMs": 5.699951171875,
+      "remoteMs": 199.39990234375
+    },
+    {
+      "at": "2026-11-26T19:46:27.295Z",
+      "elapsedSeconds": 24.139,
+      "peers": 236,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 142,
+      "visibleCells": 2,
+      "localMs": 6.60009765625,
+      "remoteMs": 169.60009765625
+    },
+    {
+      "at": "2026-11-26T19:46:39.284Z",
+      "elapsedSeconds": 36.128,
+      "peers": 262,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 168,
+      "visibleCells": 2,
+      "localMs": 8.800048828125,
+      "remoteMs": 172.199951171875
+    },
+    {
+      "at": "2026-11-26T19:46:51.298Z",
+      "elapsedSeconds": 48.142,
+      "peers": 288,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 194,
+      "visibleCells": 2,
+      "localMs": 14.199951171875,
+      "remoteMs": 175.39990234375
+    },
+    {
+      "at": "2026-11-26T19:47:03.305Z",
+      "elapsedSeconds": 60.149,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 206,
+      "visibleCells": 2,
+      "localMs": 5.7001953125,
+      "remoteMs": 168.699951171875
+    },
+    {
+      "at": "2026-11-26T19:47:15.399Z",
+      "elapsedSeconds": 72.243,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 206,
+      "visibleCells": 2,
+      "localMs": 7.5,
+      "remoteMs": 184.499755859375
+    },
+    {
+      "at": "2026-11-26T19:47:27.288Z",
+      "elapsedSeconds": 84.132,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 206,
+      "visibleCells": 2,
+      "localMs": 6,
+      "remoteMs": 174.499755859375
+    },
+    {
+      "at": "2026-11-26T19:47:39.338Z",
+      "elapsedSeconds": 96.182,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 206,
+      "visibleCells": 2,
+      "localMs": 14.5,
+      "remoteMs": 163.39990234375
+    },
+    {
+      "at": "2026-11-26T19:47:51.307Z",
+      "elapsedSeconds": 108.151,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 206,
+      "visibleCells": 2,
+      "localMs": 4.699951171875,
+      "remoteMs": 202.5
+    },
+    {
+      "at": "2026-11-26T19:48:03.304Z",
+      "elapsedSeconds": 120.148,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 207,
+      "visibleCells": 2,
+      "localMs": 6.5,
+      "remoteMs": 260.39990234375
+    },
+    {
+      "at": "2026-11-26T19:48:15.295Z",
+      "elapsedSeconds": 132.139,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 207,
+      "visibleCells": 2,
+      "localMs": 5.2001953125,
+      "remoteMs": 165.60009765625
+    },
+    {
+      "at": "2026-11-26T19:48:27.302Z",
+      "elapsedSeconds": 144.146,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 206,
+      "visibleCells": 2,
+      "localMs": 8.199951171875,
+      "remoteMs": 163.999755859375
+    },
+    {
+      "at": "2026-11-26T19:48:39.297Z",
+      "elapsedSeconds": 156.141,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 206,
+      "visibleCells": 2,
+      "localMs": 7.699951171875,
+      "remoteMs": 171.499755859375
+    },
+    {
+      "at": "2026-11-26T19:48:51.287Z",
+      "elapsedSeconds": 168.131,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 206,
+      "visibleCells": 2,
+      "localMs": 6.900146484375,
+      "remoteMs": 170.699951171875
+    },
+    {
+      "at": "2026-11-26T19:49:03.309Z",
+      "elapsedSeconds": 180.153,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 206,
+      "visibleCells": 2,
+      "localMs": 6.800048828125,
+      "remoteMs": 172.7998046875
+    },
+    {
+      "at": "2026-11-26T19:49:15.334Z",
+      "elapsedSeconds": 192.178,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 206,
+      "visibleCells": 2,
+      "localMs": 6.300048828125,
+      "remoteMs": 143.599853515625
+    },
+    {
+      "at": "2026-11-26T19:49:27.291Z",
+      "elapsedSeconds": 204.135,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 207,
+      "visibleCells": 2,
+      "localMs": 6.800048828125,
+      "remoteMs": 162.89990234375
+    },
+    {
+      "at": "2026-11-26T19:49:39.314Z",
+      "elapsedSeconds": 216.158,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 206,
+      "visibleCells": 27,
+      "localMs": 5.39990234375,
+      "remoteMs": 129.099853515625
+    },
+    {
+      "at": "2026-11-26T19:49:51.288Z",
+      "elapsedSeconds": 228.132,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 208,
+      "visibleCells": 44,
+      "localMs": 6.10009765625,
+      "remoteMs": 161.60009765625
+    },
+    {
+      "at": "2026-11-26T19:50:03.294Z",
+      "elapsedSeconds": 240.138,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 212,
+      "visibleCells": 79,
+      "localMs": 7.800048828125,
+      "remoteMs": 175.5
+    },
+    {
+      "at": "2026-11-26T19:50:15.329Z",
+      "elapsedSeconds": 252.174,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 212,
+      "visibleCells": 134,
+      "localMs": 7.199951171875,
+      "remoteMs": 142.39990234375
+    },
+    {
+      "at": "2026-11-26T19:50:27.297Z",
+      "elapsedSeconds": 264.142,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 214,
+      "visibleCells": 186,
+      "localMs": 5.7001953125,
+      "remoteMs": 173
+    },
+    {
+      "at": "2026-11-26T19:50:39.309Z",
+      "elapsedSeconds": 276.153,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 214,
+      "visibleCells": 243,
+      "localMs": 9.099853515625,
+      "remoteMs": 174.39990234375
+    },
+    {
+      "at": "2026-11-26T19:50:51.288Z",
+      "elapsedSeconds": 288.132,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 187,
+        "height": 95,
+        "epoch": 940,
+        "textLayout": 2
+      },
+      "visiblePeers": 219,
+      "visibleCells": 321,
+      "localMs": 12.599853515625,
+      "remoteMs": 175.599853515625
+    },
+    {
+      "at": "2026-11-26T19:51:03.301Z",
+      "elapsedSeconds": 300.145,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 210,
+        "height": 106,
+        "epoch": 942,
+        "textLayout": 2
+      },
+      "visiblePeers": 221,
+      "visibleCells": 423,
+      "localMs": 4.89990234375,
+      "remoteMs": 144.69970703125
+    },
+    {
+      "at": "2026-11-26T19:51:15.290Z",
+      "elapsedSeconds": 312.134,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 227,
+      "visibleCells": 491,
+      "localMs": 8.10009765625,
+      "remoteMs": 183.10009765625
+    },
+    {
+      "at": "2026-11-26T19:51:27.292Z",
+      "elapsedSeconds": 324.136,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 221,
+      "visibleCells": 545,
+      "localMs": 7.199951171875,
+      "remoteMs": 179.5
+    },
+    {
+      "at": "2026-11-26T19:51:39.313Z",
+      "elapsedSeconds": 336.157,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 222,
+      "visibleCells": 623,
+      "localMs": 5.699951171875,
+      "remoteMs": 170.499755859375
+    },
+    {
+      "at": "2026-11-26T19:51:51.286Z",
+      "elapsedSeconds": 348.13,
+      "peers": 278,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 212,
+      "visibleCells": 644,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:52:03.282Z",
+      "elapsedSeconds": 360.126,
+      "peers": 294,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 215,
+      "visibleCells": 644,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:52:15.289Z",
+      "elapsedSeconds": 372.133,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 211,
+      "visibleCells": 644,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:52:27.303Z",
+      "elapsedSeconds": 384.147,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 203,
+      "visibleCells": 644,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:52:39.296Z",
+      "elapsedSeconds": 396.14,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 201,
+      "visibleCells": 644,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:52:51.283Z",
+      "elapsedSeconds": 408.127,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 196,
+      "visibleCells": 644,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:53:03.287Z",
+      "elapsedSeconds": 420.131,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 188,
+      "visibleCells": 618,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:53:15.290Z",
+      "elapsedSeconds": 432.134,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 182,
+      "visibleCells": 583,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:53:27.297Z",
+      "elapsedSeconds": 444.141,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 180,
+      "visibleCells": 549,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:53:39.303Z",
+      "elapsedSeconds": 456.147,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 174,
+      "visibleCells": 457,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:53:51.306Z",
+      "elapsedSeconds": 468.15,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 173,
+      "visibleCells": 376,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:54:03.291Z",
+      "elapsedSeconds": 480.135,
+      "peers": 299,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 165,
+      "visibleCells": 304,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:54:15.294Z",
+      "elapsedSeconds": 492.138,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 242,
+        "height": 119,
+        "epoch": 945,
+        "textLayout": 2
+      },
+      "visiblePeers": 160,
+      "visibleCells": 220,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:54:27.300Z",
+      "elapsedSeconds": 504.144,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 212,
+        "height": 105,
+        "epoch": 947,
+        "textLayout": 2
+      },
+      "visiblePeers": 149,
+      "visibleCells": 259,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:54:39.291Z",
+      "elapsedSeconds": 516.135,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 186,
+        "height": 92,
+        "epoch": 949,
+        "textLayout": 2
+      },
+      "visiblePeers": 143,
+      "visibleCells": 129,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:54:51.286Z",
+      "elapsedSeconds": 528.13,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 163,
+        "height": 81,
+        "epoch": 951,
+        "textLayout": 2
+      },
+      "visiblePeers": 37,
+      "visibleCells": 22,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:55:03.297Z",
+      "elapsedSeconds": 540.141,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 143,
+        "height": 71,
+        "epoch": 953,
+        "textLayout": 2
+      },
+      "visiblePeers": 32,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:55:15.292Z",
+      "elapsedSeconds": 552.136,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 126,
+        "height": 63,
+        "epoch": 955,
+        "textLayout": 2
+      },
+      "visiblePeers": 28,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:55:27.296Z",
+      "elapsedSeconds": 564.14,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 111,
+        "height": 56,
+        "epoch": 957,
+        "textLayout": 2
+      },
+      "visiblePeers": 28,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:55:39.355Z",
+      "elapsedSeconds": 576.199,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 98,
+        "height": 49,
+        "epoch": 959,
+        "textLayout": 2
+      },
+      "visiblePeers": 29,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:55:51.292Z",
+      "elapsedSeconds": 588.136,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 86,
+        "height": 43,
+        "epoch": 961,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:56:03.292Z",
+      "elapsedSeconds": 600.136,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 76,
+        "height": 38,
+        "epoch": 963,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:56:15.287Z",
+      "elapsedSeconds": 612.131,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 67,
+        "height": 34,
+        "epoch": 965,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:56:27.288Z",
+      "elapsedSeconds": 624.132,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 59,
+        "height": 30,
+        "epoch": 967,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:56:39.312Z",
+      "elapsedSeconds": 636.157,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 52,
+        "height": 27,
+        "epoch": 969,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:56:51.292Z",
+      "elapsedSeconds": 648.136,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 46,
+        "height": 24,
+        "epoch": 971,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:57:03.283Z",
+      "elapsedSeconds": 660.127,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 41,
+        "height": 21,
+        "epoch": 973,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:57:15.285Z",
+      "elapsedSeconds": 672.129,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 36,
+        "height": 19,
+        "epoch": 975,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:57:27.305Z",
+      "elapsedSeconds": 684.149,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 32,
+        "height": 17,
+        "epoch": 977,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:57:39.339Z",
+      "elapsedSeconds": 696.183,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 32,
+        "height": 16,
+        "epoch": 978,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 0,
+      "quiet": true
+    },
+    {
+      "at": "2026-11-26T19:57:51.292Z",
+      "elapsedSeconds": 708.136,
+      "peers": 280,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 36,
+        "height": 18,
+        "epoch": 980,
+        "textLayout": 2
+      },
+      "visiblePeers": 280,
+      "visibleCells": 152,
+      "localMs": 7.5,
+      "remoteMs": 181.800048828125
+    },
+    {
+      "at": "2026-11-26T19:58:03.291Z",
+      "elapsedSeconds": 720.135,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 50,
+        "height": 24,
+        "epoch": 986,
+        "textLayout": 2
+      },
+      "visiblePeers": 300,
+      "visibleCells": 325,
+      "localMs": 6.10009765625,
+      "remoteMs": 182.60009765625
+    },
+    {
+      "at": "2026-11-26T19:58:15.333Z",
+      "elapsedSeconds": 732.177,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 70,
+        "height": 33,
+        "epoch": 992,
+        "textLayout": 2
+      },
+      "visiblePeers": 286,
+      "visibleCells": 432,
+      "localMs": 12.60009765625,
+      "remoteMs": 172.7998046875
+    },
+    {
+      "at": "2026-11-26T19:58:27.294Z",
+      "elapsedSeconds": 744.138,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 97,
+        "height": 46,
+        "epoch": 998,
+        "textLayout": 2
+      },
+      "visiblePeers": 274,
+      "visibleCells": 508,
+      "localMs": 7,
+      "remoteMs": 168.199951171875
+    },
+    {
+      "at": "2026-11-26T19:58:39.289Z",
+      "elapsedSeconds": 756.133,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 137,
+        "height": 64,
+        "epoch": 1004,
+        "textLayout": 2
+      },
+      "visiblePeers": 266,
+      "visibleCells": 498,
+      "localMs": 7.199951171875,
+      "remoteMs": 166.099853515625
+    },
+    {
+      "at": "2026-11-26T19:58:51.291Z",
+      "elapsedSeconds": 768.135,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 172,
+        "height": 81,
+        "epoch": 1008,
+        "textLayout": 2
+      },
+      "visiblePeers": 259,
+      "visibleCells": 512,
+      "localMs": 8.5,
+      "remoteMs": 156.39990234375
+    },
+    {
+      "at": "2026-11-26T19:59:03.307Z",
+      "elapsedSeconds": 780.151,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 172,
+        "height": 81,
+        "epoch": 1008,
+        "textLayout": 2
+      },
+      "visiblePeers": 248,
+      "visibleCells": 533,
+      "localMs": 7.2001953125,
+      "remoteMs": 169.699951171875
+    },
+    {
+      "at": "2026-11-26T19:59:15.285Z",
+      "elapsedSeconds": 792.129,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 172,
+        "height": 81,
+        "epoch": 1008,
+        "textLayout": 2
+      },
+      "visiblePeers": 240,
+      "visibleCells": 546,
+      "localMs": 6.7001953125,
+      "remoteMs": 167.699951171875
+    },
+    {
+      "at": "2026-11-26T19:59:27.330Z",
+      "elapsedSeconds": 804.174,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 172,
+        "height": 81,
+        "epoch": 1008,
+        "textLayout": 2
+      },
+      "visiblePeers": 229,
+      "visibleCells": 554,
+      "localMs": 12,
+      "remoteMs": 144.39990234375
+    },
+    {
+      "at": "2026-11-26T19:59:39.337Z",
+      "elapsedSeconds": 816.181,
+      "peers": 300,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 172,
+        "height": 81,
+        "epoch": 1008,
+        "textLayout": 2
+      },
+      "visiblePeers": 220,
+      "visibleCells": 590,
+      "localMs": 10.300048828125,
+      "remoteMs": 150.999755859375
+    },
+    {
+      "at": "2026-11-26T19:59:51.314Z",
+      "elapsedSeconds": 828.158,
+      "peers": 2,
+      "capacity": 300,
+      "revision": "293df4bf3e5c064ac77e9686631841ca6dc79420",
+      "world": {
+        "width": 172,
+        "height": 81,
+        "epoch": 1008,
+        "textLayout": 2
+      },
+      "visiblePeers": 2,
+      "visibleCells": 592,
+      "localMs": 5.300048828125,
+      "remoteMs": 175.199951171875
+    }
+  ],
+  "errors": []
+}

@@ -8,6 +8,13 @@ if (!Number.isInteger(seconds) || seconds < 12 || seconds > 930 || !output) {
   throw Error('Usage: node experiments/public-paint.mjs SECONDS(12..930) OUTPUT.json');
 }
 const origin = 'https://textworld-production-987c.up.railway.app';
+const quietFrom = Date.parse(process.env.PUBLIC_PAINT_QUIET_FROM || '');
+const quietUntil = Date.parse(process.env.PUBLIC_PAINT_QUIET_UNTIL || '');
+if ((process.env.PUBLIC_PAINT_QUIET_FROM || process.env.PUBLIC_PAINT_QUIET_UNTIL)
+  && !(Number.isFinite(quietFrom) && Number.isFinite(quietUntil) && quietUntil > quietFrom)) {
+  throw Error('Quiet window requires two valid ISO times, in increasing order');
+}
+const glyphBase = 0x4e00 + Date.now() % 8000;
 const options = { executablePath: '/usr/bin/chromium', headless: true,
   args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-background-timer-throttling',
     '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows'] };
@@ -43,7 +50,7 @@ try {
   const [writer, reader] = pages, start = Date.now();
   for (let i = 0; i * 12 < seconds; i++) {
     await sleep(Math.max(0, start + i * 12000 - Date.now()));
-    const glyph = String.fromCodePoint(0x5a00 + i);
+    const glyph = String.fromCodePoint(glyphBase + i);
     const before = await reader.evaluate(async () => {
       const health = await (await fetch('/health', { cache: 'no-store', signal: AbortSignal.timeout(10000) })).json();
       const view = window.textworld.inspect();
@@ -51,6 +58,11 @@ try {
         world: health.world, visiblePeers: view.peers.length, visibleCells: view.cells.length };
     });
     const sample = { at: new Date().toISOString(), elapsedSeconds: (Date.now() - start) / 1000, ...before };
+    if (Date.now() >= quietFrom && Date.now() < quietUntil) {
+      samples.push({ ...sample, quiet: true });
+      console.log(JSON.stringify(samples.at(-1)));
+      continue;
+    }
     await Promise.all(pages.map(page => page.evaluate(target => { window.paintProbe = { target }; }, glyph)));
     try {
       await writer.locator('#input').focus();
@@ -69,5 +81,5 @@ try {
   clearTimeout(watchdog);
   await browser.close();
   await writeFile(output, JSON.stringify({ startedAt, finishedAt: new Date().toISOString(), origin,
-    desktopWidth: 1200, mobileWidth: 390, samples, errors }, null, 2));
+    desktopWidth: 1200, mobileWidth: 390, glyphBase, quietFrom, quietUntil, samples, errors }, null, 2));
 }

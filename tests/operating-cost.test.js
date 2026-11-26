@@ -100,3 +100,26 @@ test('CDN assumptions reduce only static origin egress, never realtime traffic o
   near(before.uncachedAssets, before.assets);
   for (const value of [-.01, 1.01, NaN]) assert.throws(() => releaseCost({ cdnByteHitRatio: value }), RangeError);
 });
+
+test('compact 1000-person estimate uses its own observed wire and resources, with no spatial extrapolation', async () => {
+  const { releaseCost, capacityProfile } = await import('../public/operating-cost-model.js');
+  const sample = JSON.parse(readFileSync(new URL('../docs/measurements/single-server-1000-2026-11-26/'
+    + capacityProfile.sample + '.json', import.meta.url)));
+  assert.equal(capacityProfile.seconds, sample.seconds);
+  assert.equal(capacityProfile.hour.bytesPerSecond, sample.serverBytesPerSecond);
+  assert.equal(capacityProfile.hour.cores, sample.serverCores);
+  assert.equal(capacityProfile.hour.rssGiB, sample.meanRssGiB);
+  assert.equal(sample.wireBytesMeasured, true);
+  const options = { profile: 'current1000' }, result = releaseCost(options);
+  near(result.live, sample.serverBytesPerSecond * 2592000 / 1e9 * .05);
+  near(result.cpu, sample.serverCores * 43200 * .000463);
+  near(result.memory, sample.meanRssGiB * 1024 ** 3 / 1e9 * 43200 * .000231);
+  near(result.unit, result.total / 720);
+  near(result.visits, 2160000);
+  near(releaseCost({ ...options, sessionMinutes: 40 }).assets, result.assets / 2);
+  const cached = releaseCost({ ...options, cdnByteHitRatio: .95 });
+  near(cached.live, result.live); near(cached.server, result.server);
+  near(cached.assets, result.assets * .05);
+  assert.throws(() => releaseCost({ ...options, scenario: 'mix' }), TypeError);
+  assert.throws(() => releaseCost({ profile: 'unmeasured' }), TypeError);
+});

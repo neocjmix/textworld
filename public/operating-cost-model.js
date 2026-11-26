@@ -95,9 +95,26 @@ export const releaseProfile = Object.freeze({
   "volumeGiB": 0.0332113
 });
 
-// Resource measurements are available at 300 concurrent participants. The
-// historical model above estimates other population sizes with its own assumptions.
+// The new wire format is measured separately; never scale the 300-person
+// result or silently interpolate an unmeasured all-plaza workload.
+// Source: single-server-1000-2026-11-26/guarded-normal.json (180 seconds).
+export const capacityProfile = Object.freeze({
+  concurrent: 1000,
+  seconds: 180,
+  sample: 'guarded-normal',
+  hour: { bytesPerSecond: 1499571.528666262, cores: 0.3861383105673988, rssGiB: 0.7472444592869757 },
+  // Built map HTML/JS/CSS measured at 35,838 B gzip; rounded up for release stamps.
+  mapBytes: 36000,
+  fontBytes: 1873600,
+  allFontBytes: 5949384,
+  // Previous production volume observation; the final report identifies it separately.
+  volumeGiB: 0.0332113,
+});
+
+// Only these measured populations are available. The historical model above
+// estimates other sizes with separate, unverified optimization assumptions.
 export function releaseCost({
+  profile = 'previous300',
   scenario = 'steady', plazaHours = 6, sessionMinutes = 20, coldFontShare = 0.2, fontScope = 'mixed',
   cdnByteHitRatio = 0,
 } = {}) {
@@ -106,11 +123,14 @@ export function releaseCost({
   requireRange('coldFontShare', coldFontShare, 0, 1);
   requireRange('cdnByteHitRatio', cdnByteHitRatio, 0, 1);
   if (!['steady', 'mix'].includes(scenario)) throw new TypeError('Unknown release scenario');
+  if (!['previous300', 'current1000'].includes(profile)) throw new TypeError('Unknown measured profile');
+  if (profile === 'current1000' && scenario !== 'steady') throw new TypeError('Unmeasured 1000-person spatial mix');
 
   const plazaFraction = plazaHours / 24;
   if (!['mixed', 'all'].includes(fontScope)) throw new TypeError('Unknown font coverage');
-  const { hour, spread, plaza, concurrent, volumeGiB, mapBytes } = releaseProfile;
-  const fontBytes = fontScope === 'all' ? releaseProfile.allFontBytes : releaseProfile.fontBytes;
+  const measured = profile === 'current1000' ? capacityProfile : releaseProfile;
+  const { hour, spread, plaza, concurrent, volumeGiB, mapBytes } = measured;
+  const fontBytes = fontScope === 'all' ? measured.allFontBytes : measured.fontBytes;
   function average(metric) {
     if (scenario === 'steady') return hour[metric];
     return spread[metric] * (1 - plazaFraction) + plaza[metric] * plazaFraction;

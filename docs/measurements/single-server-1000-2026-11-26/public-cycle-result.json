@@ -1,0 +1,80 @@
+{
+  "id": "126f73c0-88e4-4b0e-9fb2-801b95700300",
+  "state": "finished",
+  "startedAt": "2026-11-26T19:44:40.225Z",
+  "deadline": "2026-11-26T20:00:00.225Z",
+  "phase": {
+    "name": "퇴장",
+    "seconds": 15,
+    "writers": 0,
+    "walkers": 0,
+    "readers": 0,
+    "writing": "new-cells",
+    "actionIntervalMs": 850
+  },
+  "population": {
+    "attempts": 747,
+    "joined": 747,
+    "peak": 298,
+    "sent": 19266,
+    "ack": 19266,
+    "rejected": 0,
+    "unconfirmed": 0,
+    "rateLimited": 0,
+    "receivedBytes": 524509754,
+    "receivedWireBytes": 527633994,
+    "transportErrors": 0,
+    "writtenGraphemes": 9988,
+    "active": {
+      "writers": 0,
+      "walkers": 0,
+      "readers": 0
+    },
+    "departures": {
+      "lifetime": 390,
+      "target-reduced": 357
+    },
+    "botMinutes": 4148.367234299933,
+    "ackP95Ms": 25.007,
+    "typingGapP50Ms": 235.519,
+    "typingGapP95Ms": 678.911
+  },
+  "world": {
+    "width": 172,
+    "height": 81,
+    "epoch": 1008,
+    "textLayout": 2,
+    "occupiedCells": 1454,
+    "connections": 2
+  },
+  "position": null,
+  "cost": {
+    "scope": "whole-service-during-run",
+    "priceDate": "2026-11-26",
+    "billingUnit": "decimal GB",
+    "ratesUsd": {
+      "cpuCoreMinute": 0.000463,
+      "memoryGBMinute": 0.000231,
+      "volumeGBMinute": 3.472222222e-06,
+      "egressGB": 0.05
+    },
+    "elapsedSeconds": 920.00725277,
+    "cpuCoreSeconds": 120.564793,
+    "memoryGiBMinutes": 6.041025417413087,
+    "volumeGiBMinutes": 0.7168167354644761,
+    "publicHttpBytes": 493082,
+    "publicWebSocketBytes": 5459645,
+    "estimatedUsd": {
+      "cpu": 0.0009303583193166667,
+      "memory": 0.001498381881270926,
+      "volume": 2.672486489451711e-06,
+      "publicEgress": 0.00029763635,
+      "subtotal": 0.0027290490370770444
+    },
+    "usdPer1000WrittenGraphemes": 0.00027323278304736126,
+    "hypotheticalBotEgressUsd": 0.0263816997
+  },
+  "finishedAt": "2026-11-26T20:00:00.233Z",
+  "reason": "deadline",
+  "error": null
+}

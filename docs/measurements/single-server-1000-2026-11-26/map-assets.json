@@ -1,0 +1,33 @@
+{
+  "at": "2026-11-26T19:55:34.894Z",
+  "assetRelease": "7b7e443ad27ed7bb6db3",
+  "records": [
+    {
+      "path": ".build/pages/index.html",
+      "gzipBytes": 1485,
+      "bytes": 3062,
+      "sha256": "9555806aa4e1749c8fb8a03eaa95f4a41ec86c47adc9b2122ecdc798d1bfe1c1"
+    },
+    {
+      "path": ".build/assets/app-DR7RCYU4.js",
+      "gzipBytes": 23024,
+      "bytes": 61535,
+      "sha256": "a4039f58e5b716bc7f4ee5a420069fbd70a3b61d1d5fdeb252a09b88cf6818f7"
+    },
+    {
+      "path": ".build/assets/sarasa-SXEBVDSL.css",
+      "gzipBytes": 8540,
+      "bytes": 26827,
+      "sha256": "e11748b88b492cef0401d95f9ef2afc7068653c2b7424a078de88ea8a8daf3f8"
+    },
+    {
+      "path": ".build/assets/style-KJ2VE3VA.css",
+      "gzipBytes": 2789,
+      "bytes": 8731,
+      "sha256": "d396ea6ca56ad1598374758d530d004939379263580fd3cf4f667b8878b73bc5"
+    }
+  ],
+  "gzipBodyBytes": 35838,
+  "costModelRoundedBytes": 36000,
+  "note": "Local built files, default gzip as in createStaticAssets. HTML release stamp can change a few bytes on later builds. The cost model rounds up to 36,000 B. Fonts are measured separately."
+}

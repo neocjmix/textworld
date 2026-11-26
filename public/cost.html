@@ -35,13 +35,16 @@
   <nav><a href="/">Textworld 지도</a></nav>
   <header>
     <h1>동접과 운영 원가</h1>
-    <p class="note">공개 서버와 같은 코드에 300명이 접속했을 때 측정한 송신량·CPU·메모리로 계산합니다.</p>
+    <p class="note">부하 시험에서 측정한 송신량·CPU·메모리와 방문·캐시 가정을 구분해 계산합니다.</p>
   </header>
   <main>
     <div class="main">
       <form id="release-parameters">
-        <h2>평균 동접 300명 · 단일 서버</h2>
-        <label>활동 시나리오
+        <h2>평균 동접 · 단일 서버</h2>
+        <label>사용할 실측
+          <select id="release-profile"><option value="current1000">1,000명 · 새 전송 형식 · 3분 실측</option><option value="previous300">300명 · 이전 공개판 · 1시간 실측</option></select>
+        </label>
+        <label id="release-layout-label" hidden>활동 시나리오
           <select id="release-layout"><option value="steady">한 시간 지속 시험 · 25%가 광장에서 출발</option><option value="mix">분산 시간과 밀집 시간 조합</option></select>
         </label>
         <label id="release-plaza-label" hidden>하루 중 한 광장에 모이는 시간
@@ -70,7 +73,8 @@
           <div class="row"><dt>같은 조건의 일주일</dt><dd id="release-week">—</dd></div>
           <div class="row"><dt>이용 1,000시간당</dt><dd id="release-unit">—</dd></div>
         </dl>
-        <small>입력 6명·이동 24명·독자 270명입니다. Railway CDN은 활성화되어 있지만 실제 방문자의 적중률은 아직 측정하지 않아 기본값은 0%입니다. 95% 등을 입력하면 가정에 따른 절감액을 볼 수 있습니다. CDN은 실시간 지도 전송비를 줄이지 않습니다. 정적 파일 크기는 CDN 도입 직전 실측을 보수적으로 유지합니다. 시간대·폰트 캐시 비율·방문 중 읽는 문자 범위도 가정입니다. 체류 시간은 정적 파일 방문 횟수에만 적용하며 실시간 접속 교체는 실험의 20분 기준입니다.</small>
+        <p class="note" id="release-evidence"></p>
+        <small>Railway CDN은 활성화되어 있지만 실제 방문자의 적중률은 아직 측정하지 않아 기본값은 0%입니다. 95% 등을 입력하면 가정에 따른 절감액을 볼 수 있습니다. CDN은 실시간 지도 전송비를 줄이지 않습니다. 폰트 캐시 비율·방문 중 읽는 문자 범위도 가정입니다. 체류 시간은 정적 파일 방문 횟수에만 적용하며 실시간 접속 교체는 실험의 20분 기준입니다.</small>
       </section>
     </div>
     <details>
@@ -110,7 +114,7 @@
     <noscript><p>계산기를 조작하려면 자바스크립트를 켜 주세요. 기본 시나리오의 표는 아래 모형 문서에서도 읽을 수 있습니다.</p></noscript>
   </main>
   <footer class="note">
-    <p>기본값은 한 시간 지속 시험의 평균입니다. 시간대 조합에서는 서로 흩어져 출발한 시험과 같은 광장에 모여 출발한 시험을 시간별로 가중합니다. 송신량은 WebSocket 본문 기준이며 실제 청구액은 회선과 캐시 사용에 따라 달라집니다.</p>
+    <p>같은 활동이 하루 종일 이어진다는 추정입니다. 1,000명 값은 WebSocket 프레임을 포함하고 이전 300명 값은 본문 기준입니다. TLS·재전송·외부 프록시 증분은 포함하지 않습니다. 실제 청구액은 회선과 캐시 사용에 따라 달라집니다.</p>
     <p>피크 대응을 위해 추가할 장비·고정 중계료, 플랜 최소 결제액, 세금과 인건비는 별도입니다. 큰 동접의 값은 규모에 따른 수학적 외삽입니다.</p>
     <p><a href="https://github.com/neocjmix/textworld/blob/main/docs/OPERATING_COST_MODEL.md">계산식·실측 범위·수익 환산</a></p>
   </footer>
