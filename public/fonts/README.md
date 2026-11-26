@@ -31,6 +31,36 @@ variant and uses a narrow em dash. The project documentation distinguishes it
 from the `Mono` variant, which has full-width em dashes.
 
 Serve the versioned WOFF2 with `Content-Type: font/woff2` and immutable caching.
-Wait for the font to load before measuring/drawing world text. Font-size 18px
+The historical full-font entry path waited for this entire file before connecting; see the current delivery method below. Font-size 18px
 has a 9px narrow advance and an 18px full-width advance; no `fillText` maxWidth
 compression is needed for supported glyphs in their correct-width cells.
+
+## Unicode-range delivery (2026-11-26)
+
+The public map now uses CSS `unicode-range` parts of the same pinned font. It
+loads the core face to enter the map, then the browser loads the parts required
+by visible or typed characters. A FontFaceSet `loadingdone` handler repaints an
+idle Canvas when a late part arrives. The original full file remains available
+for old cached pages and as a verification oracle; the map does not preload it.
+
+Hangul syllables, modern/archaic jamo, compatibility/halfwidth jamo and tone marks
+share one part. Splitting them by scalar range changes NFC/NFD shaping, so that
+experiment was rejected. Han is divided into 1,024-code-point ranges; sparse
+supplementary Han uses one part. Other scripts, punctuation and symbols use the
+core. All original cmap format 14 variation mappings are retained. This is a
+transport partition, not a reduction of supported characters.
+
+`subsets.json` records every output hash, byte count and CSS range. Rebuild with
+`python3 scripts/subset-map-font.py` after installing the pinned build-only
+FontTools/Brotli versions listed in that script. The build checks the union of
+all 51,228 characters, advances, outline coordinates/flags and variant mappings
+against the original. It also preserves the original .notdef outline, which is
+explicitly mapped by one private-use character. No Python/font tools run in
+production. Output names contain content hashes and use immutable caching.
+
+`npm run test:fonts` verifies real browser loading, advances, NFC/NFD equivalence
+and late-font repainting. Raw Canvas raster differences are recorded: subset
+rasterization is not promised to be bit-identical to the full face even though
+the vectors and metrics match. The unchanged 1:2 advances keep world positions
+stable. A system fallback can briefly draw a not-yet-downloaded part; `swap`
+and the repaint handler replace it without changing cell addresses or layout.

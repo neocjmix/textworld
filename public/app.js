@@ -826,7 +826,10 @@ window.addEventListener('hashchange', goToHash);
 document.addEventListener('visibilitychange', () => { if (document.hidden) { motion.cancel(); center({ immediate: true }); } });
 setZoom(1);
 notice('글꼴을 불러오고 있습니다.');
-document.fonts.load(`18px ${mapFont}`, '한글日本語中文iWM').then(faces => {
+// CSS unicode-range selects additional font parts as native text or Canvas
+// encounters them. Repaint an idle map when a delayed part becomes available.
+document.fonts.addEventListener('loadingdone', schedule);
+document.fonts.load(`18px ${mapFont}`, 'iWM').then(faces => {
   if (!faces.length) throw new Error('Map font is unavailable');
   fontReady = true;
   connect();

@@ -104,7 +104,7 @@ Railway에서 공개 실험 중인 초기 프로토타입입니다. 익명 참�
 
 폭 규칙 도입 전 저장된 글은 기존 좌표와 이웃 내용을 보존하기 위해 1칸 배치를 유지하고, 넓은 글자는 작은 글꼴 크기로 그려 겹침을 막습니다. 다시 입력한 글부터 새 폭을 적용합니다. 크기 변경 때 두 칸 문자는 가능한 경우 한 쌍으로 옮기고, 충돌하거나 일부가 삭제되면 통째로 제거합니다. 반쪽 문자로 성장을 막지는 않습니다.
 
-조사 근거는 [입력 표준·벤더](docs/research/IME_STANDARDS.md), [한국어·일본어·중국어 개발 사례](docs/research/IME_LOCAL_PRACTICE.md), [CJK 글꼴 비교·실측](docs/research/CJK_FONT.md)에 있습니다. Sarasa Fixed K 1.0.43의 전체 Regular 파일은 약 5.07 MiB이며 [OFL 라이선스와 출처](public/fonts/README.md)를 함께 제공합니다. 첫 연결은 글꼴 로딩 뒤 시작하고 버전 파일은 장기 캐시합니다. 모든 Unicode 문자·이모지를 글꼴에 포함한다는 의미는 아닙니다.
+조사 근거는 [입력 표준·벤더](docs/research/IME_STANDARDS.md), [한국어·일본어·중국어 개발 사례](docs/research/IME_LOCAL_PRACTICE.md), [CJK 글꼴 비교·실측](docs/research/CJK_FONT.md)에 있습니다. Sarasa Fixed K 1.0.43을 문자 범위별 파일로 나눠 제공하며 [OFL 라이선스·출처·재생성 방법](public/fonts/README.md)을 함께 제공합니다. 첫 연결은 기본 글꼴만 받은 뒤 시작하고, 화면에 필요한 문자 범위는 브라우저가 추가로 로드합니다. 한글 자모·완성형은 같은 파일에 유지하고 모든 원본 문자·폭·윤곽·변형 선택자를 검증합니다. 파일 이름에는 내용 해시를 넣어 장기 캐시합니다. 모든 Unicode 문자·이모지를 글꼴에 포함한다는 의미는 아닙니다.
 
 중요한 선택은 [결정 기록](docs/DECISIONS.md), 대안 비교와 다음 실험은 [공간 모델 실험](docs/EXPERIMENTS.md)을 참고하세요. 제품 헌법은 변경하지 않았습니다.
 
