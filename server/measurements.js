@@ -10,7 +10,8 @@ export const METRICS = new Set(['process.cpu_limit_cores','process.memory_limit_
  'activity.peer_ms','activity.session_created','activity.session_closed','world.width','world.height','world.ws_peers','world.http_peers','world.cells','world.occupied','world.area','world.db_bytes','world.wal_bytes','world.db_free_bytes','world.peers','world.network_entries','world.waiters',
  'expiration.ms','expiration.lag_ms','expiration.deleted_cells','expiration.batch_full','turn.ms','turn.steps','turn.completed','turn.blocked','turn.cancelled','turn.running','turn.error','topology.ms','topology.adapt_ms','topology.slice_ms','topology.lost_text_cells','topology.broken_adjacencies','topology.search_deferred','topology.forced','topology.destroyed_cells','topology.surviving_cells','topology.changed','commit.ms','commit.cells','commit.count','observer.ms','observer.cols','observer.rows','observer.area','observer.cells','observer.marks','observer.changed','presence.ms','presence.recipients',
  'delivery.ready_ms','delivery.over_100ms','delivery.batch_events','delivery.undelivered_events','delivery.sync_requests',
- 'admission.full','overload.actions','ws.rx_bytes','ws.tx_bytes','ws.playtest_tx_bytes','ws.buffered_bytes','ws.slow_disconnects','ws.error_429','ws.error_other','telemetry.rejected',
+ 'admission.full','overload.actions','ws.rx_bytes','ws.tx_bytes','ws.playtest_tx_bytes','ws.wire_tx_bytes','ws.playtest_wire_tx_bytes',
+ 'encoding.records','encoding.reused','encoding.compactViews','ws.buffered_bytes','ws.slow_disconnects','ws.error_429','ws.error_other','telemetry.rejected',
  'metrics.flush_ms','metrics.failures','metrics.db_bytes',...CLIENT_METRICS.map(m=>`client.reported.${m}`),
  ...routes.flatMap(r=>[`http.${r}.ms`,`http.${r}.tx_bytes`,`http.${r}.declared_rx_bytes`,...statuses.map(s=>`http.${r}.status_${s}`),`http.${r}.status_other`,`http.${r}.aborted`])]);
 export function route(path) {return path==='/mcp'?'mcp':path.startsWith('/api/agents/')||path==='/.well-known/textworld-agent.json'?'agents':path.startsWith('/api/scavenger/')?'scavenger':path==='/api/metrics'?'metrics':path==='/health'?'health':path==='/'?'map':/\.(js|css|html|woff2|svg|ico)$/.test(path)?'static':'other';}
@@ -33,7 +34,7 @@ export class Measurements {
  }
  record(name,value=1){if(!this.enabled||!METRICS.has(name))return;let h=this.pending.get(name);if(!h){h=empty();this.pending.set(name,h);}add(h,value);}
  mergeClient(message,actor) {
-  if(!message||!message.metrics||typeof message.metrics!=='object'||Array.isArray(message.metrics)||Object.keys(message.metrics).length>6)throw Error('BAD_TELEMETRY');
+  if(!message||!message.metrics||typeof message.metrics!=='object'||Array.isArray(message.metrics)||Object.keys(message.metrics).length>CLIENT_METRICS.length)throw Error('BAD_TELEMETRY');
   const entries=Object.entries(message.metrics);
   for(const [name,h]of entries){if(!CLIENT_METRICS.includes(name)||!h||!Number.isSafeInteger(h.count)||h.count<1||h.count>2000||!Array.isArray(h.bins)||h.bins.length!==42||h.bins.some(v=>!Number.isSafeInteger(v)||v<0)||h.bins.reduce((a,b)=>a+b,0)!==h.count||![h.sum,h.min,h.max].every(Number.isFinite)||h.min<0||h.max>1e8||h.min>h.max||h.sum<h.min*h.count-1e-6||h.sum>h.max*h.count+1e-6)throw Error('BAD_TELEMETRY');}
   if(actor.lastTelemetry!==undefined&&performance.now()-actor.lastTelemetry<30000)throw Error('TELEMETRY_TOO_FAST');

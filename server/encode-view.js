@@ -3,6 +3,7 @@
 // Only these public records may contribute reusable wire bytes.
 import { sections, cellColumns, peerColumns } from '../shared/wire.js';
 const encodedRecords = new WeakMap(), compactCells = new WeakMap(), compactPeers = new WeakMap();
+const compactWorlds = new WeakMap();
 const counters = { records: 0, reused: 0, compactViews: 0 };
 export const encodingCounters = () => ({ ...counters });
 function encodeRecord(record) {
@@ -46,7 +47,12 @@ function compactObservation(o) {
 export function encodeCompactView(message) {
   counters.compactViews++;
   const w = message.world;
-  return '[' + JSON.stringify([w.width, w.height, w.epoch, w.textLayout]) + ',' + compactObservation(message.observation) + ']';
+  let metadata = Object.isFrozen(w) ? compactWorlds.get(w) : undefined;
+  if (metadata === undefined) {
+    metadata = JSON.stringify([w.width, w.height, w.epoch, w.textLayout]);
+    if (Object.isFrozen(w)) compactWorlds.set(w, metadata);
+  }
+  return '[' + metadata + ',' + compactObservation(message.observation) + ']';
 }
 
 export function encodeCompactSnapshot(message) {

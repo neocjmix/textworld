@@ -28,7 +28,15 @@ import { createStaticAssets } from './static-assets.js';
 import { readAssetRelease, retainAssetRelease } from './asset-release.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const publicWorld = world => ({ width: world.width, height: world.height, epoch: world.epoch, textLayout: 2 });
+const publicWorlds = new WeakMap();
+const publicWorld = world => {
+  let value = publicWorlds.get(world);
+  if (!value || value.epoch !== world.epoch || value.width !== world.width || value.height !== world.height) {
+    value = Object.freeze({ width: world.width, height: world.height, epoch: world.epoch, textLayout: 2 });
+    publicWorlds.set(world, value);
+  }
+  return value;
+};
 const errorRecord = error => ({ code: error.code || 'BAD_MESSAGE',
   message: error instanceof WorldError || error instanceof PolicyError || error.status ? error.message : '요청을 처리하지 못했습니다.',
   status: error.status || (error instanceof WorldError || error instanceof SyntaxError ? 400 : 500),
@@ -50,13 +58,16 @@ export function networkKey(req, trustProxy = false) {
 }
 
 export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || resolve(root, 'data/world.sqlite'),
-  staticRelease = null, compression = false,
+  staticRelease = null, compression = false, compressionThreshold = 1024,
   now = Date.now, policyNow = () => performance.now(), maxParticipants = 300,
+  actionRate = 120, actionBurst = 96,
   metricsPath, metricsToken = process.env.TEXTWORLD_METRICS_TOKEN || '', metricsEnabled = true,
   trustProxy = process.env.TEXTWORLD_TRUST_PROXY || (process.env.RAILWAY_ENVIRONMENT_ID ? 'railway' : false),
   identifyNetwork = req => networkKey(req, trustProxy),
   playtestToken = process.env.TEXTWORLD_PLAYTEST_TOKEN || '', playtestDirectory = resolve(dirname(storagePath), 'playtests') } = {}) {
   if (!Number.isSafeInteger(maxParticipants) || maxParticipants < 1) throw new RangeError('Invalid participant capacity');
+  if (!Number.isSafeInteger(compressionThreshold) || compressionThreshold < 1024) throw new RangeError('Invalid compression threshold');
+  if (!Number.isSafeInteger(actionRate) || actionRate < 1 || !Number.isSafeInteger(actionBurst) || actionBurst < 1) throw new RangeError('Invalid world action budget');
   const world = new World({ storagePath, now });
   const serveStatic = createStaticAssets(root, { release: staticRelease });
   world.storagePath = storagePath;
@@ -118,7 +129,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   const networks = new NetworkBudgets({ now: policyNow });
   // Normal 300-person traffic offers ~30 actions/s. Bound synchronous fanout
   // before accepting a mutation; readers and already committed views continue.
-  const worldActions = new Budget({rate:120, capacity:96, now:policyNow});
+  const worldActions = new Budget({rate:actionRate, capacity:actionBurst, now:policyNow});
   const admitAction = (units = 1, editAt) => {
     const audience = editAt ? spatial.candidateCount(editAt) : 0;
     const weight = Math.max(1, Math.min(5, audience / 70));
@@ -365,7 +376,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   });
   const wss = new WebSocketServer({ noServer: true, maxPayload: 65536,
     perMessageDeflate: compression ? { serverNoContextTakeover: true, clientNoContextTakeover: true,
-      serverMaxWindowBits: 11, concurrencyLimit: 4, threshold: 1024,
+      serverMaxWindowBits: 11, concurrencyLimit: 4, threshold: compressionThreshold,
       zlibDeflateOptions: { level: 1, memLevel: 4 } } : false });
   server.on('upgrade', (req, socket, head) => {
     let actor;
