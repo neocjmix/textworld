@@ -59,7 +59,7 @@ export function networkKey(req, trustProxy = false) {
 
 export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || resolve(root, 'data/world.sqlite'),
   staticRelease = null, compression = false, compressionThreshold = 1024,
-  now = Date.now, policyNow = () => performance.now(), maxParticipants = 300,
+  now = Date.now, policyNow = () => performance.now(), maxParticipants = 1000,
   actionRate = 240, actionBurst = 192,
   metricsPath, metricsToken = process.env.TEXTWORLD_METRICS_TOKEN || '', metricsEnabled = true,
   trustProxy = process.env.TEXTWORLD_TRUST_PROXY || (process.env.RAILWAY_ENVIRONMENT_ID ? 'railway' : false),
