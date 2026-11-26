@@ -40,7 +40,7 @@
 - 모션 검사는 병렬 실행 중 터치 관성 시작 단언에서 한 번 실패했고, 같은 코드의 독립 재실행은 통과했다. 초기 시야의 Canvas가 요청하는 글꼴과 카메라 안정화를 기다린 뒤 시간에 민감한 제스처를 시작하도록 시험 준비를 보완했다. 실패 로그도 원자료에 남겼다.
 - 공개 Railway에서 실제 HTTPS, 두 WSS 접속, CJK와 Enter 입력의 상대방 관측, 강제 연결 종료 후 재접속 수렴, 오류 없는 데스크톱/모바일 화면을 확인했다. 440px로 축소한 가상 키보드 viewport에서 커서는 y=384px에 정착했다.
 
-[검증 기록](measurements/first-visit-2026-11-26/checks.json) · [글꼴 빌드 검증](measurements/first-visit-2026-11-26/font-build.log) · [공개 접속 결과](measurements/first-visit-2026-11-26/public-smoke.json)
+[검증 기록](measurements/first-visit-2026-11-26/checks.json) · [글꼴 빌드 검증](measurements/first-visit-2026-11-26/font-build.txt) · [공개 접속 결과](measurements/first-visit-2026-11-26/public-smoke.json)
 
 ## 원가와 공개 판단
 
