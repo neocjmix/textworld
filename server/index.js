@@ -1,9 +1,8 @@
 import http from 'node:http';
 import { randomUUID, randomInt, timingSafeEqual } from 'node:crypto';
 import { isIP } from 'node:net';
-import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { resolve, dirname, extname, sep } from 'node:path';
+import { resolve, dirname } from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
 import { createViewDelivery } from './view-delivery.js';
 import { encodeSnapshot } from './encode-view.js';
@@ -25,9 +24,9 @@ import { adaptOnline, stopResize } from './resize-online.js';
 import { localContinuity } from './local-continuity.js';
 import { translateTrail } from '../shared/relocation.js';
 import { CursorInput, remapWriting } from '../shared/cursor-input.js';
+import { createStaticAssets } from './static-assets.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
 const publicWorld = world => ({ width: world.width, height: world.height, epoch: world.epoch, textLayout: 2 });
 const errorRecord = error => ({ code: error.code || 'BAD_MESSAGE',
   message: error instanceof WorldError || error instanceof PolicyError || error.status ? error.message : '요청을 처리하지 못했습니다.',
@@ -57,6 +56,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   playtestToken = process.env.TEXTWORLD_PLAYTEST_TOKEN || '', playtestDirectory = resolve(dirname(storagePath), 'playtests') } = {}) {
   if (!Number.isSafeInteger(maxParticipants) || maxParticipants < 1) throw new RangeError('Invalid participant capacity');
   const world = new World({ storagePath, now });
+  const serveStatic = createStaticAssets(root);
   world.storagePath = storagePath;
   const outbound = { publicHttpBytes: 0, publicWebSocketBytes: 0 };
   const playtestResources = () => sampleResources(outbound);
@@ -315,7 +315,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     };
     res.write=function(chunk,...args){count(chunk,args[0]);return write.call(this,chunk,...args);};
     res.end=function(chunk,...args){count(chunk,args[0]);return end.call(this,chunk,...args);};
-    let accounted=false;const account=()=>{if(accounted)return;accounted=true;measurements.record(`http.${route}.ms`,performance.now()-started);measurements.record(`http.${route}.tx_bytes`,bytes);measurements.record(`http.${route}.status_${[200,201,202,204,400,401,403,404,405,413,415,429,500,503].includes(res.statusCode)?res.statusCode:'other'}`);if(!res.writableFinished)measurements.record(`http.${route}.aborted`);const rx=Number(req.headers['content-length']);if(Number.isSafeInteger(rx)&&rx>=0)measurements.record(`http.${route}.declared_rx_bytes`,rx);};
+    let accounted=false;const account=()=>{if(accounted)return;accounted=true;measurements.record(`http.${route}.ms`,performance.now()-started);measurements.record(`http.${route}.tx_bytes`,bytes);measurements.record(`http.${route}.status_${[200,201,202,204,304,400,401,403,404,405,413,415,429,500,503].includes(res.statusCode)?res.statusCode:'other'}`);if(!res.writableFinished)measurements.record(`http.${route}.aborted`);const rx=Number(req.headers['content-length']);if(Number.isSafeInteger(rx)&&rx>=0)measurements.record(`http.${route}.declared_rx_bytes`,rx);};
     res.once('finish',account);res.once('close',account);
     try {
       const url = new URL(req.url, 'http://textworld.local');
@@ -341,15 +341,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       if (url.pathname === '/health') return json(res, 200, { ok: true, world: publicWorld(world), peers: actors.size, capacity: maxParticipants,
         playtest: live?.state ?? 'disabled', revision: process.env.RAILWAY_GIT_COMMIT_SHA || null });
       if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Unsupported method' });
-      const decoded = decodeURIComponent(url.pathname);
-      const base = decoded.startsWith('/shared/') ? resolve(root, 'shared') : resolve(root, 'public');
-      const relative = decoded.startsWith('/shared/') ? decoded.slice(8) : decoded === '/' ? 'index.html' : decoded.slice(1);
-      const file = resolve(base, relative);
-      if (!file.startsWith(base + sep)) return json(res, 404, { error: 'Not found' });
-      const content = await readFile(file);
-      const versionedFont = /^\/fonts\/[A-Za-z0-9._-]+-\d+\.\d+\.\d+\.woff2$/.test(decoded);
-      res.writeHead(200, { 'Content-Type': mime[extname(file)] || 'application/octet-stream', 'Cache-Control': versionedFont ? 'public, max-age=31536000, immutable' : 'no-cache', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'same-origin' });
-      res.end(req.method === 'HEAD' ? undefined : content);
+      await serveStatic(req, res, url.pathname);
     } catch (error) {
       if (error.code === 'ENOENT' || error.code === 'EISDIR') return json(res, 404, { error: 'Not found' });
       const record = errorRecord(error);
