@@ -41,7 +41,7 @@ const cursorInput = new CursorInput(cursor);
 const writing = cursorInput.writing, nativeProjection = cursorInput.native;
 let nativeContext = 0;
 let zoom = 1, size = { width: 1, height: 1 }, connected = false, socket;
-let firstSnapshot = true, frame, reconnectTimer, noticeTimer;
+let firstSnapshot = true, frame, reconnectTimer, noticeTimer, reconnectAttempts = 0;
 let id = 0, pending = new Map(), actions = new Map(), navigationRevision = 0, gpsRequest = 0;
 let moveTimer, queuedMove;
 let composing = false, preedit = '', nativeInput, applyingNativeEdit = false;
@@ -691,6 +691,7 @@ function connect() {
   socket.onmessage = event => {
     const message = JSON.parse(event.data);
     if (message.type === 'snapshot') {
+      reconnectAttempts = 0;
       const wasConnected = connected, previousCursor = { ...cursor }, oldEpoch = world?.epoch;
       const sameSession = selfId === message.selfId;
       const resized = wasConnected && sameSession && oldEpoch !== message.world.epoch;
@@ -785,7 +786,9 @@ function connect() {
     cancelMove(); connection(false); resetComposition(); schedule();
     notice(pending.size ? '연결이 끊겼습니다. 전송 중이던 글자는 다시 연결한 뒤 확인해 주세요.' : '다시 연결하고 있습니다.');
     if (pending.size) writing.reset(cursor);
-    pending.clear(); actions.clear(); refreshLocalCells(); clearTimeout(reconnectTimer); reconnectTimer = setTimeout(connect, 1000);
+    pending.clear(); actions.clear(); refreshLocalCells(); clearTimeout(reconnectTimer);
+    const delay = Math.min(12000, 1000 * 2 ** Math.min(reconnectAttempts++, 4));
+    reconnectTimer = setTimeout(connect, delay * (.75 + Math.random() * .5));
   };
   socket.onerror = () => socket.close();
 }

@@ -154,12 +154,11 @@ function observationCost(world, rectangle, current, old, sameWorld) {
     && (contains(old.view, x, y, world) || old.cells.has(cellKey(x, y)));
   // Empty addresses convey information too. Count the entire primary view,
   // then its occupied, adjacent glyph halves without double-counting either.
-  for (let row = 0; row < rectangle.rows; row++) {
-    const y = wrap(rectangle.y + row, world.height);
-    for (let col = 0; col < rectangle.cols; col++) {
-      const x = wrap(rectangle.x + col, world.width);
-      if (!previouslyVisible(x, y)) cost++;
-    }
+  if (!sameWorld) cost = rectangle.rows * rectangle.cols;
+  else if (!sameRectangle(old.view, rectangle)) {
+    visitExposed(rectangle, old.view, world, (x, y) => {
+      if (!old.cells.has(cellKey(x, y))) cost++;
+    });
   }
   for (const cell of current.values()) {
     if (!contains(rectangle, cell.x, cell.y, world) && !previouslyVisible(cell.x, cell.y)) cost++;
@@ -199,15 +198,16 @@ export class Observer {
   /**
    * Synchronously capture one committed change before a later write or move.
    * The normal fixed-view path touches only its changed cells and one cursor.
-   * Small moves inspect entering and leaving strips; large pans and age-band
-   * transitions use the same baseline as a full read.
+   * Small moves inspect entering and leaving strips. The clock only changes
+   * the versions already visible to this participant.
    */
   change({ cells = [], peer, removed = false }, getPeers = () => []) {
     const { world, last } = this;
     const view = viewRectangle(world, this.peer, this.view);
     const now = world.now();
     const moved = last && !sameRectangle(last.view, view);
-    if (!last || last.epoch !== world.epoch || (moved && !smallMove(last.view, view, world)) || now >= this.nextFreshnessAt) {
+    const ageDue = now >= this.nextFreshnessAt;
+    if (!last || last.epoch !== world.epoch || (moved && !smallMove(last.view, view, world))) {
       const since = this.revision;
       const observation = this.read(getPeers(), { since });
       return observation.revision !== since || observation.reset ? observation : null;
@@ -267,20 +267,22 @@ export class Observer {
         if (!samePeer(previous, peer)) updatedPeers.push(peerRecord(peer));
       } else if (previous) departed.push(peer.id);
     }
-    if (!moved && !updates.length && !updatedPeers.length && !departed.length) return null;
+    const changed = moved || updates.length || updatedPeers.length || departed.length;
+    if (!changed && !ageDue) return null;
     // A failed budget check must leave the revision and all cache maps intact.
     this.charge(cost);
-    const delta = { partial: true, revision: ++this.revision, view, cells: [], forget: [], marks: [], unmark: [],
+    const delta = { partial: true, view, cells: [], forget: [], marks: [], unmark: [],
       freshness: {}, colors: {}, forgetVersions: [], peers: updatedPeers, departed };
     if (!last.counts) last.counts = versionCounts(last.cells.values(), last.marks.values());
     const lost = new Set();
+    const release = version => {
+      const remaining = last.counts.get(version) - 1;
+      if (remaining) last.counts.set(version, remaining);
+      else { last.counts.delete(version); lost.add(version); }
+    };
     for (const { key, oldCell, oldMark, cell, mark, source } of updates) {
       const old = oldCell || oldMark;
-      if (old) {
-        const remaining = last.counts.get(old.version) - 1;
-        if (remaining) last.counts.set(old.version, remaining);
-        else { last.counts.delete(old.version); lost.add(old.version); }
-      }
+      if (old) release(old.version);
       if (oldCell && !cell) { last.cells.delete(key); delta.forget.push({ x: oldCell.x, y: oldCell.y }); }
       if (cell) {
         last.cells.set(key, cell); delta.cells.push(cell);
@@ -296,15 +298,38 @@ export class Observer {
           delta.freshness[version] = band;
           delta.colors[version] = world.authorColors.get(source.author) || '#314137';
         }
+        if (last.freshness[version] !== band) delta.freshness[version] = band;
+        last.times.set(version, updatedAt);
         last.counts.set(version, (last.counts.get(version) || 0) + 1);
         last.freshness[version] = band;
         if (Number.isFinite(updatedAt)) this.nextFreshnessAt = Math.min(this.nextFreshnessAt,
           updatedAt + FRESHNESS.find(item => item.name === band).until);
       }
     }
-    for (const version of lost) if (!last.counts.has(version)) {
-      delete last.freshness[version]; delta.forgetVersions.push(version);
+    if (ageDue) {
+      this.nextFreshnessAt = Infinity;
+      for (const [version, stamp] of last.times) {
+        if (!last.counts.has(version) || !Number.isFinite(stamp)) continue;
+        const band = freshness(stamp, now);
+        if (last.freshness[version] !== band) {
+          delta.freshness[version] = band;
+          last.freshness[version] = band;
+        }
+        this.nextFreshnessAt = Math.min(this.nextFreshnessAt, stamp + FRESHNESS.find(item => item.name === band).until);
+      }
+      for (const [key, mark] of last.marks) if (!markVisible(last.freshness[mark.version])) {
+        last.marks.delete(key);
+        delta.unmark.push({ x: mark.x, y: mark.y });
+        release(mark.version);
+      }
     }
+    for (const version of lost) if (!last.counts.has(version)) {
+      last.times.delete(version);
+      delete last.freshness[version]; delete delta.freshness[version]; delete delta.colors[version];
+      delta.forgetVersions.push(version);
+    }
+    if (!changed && !delta.unmark.length && !Object.keys(delta.freshness).length) return null;
+    delta.revision = ++this.revision;
     last.view = view;
     this.ink += inkDelta;
     this.density = this.ink / (view.cols * view.rows);
@@ -322,13 +347,15 @@ export class Observer {
     const current = cellsInRectangle(world, rectangle, marks);
     let ink = 0;
     for (const cell of current.values()) ink += visibleInk(cell, rectangle, world);
-    const ages = {}, colors = {};
+    const ages = {}, colors = {}, times = new Map(), now = world.now();
     let nextFreshnessAt = Infinity;
     for (const cell of [...current.values(), ...marks]) {
+      if (times.has(cell.version)) continue;
       const original = world.getCell(cell.x, cell.y);
       const updatedAt = original?.updatedAt;
       if (original) colors[cell.version] = world.authorColors.get(original.author) || '#314137';
-      const band = freshness(updatedAt, world.now()); ages[cell.version] = band;
+      times.set(cell.version, updatedAt);
+      const band = freshness(updatedAt, now); ages[cell.version] = band;
       if (Number.isFinite(updatedAt)) nextFreshnessAt = Math.min(nextFreshnessAt, updatedAt + FRESHNESS.find(item => item.name === band).until);
     }
     const localPeers = peersInRectangle(world, peer, rectangle, peers);
@@ -352,7 +379,7 @@ export class Observer {
     // Snapshots own their records: mutation of a response cannot corrupt the
     // comparison baseline or manufacture observations in the next response.
     this.last = { epoch: world.epoch, width: world.width, height: world.height,
-      view: { ...rectangle }, marks: byAddress(marks), freshness: { ...ages },
+      view: { ...rectangle }, marks: byAddress(marks), times, freshness: { ...ages },
       cells: byAddress([...current.values()]), peers: byId(localPeers), counts: null };
     return { revision: this.revision, reset: !!reset, view: rectangle,
       cells: reset ? [...current.values()] : cells, forget: reset ? [] : forget, marks: marks.map(mark => ({ ...mark })), freshness: ages, colors, peers: localPeers };

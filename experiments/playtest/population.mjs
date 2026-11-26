@@ -120,8 +120,8 @@ export class Population {
     }));
     socket.on('error', () => { this.stats.transportErrors++; });
     socket.on('unexpected-response', (_request, res) => {
-      if (res.statusCode === 429) {
-        this.stats.rateLimited++;
+      if (res.statusCode === 429 || res.statusCode === 503) {
+        if (res.statusCode === 429) this.stats.rateLimited++;
         const delay = Number(res.headers['retry-after']) || 1;
         this.nextAdmission = Math.max(this.nextAdmission, performance.now() + delay * 1000 + 350 * this.spread * random());
       }

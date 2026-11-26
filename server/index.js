@@ -49,11 +49,12 @@ export function networkKey(req, trustProxy = false) {
 }
 
 export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || resolve(root, 'data/world.sqlite'),
-  now = Date.now, policyNow = () => performance.now(),
+  now = Date.now, policyNow = () => performance.now(), maxParticipants = 300,
   metricsPath, metricsToken = process.env.TEXTWORLD_METRICS_TOKEN || '', metricsEnabled = true,
   trustProxy = process.env.TEXTWORLD_TRUST_PROXY || (process.env.RAILWAY_ENVIRONMENT_ID ? 'railway' : false),
   identifyNetwork = req => networkKey(req, trustProxy),
   playtestToken = process.env.TEXTWORLD_PLAYTEST_TOKEN || '', playtestDirectory = resolve(dirname(storagePath), 'playtests') } = {}) {
+  if (!Number.isSafeInteger(maxParticipants) || maxParticipants < 1) throw new RangeError('Invalid participant capacity');
   const world = new World({ storagePath, now });
   world.storagePath = storagePath;
   const outbound = { publicHttpBytes: 0, publicWebSocketBytes: 0 };
@@ -210,6 +211,10 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   const runTurn=runner.run.bind(runner);runner.run=async(...args)=>{const started=performance.now();try{const result=await runTurn(...args);measurements.record('turn.'+result.status);measurements.record('turn.steps',result.completedSteps);return result;}catch(error){measurements.record('turn.error');throw error;}finally{measurements.record('turn.ms',performance.now()-started);}};
   const createActor = (req, { name, view, position } = {}) => {
     const acceptedView = validateView(view);
+    if (actors.size >= maxParticipants) {
+      measurements.record('admission.full');
+      throw new PolicyError('WORLD_FULL', '현재 세계가 만원입니다. 잠시 뒤 다시 접속해 주세요.', { status: 503, retryAfterMs: 5000 });
+    }
     if (world.usedColors.size >= 113 ** 3) throw new PolicyError('COLOR_CAPACITY', '새 사용자 색을 배정할 수 없습니다.', { status: 503 });
     const network = networks.acquire(live?.network(req) ?? identifyNetwork(req));
     const usedColors = world.usedColors;
@@ -297,7 +302,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       }
       if (await mcp.handle(req, res, url)) return;
       if (await agentHTTP.handle(req, res, url)) return;
-      if (url.pathname === '/health') return json(res, 200, { ok: true, world: publicWorld(world), peers: actors.size,
+      if (url.pathname === '/health') return json(res, 200, { ok: true, world: publicWorld(world), peers: actors.size, capacity: maxParticipants,
         playtest: live?.state ?? 'disabled', revision: process.env.RAILWAY_GIT_COMMIT_SHA || null });
       if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Unsupported method' });
       const decoded = decodeURIComponent(url.pathname);
@@ -457,7 +462,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   };
   const aging = setInterval(() => {
     if (!cleanupContinuation) cleanup();
-    for (const [socket, actor] of clients) if (world.now() >= actor.observer.nextFreshnessAt) scopedUpdate(socket, actor);
+    for (const [socket, actor] of clients) if (world.now() >= actor.observer.nextFreshnessAt) scopedUpdate(socket, actor, { delta: {} });
     for (const [actor, listener] of listeners) if (world.now() >= actor.observer.nextFreshnessAt) listener();
   }, 5000);
   const adaptation = setInterval(async () => {

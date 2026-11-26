@@ -277,10 +277,16 @@ test('incremental WS views preserve overwrites, deletion marks, cursor moves and
   assert.deepEqual(advance({ peer: Object.assign(visitor, { x: 20 }) }).departed, ['visitor']);
   assert.equal(fullReads, 0, 'stable-view events never request the local or global peer list');
   self.x = 1; advance({ peer: self });
-  now += 20000; advance({});
+  now += 20000;
+  const fade = advance({});
+  assert.ok(fade.partial);
+  assert.deepEqual(fade.cells, []);
+  assert.deepEqual(fade.peers, []);
+  assert.deepEqual(fade.colors, {});
+  assert.ok(Object.values(fade.freshness).includes('recent'));
   advance(world.erase({ author: 'writer', id: 'delete-wide', epoch: world.epoch, x: 0, y: 1 }));
   now += 91000; advance({});
-  assert.equal(fullReads, 3, 'only the moving viewer and timed age transitions need a peer query');
+  assert.equal(fullReads, 1, 'only moving the viewer needs the peer list');
 });
 
 test('incremental rejection preserves the prior revision, addresses and closure cost on retry', t => {

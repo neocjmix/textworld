@@ -1,16 +1,16 @@
 import { z } from 'zod';
 
 export const roles = ['writers', 'walkers', 'readers'];
-export const maxActors = 48;
+export const maxActors = 300;
 const integer = (min, max) => z.number().int().min(min).max(max);
 const counts = Object.fromEntries(roles.map(role => [role, integer(0, maxActors)]));
 const withinPeak = value => roles.reduce((n, role) => n + value[role], 0) <= maxActors;
-export const target = z.strictObject(counts).refine(withinPeak, '한 번에 최대 48명입니다.');
+export const target = z.strictObject(counts).refine(withinPeak, `한 번에 최대 ${maxActors}명입니다.`);
 export const writingPattern = z.enum(['new-cells', 'overwrite']);
 const phase = z.strictObject({
   name: z.string().trim().min(1).max(60), seconds: integer(1, 3600), ...counts,
   writing: writingPattern.default('new-cells'), actionIntervalMs: integer(650, 10000).default(850),
-}).refine(withinPeak, '한 번에 최대 48명입니다.');
+}).refine(withinPeak, `한 번에 최대 ${maxActors}명입니다.`);
 export const scenario = z.strictObject({
   seed: integer(0, 0xffffffff),
   jitterRatio: z.number().min(0).max(.6).default(.3),
