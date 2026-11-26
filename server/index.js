@@ -511,13 +511,16 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     }
   }, 15000);
   // Only visible age-band transitions produce packets; no per-frame age updates.
-  let cleanupContinuation;
+  let cleanupContinuation, agingContinuation;
   const cleanup = () => {
     const started = performance.now();
     let more = false;
     try {
-      const deleted = expire(world, publish, EXPIRY_BATCH, lag => measurements.record('expiration.lag_ms', lag));
-      more = pruneRecords(world) || deleted >= EXPIRY_BATCH;
+      // A deletion is broadcast synchronously before the next write. Keep each
+      // such boundary short even when a thousand viewers share the same area.
+      const batch = Math.min(EXPIRY_BATCH, 16);
+      const deleted = expire(world, publish, batch, lag => measurements.record('expiration.lag_ms', lag));
+      more = pruneRecords(world) || deleted >= batch;
       measurements.record('expiration.deleted_cells', deleted);
       measurements.record('expiration.batch_full', Number(more));
     } catch (error) { console.error('World cleanup failed:', error.message); }
@@ -527,10 +530,26 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       cleanup();
     });
   };
+  const advanceAges = iterator => {
+    const started = performance.now();
+    for (let item = iterator.next(); !item.done; item = iterator.next()) {
+      const actor = item.value;
+      if (!actor.closed && world.now() >= actor.observer.nextFreshnessAt) {
+        if (actor.socket) scopedUpdate(actor.socket, actor, { delta: {} });
+        else listeners.get(actor)?.();
+      }
+      if (performance.now() - started >= 4) {
+        agingContinuation = setImmediate(() => {
+          agingContinuation = undefined;
+          advanceAges(iterator);
+        });
+        return;
+      }
+    }
+  };
   const aging = setInterval(() => {
     if (!cleanupContinuation) cleanup();
-    for (const [socket, actor] of clients) if (world.now() >= actor.observer.nextFreshnessAt) scopedUpdate(socket, actor, { delta: {} });
-    for (const [actor, listener] of listeners) if (world.now() >= actor.observer.nextFreshnessAt) listener();
+    if (!agingContinuation) advanceAges(actors.values());
   }, 5000);
   const adaptation = setInterval(async () => {
     if (world.resizeJob) return;
@@ -558,7 +577,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     server, world, wss, measurements, playtestResources,
     listen: (port = 3000, host = '0.0.0.0') => new Promise(resolve => server.listen(port, host, () => resolve(server.address()))),
     close: async () => {
-      closing = true; clearInterval(measurementTimer); clearInterval(heartbeat); clearInterval(adaptation); clearInterval(aging); clearImmediate(cleanupContinuation);
+      closing = true; clearInterval(measurementTimer); clearInterval(heartbeat); clearInterval(adaptation); clearInterval(aging); clearImmediate(cleanupContinuation); clearImmediate(agingContinuation);
       await live?.close();
       await stopResize(world);
       agentHTTP.close(); await runner.shutdown(); await mcp.close();
