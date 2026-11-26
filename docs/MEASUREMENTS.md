@@ -59,7 +59,7 @@ HTTP는 `GET /api/metrics?period=60|3600&since=...&before=...&limit=...`, Bearer
 
 첫 코드 고정 benchmark의 실제 결과와 해석은 [기준 기록](measurements/BASELINE.md)에 있고, 전체72개 집계도 저장소에 보존한다. 비용 보고서는 정적 자산 bytes와 동적 application bytes를 분리한다. 최초 글꼴 로딩이 많은 짧은 구간을 계속 활동하는 세션과 혼동하지 않는다.
 
-만료 실험은 5초 sweep마다 `expiration.ms`, `expiration.deleted_cells`, `expiration.batch_full`을 집계한다. batch_full은 삭제된 셀이 500개 이상인 실행 횟수의 지표이며 두 칸 문자의 경우 셀 수와 후보 글자 수가 다르다. 전체 순회의 시간과 적체 가능성을 살펴본다.
+5초마다 만료 검사를 시작하고, 적체가 있으면 이벤트 루프에 제어를 돌려준 뒤 다음 소량 묶음을 처리한다. 각 묶음에서 만료·기록 정리 시간(`expiration.ms`), 지워진 칸 수(`expiration.deleted_cells`), 정리 연속 실행 여부(`expiration.batch_full`)를 집계한다. 후보가 있는 묶음에는 가장 오래된 글자가 안전한 만료 시점(공유 시각 + 185초)을 넘긴 시간(`expiration.lag_ms`)도 기록한다.
 
 점진적 resize의 `topology.adapt_ms`, `topology.search_deferred`, `topology.forced`로 후보 탐색 지연과 보류·강제 변경을 관찰한다.
 
@@ -95,3 +95,5 @@ HTTP는 `GET /api/metrics?period=60|3600&since=...&before=...&limit=...`, Bearer
 ## 트래픽 단계의 진입 판단 — 2026-11-16
 
 [단계별 계획](SCALING_ROADMAP.md)에 단일 서버 유지, 접속 처리 분리, 세계 처리 분산, 운영 자동화의 진입 조건을 정했다. 문서의 인원 범위는 계획 예시이며 실측 수용 인원이 아니다. 우선 50ms 묶음에서 입력 수신→전송 준비 p95 100ms 이내, 지속적인 대기열 증가 없음, 정상 구독 중 누락 없음과 1시간 만료/저장량 안정성을 검증 목표로 둔다. 예상 피크와 1.5배 부하를 같은 시야·행동 제한으로 비교하고, 실패 원인이 다음 구조를 결정한다. 단계별 추가 자원 비용도 함께 기록한다. 이번 계획 정리에서는 새 성능 시험을 실행하지 않았다.
+
+묶음 연결의 `delivery.ready_ms`는 WebSocket 입력 콜백 시작부터 각 시야 변경의 전송 준비까지의 시간이다. 만료 등 입력 콜백 밖에서 발생한 변경은 대기열에 넣는 시점부터 잰다. `delivery.over_100ms`의 평균은 100ms를 넘긴 변경의 비율이고, `delivery.batch_events`는 묶음당 변경 수다. `delivery.undelivered_events`는 이미 닫혔거나 전송할 수 없는 소켓에 남은 관측 수를 합산한다. 정상 송신 이후 상대가 받은 시점은 합성 클라이언트에서 별도로 측정한다. `delivery.sync_requests`는 snapshot 재요청 횟수이며, 사용자 요청과 복구를 위한 요청이 모두 포함된다.

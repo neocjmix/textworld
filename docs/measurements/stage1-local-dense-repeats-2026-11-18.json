@@ -1,0 +1,379 @@
+{
+  "at": "2026-11-18T16:30:49.465Z",
+  "revision": "4b71230bee2534d2638433dd0df27399c29fef32",
+  "dirty": false,
+  "node": "v24.22.1",
+  "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+  "cpuQuota": "400000 100000",
+  "durationMs": 12000,
+  "scope": "Local loopback, separate processes, on-disk SQLite. Fixed world clock unless liveClock enabled. Bytes include final drain. Remote time ends at decoded client observation. No TLS, browser draw or hosting overhead.",
+  "results": [
+    {
+      "peers": 16,
+      "active": 16,
+      "rate": 1,
+      "layout": "hotspot",
+      "action": "mixed",
+      "batch": true,
+      "sourceDigest": "2713a38b610237e4d052464b9d480fdc8c97f4989fe6fbc320ccccb85c09adeb",
+      "view": [
+        160,
+        48
+      ],
+      "durationMs": 12000,
+      "offeredPerSecond": 16,
+      "sent": 192,
+      "acks": 192,
+      "pendingAtOfferEnd": 0,
+      "pendingAfterDrain": 0,
+      "drainMs": 0.001,
+      "readerDrainMs": 252.429,
+      "ackP50Ms": 4.467,
+      "ackP95Ms": 17.26,
+      "ackMaxMs": 92.041,
+      "ackP99Ms": 32.518,
+      "batchFrames": 2800,
+      "innerMessages": 3072,
+      "viewRecords": 3072,
+      "expectedViewRecords": 3072,
+      "revisionGaps": 0,
+      "revisionRegressions": 0,
+      "resets": 0,
+      "queueSamples": [
+        {
+          "elapsedMs": 1002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 3001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 4002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 5002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 6000,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 7002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 8002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 9001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 10001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 11001,
+          "pending": 0
+        }
+      ],
+      "confirmedWrites": 128,
+      "uncorrelatedWriteAcks": 0,
+      "remoteObserved": 1920,
+      "missingVisibleWriteDeliveries": 0,
+      "outsideViewWriteDeliveries": 0,
+      "ownMissing": 0,
+      "remoteReceivedP95Ms": 72.959,
+      "scheduledP95Ms": 25.598,
+      "generatorSendP95Ms": 4.33,
+      "errors": {},
+      "disconnects": 0,
+      "receivedBytes": 2030867,
+      "receivedMessages": 2992,
+      "expiredGlyphs": 0,
+      "expirationAgeP95Ms": null,
+      "expirationAgeMaxMs": null,
+      "elapsedMs": 12251.806,
+      "cpuMs": 1363.836,
+      "rssBytes": 143519744,
+      "eventLoopP99Ms": 40.927,
+      "readyP95Ms": 67.583,
+      "readyCount": 3072,
+      "storage": [],
+      "world": {
+        "width": 512,
+        "height": 256,
+        "epoch": 2,
+        "seq": 145,
+        "textLayout": 2
+      },
+      "ink": 8191,
+      "metrics": {
+        "commit.ms": {
+          "count": 128,
+          "sum": 273.32017600000154,
+          "min": 0.6519509999998263,
+          "max": 10.858561999999438,
+          "mean": 2.135313875000012,
+          "p95Upper": 8
+        },
+        "ws.buffered_bytes": {
+          "count": 2992,
+          "sum": 0,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "p95Upper": 1
+        },
+        "presence.ms": {
+          "count": 192,
+          "sum": 499.04234100000576,
+          "min": 0.8019899999999325,
+          "max": 19.414577000000463,
+          "mean": 2.59917885937503,
+          "p95Upper": 8
+        },
+        "presence.recipients": {
+          "count": 192,
+          "sum": 3072,
+          "min": 16,
+          "max": 16,
+          "mean": 16,
+          "p95Upper": 16
+        },
+        "delivery.over_100ms": {
+          "count": 3072,
+          "sum": 0,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "p95Upper": 1
+        },
+        "delivery.batch_events": {
+          "count": 2800,
+          "sum": 3072,
+          "min": 1,
+          "max": 3,
+          "mean": 1.0971428571428572,
+          "p95Upper": 2
+        },
+        "topology.adapt_ms": {
+          "count": 13,
+          "sum": 4.67784100000199,
+          "min": 0.0896589999997559,
+          "max": 1.6080540000002657,
+          "mean": 0.3598339230770762,
+          "p95Upper": 2
+        },
+        "expiration.deleted_cells": {
+          "count": 2,
+          "sum": 0,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "p95Upper": 1
+        },
+        "expiration.ms": {
+          "count": 2,
+          "sum": 5.346596999999747,
+          "min": 2.1550630000001547,
+          "max": 3.191533999999592,
+          "mean": 2.6732984999998735,
+          "p95Upper": 4
+        }
+      }
+    },
+    {
+      "peers": 16,
+      "active": 16,
+      "rate": 1,
+      "layout": "hotspot",
+      "action": "mixed",
+      "batch": true,
+      "sourceDigest": "2713a38b610237e4d052464b9d480fdc8c97f4989fe6fbc320ccccb85c09adeb",
+      "view": [
+        160,
+        48
+      ],
+      "durationMs": 12000,
+      "offeredPerSecond": 16,
+      "sent": 192,
+      "acks": 192,
+      "pendingAtOfferEnd": 0,
+      "pendingAfterDrain": 0,
+      "drainMs": 0.001,
+      "readerDrainMs": 253.991,
+      "ackP50Ms": 4.585,
+      "ackP95Ms": 29.424,
+      "ackMaxMs": 127.075,
+      "ackP99Ms": 93.19,
+      "batchFrames": 2816,
+      "innerMessages": 3072,
+      "viewRecords": 3072,
+      "expectedViewRecords": 3072,
+      "revisionGaps": 0,
+      "revisionRegressions": 0,
+      "resets": 0,
+      "queueSamples": [
+        {
+          "elapsedMs": 1001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 2002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 3010,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 4001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 5001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 6002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 7001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 8001,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 9002,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 10004,
+          "pending": 0
+        },
+        {
+          "elapsedMs": 11001,
+          "pending": 0
+        }
+      ],
+      "confirmedWrites": 128,
+      "uncorrelatedWriteAcks": 0,
+      "remoteObserved": 1920,
+      "missingVisibleWriteDeliveries": 0,
+      "outsideViewWriteDeliveries": 0,
+      "ownMissing": 0,
+      "remoteReceivedP95Ms": 78.143,
+      "scheduledP95Ms": 35.819,
+      "generatorSendP95Ms": 3.53,
+      "errors": {},
+      "disconnects": 0,
+      "receivedBytes": 2031331,
+      "receivedMessages": 3008,
+      "expiredGlyphs": 0,
+      "expirationAgeP95Ms": null,
+      "expirationAgeMaxMs": null,
+      "elapsedMs": 12250.652,
+      "cpuMs": 1702.203,
+      "rssBytes": 141832192,
+      "eventLoopP99Ms": 49.349,
+      "readyP95Ms": 75.327,
+      "readyCount": 3072,
+      "storage": [],
+      "world": {
+        "width": 512,
+        "height": 256,
+        "epoch": 2,
+        "seq": 145,
+        "textLayout": 2
+      },
+      "ink": 8191,
+      "metrics": {
+        "commit.ms": {
+          "count": 128,
+          "sum": 285.89606099999946,
+          "min": 0.7116590000000542,
+          "max": 17.86494700000003,
+          "mean": 2.233562976562496,
+          "p95Upper": 8
+        },
+        "ws.buffered_bytes": {
+          "count": 3008,
+          "sum": 0,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "p95Upper": 1
+        },
+        "presence.ms": {
+          "count": 192,
+          "sum": 612.463380999998,
+          "min": 1.0912369999996372,
+          "max": 23.884128000000146,
+          "mean": 3.1899134427083227,
+          "p95Upper": 16
+        },
+        "presence.recipients": {
+          "count": 192,
+          "sum": 3072,
+          "min": 16,
+          "max": 16,
+          "mean": 16,
+          "p95Upper": 16
+        },
+        "delivery.over_100ms": {
+          "count": 3072,
+          "sum": 47,
+          "min": 0,
+          "max": 1,
+          "mean": 0.015299479166666666,
+          "p95Upper": 1
+        },
+        "delivery.batch_events": {
+          "count": 2816,
+          "sum": 3072,
+          "min": 1,
+          "max": 3,
+          "mean": 1.0909090909090908,
+          "p95Upper": 2
+        },
+        "topology.adapt_ms": {
+          "count": 12,
+          "sum": 2.833594999998695,
+          "min": 0.08335600000009435,
+          "max": 1.0265620000000126,
+          "mean": 0.23613291666655792,
+          "p95Upper": 2
+        },
+        "expiration.deleted_cells": {
+          "count": 2,
+          "sum": 0,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "p95Upper": 1
+        },
+        "expiration.ms": {
+          "count": 2,
+          "sum": 5.717153999999937,
+          "min": 2.1006259999994654,
+          "max": 3.6165280000004714,
+          "mean": 2.8585769999999684,
+          "p95Upper": 4
+        }
+      }
+    }
+  ],
+  "environmentNote": "Two prespecified follow-up runs of the 16-connection dense mixed case that exceeded the 100 ms internal p95 target in the 8-case matrix. Same fixture, affinity, 12 s offering, pinned release and concurrent real-hour soak. Read with first result in stage1-local-release-2026-11-18.json."
+}

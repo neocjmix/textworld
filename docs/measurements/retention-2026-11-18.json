@@ -1,0 +1,319 @@
+{
+  "dateUTC": "2026-11-18",
+  "sourceCommit": "a4a5ed50fe690c53482f14f6ff1f29a046bf6d96",
+  "phase": "stage 1 single-server retention",
+  "node": "v24.22.1",
+  "method": "File-backed SQLite/WAL, synchronous=FULL. Accelerated world clock. One application write per participant per world second, overwriting the origin on even operations and visiting successive slots on odd operations. Every 5 world seconds drain bounded expiry and retention pages. One hour per rate. Reopen the database and compare all application cell fields and world metadata after each hour.",
+  "scope": "No WebSockets, resize or elapsed wall-clock performance in this experiment. logical expiration lag is measured against the injected world clock.",
+  "sources": {
+    "experiments/retention.mjs": "b06937638e7d23d8893a729da100714574fcdc11",
+    "server/world.js": "c156af60e628c77f21928e41fe3005f62f92c7c7",
+    "server/retention.js": "b7b0b15aedd17366564f355c8887d391216aeaaa",
+    "server/expiration.js": "d5a0c799769aa4efef6be44b13b0a991b5185e77"
+  },
+  "pageSizeBytes": 4096,
+  "runs": [
+    {
+      "writesPerSecond": 32,
+      "writes": 115200,
+      "restartVerified": true,
+      "samples": [
+        {
+          "rate": 32,
+          "minute": 5,
+          "history": 20507,
+          "receipts": 9488,
+          "clocks": 60,
+          "cells": 8002,
+          "occupied": 4801,
+          "maxLagMs": 0,
+          "pages": 1699,
+          "freePages": 10
+        },
+        {
+          "rate": 32,
+          "minute": 10,
+          "history": 25308,
+          "receipts": 9560,
+          "clocks": 61,
+          "cells": 12802,
+          "occupied": 4801,
+          "maxLagMs": 0,
+          "pages": 2354,
+          "freePages": 31
+        },
+        {
+          "rate": 32,
+          "minute": 15,
+          "history": 25308,
+          "receipts": 9560,
+          "clocks": 61,
+          "cells": 12802,
+          "occupied": 4801,
+          "maxLagMs": 0,
+          "pages": 2392,
+          "freePages": 38
+        },
+        {
+          "rate": 32,
+          "minute": 20,
+          "history": 25308,
+          "receipts": 9560,
+          "clocks": 61,
+          "cells": 12802,
+          "occupied": 4801,
+          "maxLagMs": 0,
+          "pages": 2405,
+          "freePages": 31
+        },
+        {
+          "rate": 32,
+          "minute": 25,
+          "history": 25308,
+          "receipts": 9560,
+          "clocks": 61,
+          "cells": 12802,
+          "occupied": 4801,
+          "maxLagMs": 0,
+          "pages": 2420,
+          "freePages": 43
+        },
+        {
+          "rate": 32,
+          "minute": 30,
+          "history": 25308,
+          "receipts": 9560,
+          "clocks": 61,
+          "cells": 12802,
+          "occupied": 4801,
+          "maxLagMs": 0,
+          "pages": 2423,
+          "freePages": 35
+        },
+        {
+          "rate": 32,
+          "minute": 35,
+          "history": 25308,
+          "receipts": 9560,
+          "clocks": 61,
+          "cells": 12802,
+          "occupied": 4801,
+          "maxLagMs": 0,
+          "pages": 2423,
+          "freePages": 44
+        },
+        {
+          "rate": 32,
+          "minute": 40,
+          "history": 25308,
+          "receipts": 9560,
+          "clocks": 61,
+          "cells": 12802,
+          "occupied": 4801,
+          "maxLagMs": 0,
+          "pages": 2430,
+          "freePages": 41
+        },
+        {
+          "rate": 32,
+          "minute": 45,
+          "history": 25308,
+          "receipts": 9560,
+          "clocks": 61,
+          "cells": 12802,
+          "occupied": 4801,
+          "maxLagMs": 0,
+          "pages": 2430,
+          "freePages": 44
+        },
+        {
+          "rate": 32,
+          "minute": 50,
+          "history": 25308,
+          "receipts": 9560,
+          "clocks": 61,
+          "cells": 12802,
+          "occupied": 4801,
+          "maxLagMs": 0,
+          "pages": 2430,
+          "freePages": 41
+        },
+        {
+          "rate": 32,
+          "minute": 55,
+          "history": 25308,
+          "receipts": 9560,
+          "clocks": 61,
+          "cells": 12802,
+          "occupied": 4801,
+          "maxLagMs": 0,
+          "pages": 2430,
+          "freePages": 37
+        },
+        {
+          "rate": 32,
+          "minute": 60,
+          "history": 25308,
+          "receipts": 9560,
+          "clocks": 61,
+          "cells": 12802,
+          "occupied": 4801,
+          "maxLagMs": 0,
+          "pages": 2430,
+          "freePages": 40
+        }
+      ]
+    },
+    {
+      "writesPerSecond": 48,
+      "writes": 172800,
+      "restartVerified": true,
+      "samples": [
+        {
+          "rate": 48,
+          "minute": 5,
+          "history": 30760,
+          "receipts": 14208,
+          "clocks": 60,
+          "cells": 12002,
+          "occupied": 7201,
+          "maxLagMs": 0,
+          "pages": 2543,
+          "freePages": 13
+        },
+        {
+          "rate": 48,
+          "minute": 10,
+          "history": 37960,
+          "receipts": 14280,
+          "clocks": 60,
+          "cells": 19202,
+          "occupied": 7201,
+          "maxLagMs": 0,
+          "pages": 3519,
+          "freePages": 42
+        },
+        {
+          "rate": 48,
+          "minute": 15,
+          "history": 37960,
+          "receipts": 14280,
+          "clocks": 60,
+          "cells": 19202,
+          "occupied": 7201,
+          "maxLagMs": 0,
+          "pages": 3558,
+          "freePages": 45
+        },
+        {
+          "rate": 48,
+          "minute": 20,
+          "history": 37960,
+          "receipts": 14280,
+          "clocks": 60,
+          "cells": 19202,
+          "occupied": 7201,
+          "maxLagMs": 0,
+          "pages": 3566,
+          "freePages": 45
+        },
+        {
+          "rate": 48,
+          "minute": 25,
+          "history": 37960,
+          "receipts": 14280,
+          "clocks": 60,
+          "cells": 19202,
+          "occupied": 7201,
+          "maxLagMs": 0,
+          "pages": 3566,
+          "freePages": 47
+        },
+        {
+          "rate": 48,
+          "minute": 30,
+          "history": 37960,
+          "receipts": 14280,
+          "clocks": 60,
+          "cells": 19202,
+          "occupied": 7201,
+          "maxLagMs": 0,
+          "pages": 3566,
+          "freePages": 54
+        },
+        {
+          "rate": 48,
+          "minute": 35,
+          "history": 37960,
+          "receipts": 14280,
+          "clocks": 60,
+          "cells": 19202,
+          "occupied": 7201,
+          "maxLagMs": 0,
+          "pages": 3566,
+          "freePages": 61
+        },
+        {
+          "rate": 48,
+          "minute": 40,
+          "history": 37960,
+          "receipts": 14280,
+          "clocks": 60,
+          "cells": 19202,
+          "occupied": 7201,
+          "maxLagMs": 0,
+          "pages": 3575,
+          "freePages": 51
+        },
+        {
+          "rate": 48,
+          "minute": 45,
+          "history": 37960,
+          "receipts": 14280,
+          "clocks": 60,
+          "cells": 19202,
+          "occupied": 7201,
+          "maxLagMs": 0,
+          "pages": 3586,
+          "freePages": 42
+        },
+        {
+          "rate": 48,
+          "minute": 50,
+          "history": 37960,
+          "receipts": 14280,
+          "clocks": 60,
+          "cells": 19202,
+          "occupied": 7201,
+          "maxLagMs": 0,
+          "pages": 3586,
+          "freePages": 58
+        },
+        {
+          "rate": 48,
+          "minute": 55,
+          "history": 37960,
+          "receipts": 14280,
+          "clocks": 60,
+          "cells": 19202,
+          "occupied": 7201,
+          "maxLagMs": 0,
+          "pages": 3586,
+          "freePages": 56
+        },
+        {
+          "rate": 48,
+          "minute": 60,
+          "history": 37960,
+          "receipts": 14280,
+          "clocks": 60,
+          "cells": 19202,
+          "occupied": 7201,
+          "maxLagMs": 0,
+          "pages": 3586,
+          "freePages": 66
+        }
+      ]
+    }
+  ]
+}

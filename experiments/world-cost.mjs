@@ -1,6 +1,7 @@
-// Local engine-only costs: synchronous automatic growth and retained history.
+// Local engine-only costs: online automatic growth and retained history.
 // Uses disposable on-disk SQLite; no network or production state is touched.
 import { World } from '../server/world.js';
+import { adaptOnline } from '../server/resize-online.js';
 import { expire } from '../server/expiration.js';
 import { DensityController } from '../server/density.js';
 import { mkdtemp, rm, mkdir, writeFile, readFile } from 'node:fs/promises';
@@ -22,9 +23,17 @@ for(const [width,height] of [[128,64],[512,256],[896,448]]) for(let trial=0;tria
     }
     world.densityController=new DensityController(now,world.ink);
     const occupied=world.ink,cpu=process.cpuUsage(),start=performance.now();
-    const result=world.adapt([],{cooldown:0,seed:100+trial});
+    let sliceMaxMs=0,cutoverMs=0,lastTick=performance.now(),maxTimerGapMs=0;
+    const tick=()=>{const time=performance.now();maxTimerGapMs=Math.max(maxTimerGapMs,time-lastTick);lastTick=time;};
+    const timer=setInterval(tick,5);
+    const resize=world.resize.bind(world);
+    world.resize=(...args)=>{const at=performance.now();try{return resize(...args);}finally{cutoverMs=performance.now()-at;}};
+    let result;
+    try { result=await adaptOnline(world,()=>[],{cooldown:0,seed:100+trial,
+      record:(_name,ms)=>{sliceMaxMs=Math.max(sliceMaxMs,ms);}}); }
+    finally {clearInterval(timer);tick();}
     const elapsedMs=performance.now()-start,used=process.cpuUsage(cpu);
-    growth.push({trial,from:[width,height],occupied,to:[world.width,world.height],elapsedMs,cpuMs:(used.user+used.system)/1000,
+    growth.push({trial,from:[width,height],occupied,to:[world.width,world.height],elapsedMs,sliceMaxMs,cutoverMs,maxTimerGapMs,cpuMs:(used.user+used.system)/1000,
       changed:result.changed,preservation:result.preservation,lostTextCells:result.lostTextCells,rssBytes:process.memoryUsage().rss});
     console.log(JSON.stringify(growth.at(-1)));
   } finally {world.close();await rm(dir,{recursive:true,force:true});}
@@ -53,4 +62,4 @@ try {
 await mkdir('artifacts',{recursive:true});
 await writeFile('artifacts/world-cost.json',JSON.stringify({at:new Date().toISOString(),revision:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
   node:process.version,cpu:cpus()[0]?.model,cpuQuota:(await readFile('/sys/fs/cgroup/cpu.max','utf8')).trim(),
-  scope:'Local engine, on-disk SQLite; growth excludes participant correction, observation fanout, sockets and browsers. Row-seeded ASCII at 1/7 density. History uses 5000 single Korean glyph overwrites of one address.',growth,retention},null,2));
+  scope:'Local engine, on-disk SQLite; growth measures the real async density path and sampled 5ms timer gap; excludes participant correction, observation fanout, sockets and browsers. Row-seeded ASCII at 1/7 density. History uses 5000 single Korean glyph overwrites of one address.',growth,retention},null,2));

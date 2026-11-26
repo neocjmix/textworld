@@ -140,7 +140,11 @@ async function scenario(name, run, { mobile = false, x = 10, y = 8, seed = [], l
   for (const [item, messages] of [[page, actorMessages], [observer, observerMessages]]) {
     item.setDefaultTimeout(6000);
     item.on('pageerror', error => errors.push(error.message));
-    item.on('websocket', socket => socket.on('framereceived', frame => messages.push(JSON.parse(frame.payload.toString()))));
+    item.on('websocket', socket => socket.on('framereceived', frame => {
+      const message = JSON.parse(frame.payload.toString());
+      if (message.type === 'batch') messages.push(...message.messages);
+      else messages.push(message);
+    }));
   }
   try {
     const url = `http://127.0.0.1:${port}/#x=${x}&y=${y}`;
