@@ -7,8 +7,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
-import { WebSocket } from 'ws';
+import { WebSocket, WebSocketServer } from 'ws';
 import { scenario, target } from '../experiments/playtest/scenario.mjs';
+import { startTraffic } from '../experiments/playtest/traffic.mjs';
+import { graphemes } from '../shared/world.js';
 
 const script = fileURLToPath(new URL('../experiments/playtest/run.mjs', import.meta.url));
 const plan = {
@@ -57,6 +59,42 @@ test('only finite plans, positive budgets and bounded role targets are accepted'
   assert.equal(scenario.safeParse({ ...plan, budget: { ...plan.budget, botMinutes: 0 } }).success, false);
   assert.equal(scenario.safeParse({ ...plan, phases: [{ ...plan.phases[0], seconds: 3600 }, plan.phases[1]] }).success, false);
   assert.equal(target.safeParse({ writers: 24, walkers: 24, readers: 1 }).success, false);
+  assert.equal(scenario.parse(plan).jitterRatio, .3);
+  assert.equal(scenario.safeParse({ ...plan, jitterRatio: .61 }).success, false);
+});
+
+test('a writer sends one grapheme at a time and rests after a delayed acknowledgement', async t => {
+  const server = new WebSocketServer({ host: '127.0.0.1', port: 0 });
+  await once(server, 'listening');
+  const writes = [];
+  let release;
+  server.on('connection', socket => {
+    socket.send(JSON.stringify({ type: 'snapshot', world: { epoch: 1 }, peers: [] }));
+    socket.on('message', raw => {
+      const m = JSON.parse(raw);
+      if (m.type !== 'input') return;
+      const ack = () => socket.send(JSON.stringify({ type: 'ack', id: m.id }));
+      if (m.action.kind === 'type') {
+        writes.push({ at: performance.now(), text: m.action.text });
+        if (writes.length === 1) { release = ack; return; }
+      }
+      ack();
+    });
+  });
+  const traffic = startTraffic({ port: server.address().port, onPhase() {},
+    plan: scenario.parse({ ...plan, lifetimeSeconds: [25, 25], phases: [
+      { ...plan.phases[0], seconds: 20, actionIntervalMs: 650 },
+    ] }) });
+  t.after(async () => { await traffic.stop('test'); await new Promise(resolve => server.close(resolve)); });
+  await waitFor(() => release);
+  await sleep(600);
+  assert.equal(writes.length, 1);
+  const released = performance.now();
+  release();
+  await waitFor(() => writes.length >= 8 && traffic.population.report().writtenGraphemes >= 8);
+  assert.ok(writes[1].at - released >= 90);
+  assert.ok(writes.every(({ text }) => graphemes(text).length === 1));
+  assert.equal(writes.slice(0, 8).map(w => w.text).join(''), '지금 보이는 글');
 });
 
 test('the visitable world handles churn, operator changes, ordinary address limits, a quiet phase and shutdown', { timeout: 24000 }, async t => {

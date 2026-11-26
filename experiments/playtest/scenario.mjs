@@ -13,6 +13,7 @@ const phase = z.strictObject({
 }).refine(withinPeak, '한 번에 최대 48명입니다.');
 export const scenario = z.strictObject({
   seed: integer(0, 0xffffffff),
+  jitterRatio: z.number().min(0).max(.6).default(.3),
   lifetimeSeconds: z.tuple([integer(2, 600), integer(2, 600)]).refine(([min, max]) => min <= max, '수명 범위를 확인하세요.'),
   budget: z.strictObject({ botMinutes: z.number().positive().max(2880), receivedMiB: z.number().positive().max(1024), admissions: integer(1, 2000) }),
   phases: z.array(phase).min(1).max(120),
