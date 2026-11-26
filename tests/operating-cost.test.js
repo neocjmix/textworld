@@ -74,6 +74,11 @@ test('release estimates reproduce the sustained 300-person workload and both spa
     near(result.total, result.live + result.server + result.assets);
     near(result.unit, result.total * 1000 / (300 * 720));
   }
+  const coldPage = new URL('../docs/measurements/initial-release-2026-11-26/public-assets-742a32f.json', import.meta.url);
+  const { assets } = JSON.parse(await readFile(coldPage, 'utf8'));
+  const bytes = Object.entries(assets);
+  assert.equal(releaseProfile.mapBytes, bytes.filter(([path]) => !path.endsWith('.woff2')).reduce((sum, [, n]) => sum + n, 0));
+  assert.equal(releaseProfile.fontBytes, bytes.filter(([path]) => path.endsWith('.woff2')).reduce((sum, [, n]) => sum + n, 0));
   const spread = releaseCost({ scenario: 'mix', plazaHours: 0 });
   const crowded = releaseCost({ scenario: 'mix', plazaHours: 24 });
   near(releaseCost({ scenario: 'mix', plazaHours: 6 }).total, 0.75 * spread.total + 0.25 * crowded.total);

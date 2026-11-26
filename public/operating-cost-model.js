@@ -87,7 +87,7 @@ export const releaseProfile = Object.freeze({
     "cores": 0.2240979,
     "rssGiB": 0.6189078
   },
-  "mapBytes": 123181,
+  "mapBytes": 123350,
   "fontBytes": 5315944,
   "volumeGiB": 0.0332113
 });
