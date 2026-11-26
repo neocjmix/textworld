@@ -69,6 +69,7 @@ function updateRelease() {
     sessionMinutes: get('release-minutes').valueAsNumber,
     coldFontShare: get('release-cold').valueAsNumber / 100,
     fontScope: get('release-font-scope').value,
+    cdnByteHitRatio: get('release-cdn').valueAsNumber / 100,
   });
   for (const field of fields) {
     get('release-' + field).textContent = (field === 'unit' ? unitDollars : money).format(result[field]);

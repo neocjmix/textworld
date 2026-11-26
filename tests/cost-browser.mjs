@@ -2,9 +2,12 @@ import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import { releaseCost, monthlyCost } from '../public/operating-cost-model.js';
 import { createTextworld } from '../server/index.js';
+import { readAssetRelease } from '../server/asset-release.js';
+import { resolve } from 'node:path';
 let app, url = process.argv[2];
 if (!url) {
-  app = createTextworld({ storagePath: ':memory:', now: () => 1_000_000 });
+  app = createTextworld({ storagePath: ':memory:', now: () => 1_000_000,
+    staticRelease: process.env.TEXTWORLD_BUILT_ASSETS ? await readAssetRelease(resolve('.')) : null });
   const address = await app.listen(0, '127.0.0.1');
   url = `http://127.0.0.1:${address.port}/cost.html`;
 }
@@ -19,6 +22,12 @@ try{
   await page.goto(url,{waitUntil:'networkidle',timeout:30000});
   const value=async id=>page.locator('#'+id).innerText();
   assert.equal(await value('release-total'),usd(releaseCost().total));
+  await page.locator('#release-cdn').fill('95');
+  assert.equal(await value('release-total'),usd(releaseCost({cdnByteHitRatio:.95}).total));
+  assert.equal(await value('release-live'),usd(releaseCost().live));
+  await page.locator('#release-cdn').fill('101');
+  assert.equal(await value('release-total'),'—');
+  await page.locator('#release-cdn').fill('0');
   assert.equal(await page.locator('#release-hours').isVisible(),false);
   await page.locator('#release-font-scope').selectOption('all');
   assert.equal(await value('release-total'),usd(releaseCost({fontScope:'all'}).total));

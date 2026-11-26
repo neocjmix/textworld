@@ -1,0 +1,816 @@
+{
+  "revision": "912fccd45b735d3b65a7addafa1cc5fbcb3e5abf",
+  "workingTree": "M package.json\n?? tests/cdn-public.mjs",
+  "browser": "156.0.8078.79",
+  "network": {
+    "offline": false,
+    "latency": 150,
+    "downloadThroughput": 250000,
+    "uploadThroughput": 125000
+  },
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "results": [
+    {
+      "scenario": "empty",
+      "run": 0,
+      "visit": "cold",
+      "inputReadyMs": 2667.7999999970198,
+      "bytes": 512427,
+      "paintedMs": 2737.39999999851,
+      "cells": 0,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 477224,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 2231.1999999955297
+        },
+        {
+          "path": "/assets/sarasa-SXEBVDSL.css",
+          "transferSize": 8840,
+          "encodedBodySize": 8540,
+          "decodedBodySize": 26827,
+          "duration": 285.8999999985099
+        },
+        {
+          "path": "/assets/style-KJ2VE3VA.css",
+          "transferSize": 3089,
+          "encodedBodySize": 2789,
+          "decodedBodySize": 8731,
+          "duration": 232.29999999701977
+        },
+        {
+          "path": "/assets/app-TVD3VTLC.js",
+          "transferSize": 21179,
+          "encodedBodySize": 20879,
+          "decodedBodySize": 56045,
+          "duration": 398
+        },
+        {
+          "path": "/favicon.ico",
+          "transferSize": 321,
+          "encodedBodySize": 21,
+          "decodedBodySize": 21,
+          "duration": 163.29999999701977
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 1774,
+          "encodedBodySize": 1474
+        }
+      ]
+    },
+    {
+      "scenario": "empty",
+      "run": 0,
+      "visit": "reload",
+      "inputReadyMs": 371.20000000298023,
+      "bytes": 300,
+      "paintedMs": 438.6000000014901,
+      "cells": 0,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 0
+        },
+        {
+          "path": "/assets/sarasa-SXEBVDSL.css",
+          "transferSize": 0,
+          "encodedBodySize": 8540,
+          "decodedBodySize": 26827,
+          "duration": 0
+        },
+        {
+          "path": "/assets/style-KJ2VE3VA.css",
+          "transferSize": 0,
+          "encodedBodySize": 2789,
+          "decodedBodySize": 8731,
+          "duration": 0
+        },
+        {
+          "path": "/assets/app-TVD3VTLC.js",
+          "transferSize": 0,
+          "encodedBodySize": 20879,
+          "decodedBodySize": 56045,
+          "duration": 0
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 300,
+          "encodedBodySize": 1474
+        }
+      ]
+    },
+    {
+      "scenario": "empty",
+      "run": 1,
+      "visit": "cold",
+      "inputReadyMs": 2630.60000000149,
+      "bytes": 512106,
+      "paintedMs": 2694,
+      "cells": 0,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 477224,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 2221.7999999970198
+        },
+        {
+          "path": "/assets/style-KJ2VE3VA.css",
+          "transferSize": 3089,
+          "encodedBodySize": 2789,
+          "decodedBodySize": 8731,
+          "duration": 230.19999999552965
+        },
+        {
+          "path": "/assets/sarasa-SXEBVDSL.css",
+          "transferSize": 8840,
+          "encodedBodySize": 8540,
+          "decodedBodySize": 26827,
+          "duration": 284.19999999552965
+        },
+        {
+          "path": "/assets/app-TVD3VTLC.js",
+          "transferSize": 21179,
+          "encodedBodySize": 20879,
+          "decodedBodySize": 56045,
+          "duration": 398.30000000447035
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 1774,
+          "encodedBodySize": 1474
+        }
+      ]
+    },
+    {
+      "scenario": "empty",
+      "run": 1,
+      "visit": "reload",
+      "inputReadyMs": 378.90000000596046,
+      "bytes": 300,
+      "paintedMs": 442.70000000298023,
+      "cells": 0,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 0
+        },
+        {
+          "path": "/assets/sarasa-SXEBVDSL.css",
+          "transferSize": 0,
+          "encodedBodySize": 8540,
+          "decodedBodySize": 26827,
+          "duration": 0
+        },
+        {
+          "path": "/assets/style-KJ2VE3VA.css",
+          "transferSize": 0,
+          "encodedBodySize": 2789,
+          "decodedBodySize": 8731,
+          "duration": 0
+        },
+        {
+          "path": "/assets/app-TVD3VTLC.js",
+          "transferSize": 0,
+          "encodedBodySize": 20879,
+          "decodedBodySize": 56045,
+          "duration": 0
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 300,
+          "encodedBodySize": 1474
+        }
+      ]
+    },
+    {
+      "scenario": "empty",
+      "run": 2,
+      "visit": "cold",
+      "inputReadyMs": 2678.3000000044703,
+      "bytes": 512106,
+      "paintedMs": 2739.7000000029802,
+      "cells": 0,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 477224,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 2233
+        },
+        {
+          "path": "/assets/sarasa-SXEBVDSL.css",
+          "transferSize": 8840,
+          "encodedBodySize": 8540,
+          "decodedBodySize": 26827,
+          "duration": 294.20000000298023
+        },
+        {
+          "path": "/assets/style-KJ2VE3VA.css",
+          "transferSize": 3089,
+          "encodedBodySize": 2789,
+          "decodedBodySize": 8731,
+          "duration": 239.10000000149012
+        },
+        {
+          "path": "/assets/app-TVD3VTLC.js",
+          "transferSize": 21179,
+          "encodedBodySize": 20879,
+          "decodedBodySize": 56045,
+          "duration": 406.8999999985099
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 1774,
+          "encodedBodySize": 1474
+        }
+      ]
+    },
+    {
+      "scenario": "empty",
+      "run": 2,
+      "visit": "reload",
+      "inputReadyMs": 390.1000000014901,
+      "bytes": 300,
+      "paintedMs": 450,
+      "cells": 0,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 0
+        },
+        {
+          "path": "/assets/sarasa-SXEBVDSL.css",
+          "transferSize": 0,
+          "encodedBodySize": 8540,
+          "decodedBodySize": 26827,
+          "duration": 0
+        },
+        {
+          "path": "/assets/style-KJ2VE3VA.css",
+          "transferSize": 0,
+          "encodedBodySize": 2789,
+          "decodedBodySize": 8731,
+          "duration": 0
+        },
+        {
+          "path": "/assets/app-TVD3VTLC.js",
+          "transferSize": 0,
+          "encodedBodySize": 20879,
+          "decodedBodySize": 56045,
+          "duration": 0
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 300,
+          "encodedBodySize": 1474
+        }
+      ]
+    },
+    {
+      "scenario": "mixed",
+      "run": 0,
+      "visit": "cold",
+      "inputReadyMs": 2741.10000000149,
+      "bytes": 1910582,
+      "paintedMs": 8566.20000000298,
+      "cells": 44,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 477224,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 2227.5
+        },
+        {
+          "path": "/assets/sarasa-SXEBVDSL.css",
+          "transferSize": 8840,
+          "encodedBodySize": 8540,
+          "decodedBodySize": 26827,
+          "duration": 282.80000000447035
+        },
+        {
+          "path": "/assets/style-KJ2VE3VA.css",
+          "transferSize": 3089,
+          "encodedBodySize": 2789,
+          "decodedBodySize": 8731,
+          "duration": 228.10000000149012
+        },
+        {
+          "path": "/assets/app-TVD3VTLC.js",
+          "transferSize": 21179,
+          "encodedBodySize": 20879,
+          "decodedBodySize": 56045,
+          "duration": 392.20000000298023
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-hangul-2c178d772125-1.0.43.woff2",
+          "transferSize": 592560,
+          "encodedBodySize": 592260,
+          "decodedBodySize": 592260,
+          "duration": 5771.89999999851
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6400-cc31d9a7db38-1.0.43.woff2",
+          "transferSize": 156588,
+          "encodedBodySize": 156288,
+          "decodedBodySize": 156288,
+          "duration": 3901.5
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8800-01fc782336fc-1.0.43.woff2",
+          "transferSize": 162884,
+          "encodedBodySize": 162584,
+          "decodedBodySize": 162584,
+          "duration": 4009.7000000029802
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-4c00-4c01aa04458f-1.0.43.woff2",
+          "transferSize": 153068,
+          "encodedBodySize": 152768,
+          "decodedBodySize": 152768,
+          "duration": 3852.60000000149
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6800-1d4a1e51d616-1.0.43.woff2",
+          "transferSize": 171812,
+          "encodedBodySize": 171512,
+          "decodedBodySize": 171512,
+          "duration": 4086.5
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8c00-e2aa1e35e680-1.0.43.woff2",
+          "transferSize": 161564,
+          "encodedBodySize": 161264,
+          "decodedBodySize": 161264,
+          "duration": 3995.60000000149
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 1774,
+          "encodedBodySize": 1474
+        }
+      ]
+    },
+    {
+      "scenario": "mixed",
+      "run": 0,
+      "visit": "reload",
+      "inputReadyMs": 469.29999999701977,
+      "bytes": 300,
+      "paintedMs": 532.8999999985099,
+      "cells": 44,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 0
+        },
+        {
+          "path": "/assets/sarasa-SXEBVDSL.css",
+          "transferSize": 0,
+          "encodedBodySize": 8540,
+          "decodedBodySize": 26827,
+          "duration": 0
+        },
+        {
+          "path": "/assets/style-KJ2VE3VA.css",
+          "transferSize": 0,
+          "encodedBodySize": 2789,
+          "decodedBodySize": 8731,
+          "duration": 0
+        },
+        {
+          "path": "/assets/app-TVD3VTLC.js",
+          "transferSize": 0,
+          "encodedBodySize": 20879,
+          "decodedBodySize": 56045,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-hangul-2c178d772125-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 592260,
+          "decodedBodySize": 592260,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-4c00-4c01aa04458f-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 152768,
+          "decodedBodySize": 152768,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6400-cc31d9a7db38-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 156288,
+          "decodedBodySize": 156288,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6800-1d4a1e51d616-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 171512,
+          "decodedBodySize": 171512,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8800-01fc782336fc-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 162584,
+          "decodedBodySize": 162584,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8c00-e2aa1e35e680-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 161264,
+          "decodedBodySize": 161264,
+          "duration": 0
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 300,
+          "encodedBodySize": 1474
+        }
+      ]
+    },
+    {
+      "scenario": "mixed",
+      "run": 1,
+      "visit": "cold",
+      "inputReadyMs": 2747,
+      "bytes": 1910582,
+      "paintedMs": 8599.20000000298,
+      "cells": 44,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 477224,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 2220
+        },
+        {
+          "path": "/assets/sarasa-SXEBVDSL.css",
+          "transferSize": 8840,
+          "encodedBodySize": 8540,
+          "decodedBodySize": 26827,
+          "duration": 281.1000000014901
+        },
+        {
+          "path": "/assets/style-KJ2VE3VA.css",
+          "transferSize": 3089,
+          "encodedBodySize": 2789,
+          "decodedBodySize": 8731,
+          "duration": 227.10000000149012
+        },
+        {
+          "path": "/assets/app-TVD3VTLC.js",
+          "transferSize": 21179,
+          "encodedBodySize": 20879,
+          "decodedBodySize": 56045,
+          "duration": 395.69999999552965
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-hangul-2c178d772125-1.0.43.woff2",
+          "transferSize": 592560,
+          "encodedBodySize": 592260,
+          "decodedBodySize": 592260,
+          "duration": 5786.20000000298
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6400-cc31d9a7db38-1.0.43.woff2",
+          "transferSize": 156588,
+          "encodedBodySize": 156288,
+          "decodedBodySize": 156288,
+          "duration": 3909.7999999970198
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8800-01fc782336fc-1.0.43.woff2",
+          "transferSize": 162884,
+          "encodedBodySize": 162584,
+          "decodedBodySize": 162584,
+          "duration": 4010.7000000029802
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-4c00-4c01aa04458f-1.0.43.woff2",
+          "transferSize": 153068,
+          "encodedBodySize": 152768,
+          "decodedBodySize": 152768,
+          "duration": 3860
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6800-1d4a1e51d616-1.0.43.woff2",
+          "transferSize": 171812,
+          "encodedBodySize": 171512,
+          "decodedBodySize": 171512,
+          "duration": 4087.2999999970198
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8c00-e2aa1e35e680-1.0.43.woff2",
+          "transferSize": 161564,
+          "encodedBodySize": 161264,
+          "decodedBodySize": 161264,
+          "duration": 3990.3000000044703
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 1774,
+          "encodedBodySize": 1474
+        }
+      ]
+    },
+    {
+      "scenario": "mixed",
+      "run": 1,
+      "visit": "reload",
+      "inputReadyMs": 443.6000000014901,
+      "bytes": 300,
+      "paintedMs": 508.29999999701977,
+      "cells": 44,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 0
+        },
+        {
+          "path": "/assets/sarasa-SXEBVDSL.css",
+          "transferSize": 0,
+          "encodedBodySize": 8540,
+          "decodedBodySize": 26827,
+          "duration": 0
+        },
+        {
+          "path": "/assets/style-KJ2VE3VA.css",
+          "transferSize": 0,
+          "encodedBodySize": 2789,
+          "decodedBodySize": 8731,
+          "duration": 0
+        },
+        {
+          "path": "/assets/app-TVD3VTLC.js",
+          "transferSize": 0,
+          "encodedBodySize": 20879,
+          "decodedBodySize": 56045,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-hangul-2c178d772125-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 592260,
+          "decodedBodySize": 592260,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-4c00-4c01aa04458f-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 152768,
+          "decodedBodySize": 152768,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6400-cc31d9a7db38-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 156288,
+          "decodedBodySize": 156288,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6800-1d4a1e51d616-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 171512,
+          "decodedBodySize": 171512,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8800-01fc782336fc-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 162584,
+          "decodedBodySize": 162584,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8c00-e2aa1e35e680-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 161264,
+          "decodedBodySize": 161264,
+          "duration": 0
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 300,
+          "encodedBodySize": 1474
+        }
+      ]
+    },
+    {
+      "scenario": "mixed",
+      "run": 2,
+      "visit": "cold",
+      "inputReadyMs": 2712.39999999851,
+      "bytes": 1910582,
+      "paintedMs": 8672.20000000298,
+      "cells": 44,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 477224,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 2207.5
+        },
+        {
+          "path": "/assets/sarasa-SXEBVDSL.css",
+          "transferSize": 8840,
+          "encodedBodySize": 8540,
+          "decodedBodySize": 26827,
+          "duration": 274.80000000447035
+        },
+        {
+          "path": "/assets/style-KJ2VE3VA.css",
+          "transferSize": 3089,
+          "encodedBodySize": 2789,
+          "decodedBodySize": 8731,
+          "duration": 221.39999999850988
+        },
+        {
+          "path": "/assets/app-TVD3VTLC.js",
+          "transferSize": 21179,
+          "encodedBodySize": 20879,
+          "decodedBodySize": 56045,
+          "duration": 388.79999999701977
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-hangul-2c178d772125-1.0.43.woff2",
+          "transferSize": 592560,
+          "encodedBodySize": 592260,
+          "decodedBodySize": 592260,
+          "duration": 5773.10000000149
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6400-cc31d9a7db38-1.0.43.woff2",
+          "transferSize": 156588,
+          "encodedBodySize": 156288,
+          "decodedBodySize": 156288,
+          "duration": 3901.2999999970198
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8800-01fc782336fc-1.0.43.woff2",
+          "transferSize": 162884,
+          "encodedBodySize": 162584,
+          "decodedBodySize": 162584,
+          "duration": 4003.39999999851
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-4c00-4c01aa04458f-1.0.43.woff2",
+          "transferSize": 153068,
+          "encodedBodySize": 152768,
+          "decodedBodySize": 152768,
+          "duration": 3846.6999999955297
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6800-1d4a1e51d616-1.0.43.woff2",
+          "transferSize": 171812,
+          "encodedBodySize": 171512,
+          "decodedBodySize": 171512,
+          "duration": 4080.10000000149
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8c00-e2aa1e35e680-1.0.43.woff2",
+          "transferSize": 161564,
+          "encodedBodySize": 161264,
+          "decodedBodySize": 161264,
+          "duration": 3989.89999999851
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 1774,
+          "encodedBodySize": 1474
+        }
+      ]
+    },
+    {
+      "scenario": "mixed",
+      "run": 2,
+      "visit": "reload",
+      "inputReadyMs": 606.8000000044703,
+      "bytes": 300,
+      "paintedMs": 725.7000000029802,
+      "cells": 44,
+      "resources": [
+        {
+          "path": "/fonts/sarasa-fixed-k-core-0c7ffadb6c5c-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 476924,
+          "decodedBodySize": 476924,
+          "duration": 0
+        },
+        {
+          "path": "/assets/sarasa-SXEBVDSL.css",
+          "transferSize": 0,
+          "encodedBodySize": 8540,
+          "decodedBodySize": 26827,
+          "duration": 0
+        },
+        {
+          "path": "/assets/style-KJ2VE3VA.css",
+          "transferSize": 0,
+          "encodedBodySize": 2789,
+          "decodedBodySize": 8731,
+          "duration": 0
+        },
+        {
+          "path": "/assets/app-TVD3VTLC.js",
+          "transferSize": 0,
+          "encodedBodySize": 20879,
+          "decodedBodySize": 56045,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-hangul-2c178d772125-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 592260,
+          "decodedBodySize": 592260,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-4c00-4c01aa04458f-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 152768,
+          "decodedBodySize": 152768,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6400-cc31d9a7db38-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 156288,
+          "decodedBodySize": 156288,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-6800-1d4a1e51d616-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 171512,
+          "decodedBodySize": 171512,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8800-01fc782336fc-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 162584,
+          "decodedBodySize": 162584,
+          "duration": 0
+        },
+        {
+          "path": "/fonts/sarasa-fixed-k-8c00-e2aa1e35e680-1.0.43.woff2",
+          "transferSize": 0,
+          "encodedBodySize": 161264,
+          "decodedBodySize": 161264,
+          "duration": 0
+        }
+      ],
+      "navigation": [
+        {
+          "transferSize": 300,
+          "encodedBodySize": 1474
+        }
+      ]
+    }
+  ]
+}

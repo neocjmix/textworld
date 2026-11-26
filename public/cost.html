@@ -56,6 +56,9 @@
         <label>폰트를 새로 받는 방문 비율(%)
           <input id="release-cold" type="number" min="0" max="100" step="any" value="20" required>
         </label>
+        <label>CDN이 처리하는 정적 전송량 비율(%, 가정)
+          <input id="release-cdn" type="number" min="0" max="100" step="any" value="0" required>
+        </label>
       </form>
       <section class="result" aria-labelledby="release-heading" aria-live="polite">
         <h2 id="release-heading">30일 예상 인프라 사용료</h2>
@@ -67,7 +70,7 @@
           <div class="row"><dt>같은 조건의 일주일</dt><dd id="release-week">—</dd></div>
           <div class="row"><dt>이용 1,000시간당</dt><dd id="release-unit">—</dd></div>
         </dl>
-        <small>입력 6명·이동 24명·독자 270명입니다. 시간대·폰트 캐시 비율·방문 중 읽는 문자 범위는 가정입니다. 새 문자 범위를 탐색하면 글꼴을 추가로 받습니다. 페이지는 gzip 전송량을 적용하며 캐시 재사용 절감은 계산하지 않습니다. 체류 시간은 정적 파일 방문 횟수에만 적용합니다. 실시간 접속 교체는 실험에서 쓴 20분 기준입니다.</small>
+        <small>입력 6명·이동 24명·독자 270명입니다. Railway CDN은 활성화되어 있지만 실제 방문자의 적중률은 아직 측정하지 않아 기본값은 0%입니다. 95% 등을 입력하면 가정에 따른 절감액을 볼 수 있습니다. CDN은 실시간 지도 전송비를 줄이지 않습니다. 정적 파일 크기는 CDN 도입 직전 실측을 보수적으로 유지합니다. 시간대·폰트 캐시 비율·방문 중 읽는 문자 범위도 가정입니다. 체류 시간은 정적 파일 방문 횟수에만 적용하며 실시간 접속 교체는 실험의 20분 기준입니다.</small>
       </section>
     </div>
     <details>

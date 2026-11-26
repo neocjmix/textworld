@@ -89,3 +89,14 @@ test('release estimates reproduce the sustained 300-person workload and both spa
   assert.throws(() => releaseCost({ sessionMinutes: 0 }), RangeError);
   assert.throws(() => releaseCost({ coldFontShare: 1.01 }), RangeError);
 });
+
+test('CDN assumptions reduce only static origin egress, never realtime traffic or compute', async () => {
+  const { releaseCost } = await import('../public/operating-cost-model.js');
+  const before = releaseCost(), cached = releaseCost({ cdnByteHitRatio: .95 }), all = releaseCost({ cdnByteHitRatio: 1 });
+  near(cached.assets, before.assets * .05);
+  near(cached.live, before.live); near(cached.server, before.server);
+  near(cached.total, before.total - before.assets * .95);
+  near(all.assets, 0); near(all.total, before.live + before.server);
+  near(before.uncachedAssets, before.assets);
+  for (const value of [-.01, 1.01, NaN]) assert.throws(() => releaseCost({ cdnByteHitRatio: value }), RangeError);
+});

@@ -79,6 +79,21 @@ test('public discovery and anonymous session expose only the current bounded vie
   assert.equal(invalid.status, 401); assert.deepEqual(invalid.body, missing.body);
 });
 
+test('only public discovery is cacheable; sessions, observations, errors and actions never enter a shared cache', async t => {
+  const f = await fixture(t);
+  const discovery = await f.request('', { method: 'GET' });
+  assert.equal(discovery.headers.get('cache-control'), 'public, max-age=0, s-maxage=30, must-revalidate');
+  const first = await f.request('/sessions', { value: {} }), second = await f.request('/sessions', { value: {} });
+  for (const response of [first, second]) {
+    assert.equal(response.status, 201); assert.equal(response.headers.get('cache-control'), 'no-store');
+  }
+  assert.notEqual(first.body.session.token, second.body.session.token);
+  const observation = await f.turn(first.body.session, { actions: [] });
+  assert.equal(observation.status, 200); assert.equal(observation.headers.get('cache-control'), 'no-store');
+  const unauthorized = await f.request(`/sessions/${first.body.session.id}/turn`, { value: { actions: [] } });
+  assert.equal(unauthorized.status, 401); assert.equal(unauthorized.headers.get('cache-control'), 'no-store');
+});
+
 test('two HTTP participants share paced CJK input and visible cursor updates', async t => {
   const f = await fixture(t), a = await f.create(), b = await f.create();
   const result = await f.turn(a.session, { id: 'hello', actions: [{ type: 'type', text: '한A' }], since: a.observation.revision });

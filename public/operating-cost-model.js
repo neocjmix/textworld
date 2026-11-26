@@ -69,7 +69,8 @@ export function monthlyCost({
   };
 }
 
-// Static bytes: docs/measurements/first-visit-2026-11-26 (mixed CJK first view, gzip).
+// Conservative pre-CDN static bytes: docs/measurements/first-visit-2026-11-26.
+// CDN bundling is smaller; keep the measured baseline until representative traffic is available.
 // Observed sustained release inputs. Source: docs/measurements/initial-release-2026-11-26.
 export const releaseProfile = Object.freeze({
   "concurrent": 300,
@@ -98,10 +99,12 @@ export const releaseProfile = Object.freeze({
 // historical model above estimates other population sizes with its own assumptions.
 export function releaseCost({
   scenario = 'steady', plazaHours = 6, sessionMinutes = 20, coldFontShare = 0.2, fontScope = 'mixed',
+  cdnByteHitRatio = 0,
 } = {}) {
   requireRange('plazaHours', plazaHours, 0, 24);
   requireRange('sessionMinutes', sessionMinutes, 1, 1440);
   requireRange('coldFontShare', coldFontShare, 0, 1);
+  requireRange('cdnByteHitRatio', cdnByteHitRatio, 0, 1);
   if (!['steady', 'mix'].includes(scenario)) throw new TypeError('Unknown release scenario');
 
   const plazaFraction = plazaHours / 24;
@@ -121,10 +124,11 @@ export function releaseCost({
   const memory = average('rssGiB') * gibibyte / gigabyte * minutes * 0.000231;
   const server = cpu + memory + volumeGiB * gibibyte / gigabyte * minutes * 0.000003472222222;
   const visits = concurrent * minutes / sessionMinutes;
-  const assets = visits * (mapBytes + coldFontShare * fontBytes) / gigabyte * 0.05;
+  const uncachedAssets = visits * (mapBytes + coldFontShare * fontBytes) / gigabyte * 0.05;
+  const assets = uncachedAssets * (1 - cdnByteHitRatio);
   const total = live + server + assets;
   return {
-    total, live, server, assets, cpu, memory, visits,
+    total, live, server, assets, uncachedAssets, cpu, memory, visits,
     week: total * 7 / 30,
     unit: total * 1000 / (monthHours * concurrent),
   };
