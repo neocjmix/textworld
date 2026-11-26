@@ -8,6 +8,9 @@ if (!Number.isInteger(seconds) || seconds < 12 || seconds > 930 || !output) {
   throw Error('Usage: node experiments/public-paint.mjs SECONDS(12..930) OUTPUT.json');
 }
 const origin = 'https://textworld-production-987c.up.railway.app';
+const point = process.env.PUBLIC_PAINT_POINT;
+if (point && !/^\d{1,6},\d{1,6}$/.test(point)) throw Error('PUBLIC_PAINT_POINT must be nonnegative x,y');
+const entry = point ? '/#x=' + point.split(',')[0] + '&y=' + point.split(',')[1] : '/';
 const quietFrom = Date.parse(process.env.PUBLIC_PAINT_QUIET_FROM || '');
 const quietUntil = Date.parse(process.env.PUBLIC_PAINT_QUIET_UNTIL || '');
 if ((process.env.PUBLIC_PAINT_QUIET_FROM || process.env.PUBLIC_PAINT_QUIET_UNTIL)
@@ -40,6 +43,33 @@ try {
     await page.addInitScript(() => {
       const fill = CanvasRenderingContext2D.prototype.fillText;
       window.paintProbe = {};
+      const Socket = window.WebSocket;
+      window.WebSocket = class extends Socket {
+        constructor(...args) {
+          super(...args);
+          this.addEventListener('message', event => {
+            const probe = window.paintProbe, data = event.data;
+            if (!probe.target || typeof data !== 'string') return;
+            if (!probe.receivedAt && data.includes(JSON.stringify(probe.target))) {
+              probe.receivedAt = performance.timeOrigin + performance.now();
+            }
+            if (data.includes('"type":"error"') || data.includes('"type":"ack"')) {
+              const message = JSON.parse(data);
+              if (message.type === 'ack' && message.id === probe.id) probe.accepted = true;
+              if (message.type === 'error') (probe.errors ??= []).push({ code: message.code,
+                status: message.status, target: message.id === probe.id, requestType: message.requestType });
+            }
+          });
+        }
+        send(data) {
+          const probe = window.paintProbe;
+          if (probe.target && typeof data === 'string' && data.includes(JSON.stringify(probe.target))) {
+            const message = JSON.parse(data);
+            if (message.type === 'input') probe.id = message.id;
+          }
+          return super.send(data);
+        }
+      };
       CanvasRenderingContext2D.prototype.fillText = function (text, ...args) {
         if (text === window.paintProbe.target && !window.paintProbe.at) {
           window.paintProbe.at = performance.timeOrigin + performance.now();
@@ -47,7 +77,7 @@ try {
         return fill.call(this, text, ...args);
       };
     });
-    await page.goto(origin + '/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(origin + entry, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForFunction(() => window.textworld?.inspect().connected, null, { timeout: 30000 });
     pages.push(page);
   }
@@ -77,7 +107,18 @@ try {
       const [local, remote] = await Promise.all(pages.map(page => page.evaluate(() => window.paintProbe.at)));
       Object.assign(sample, { localMs: local - sent, remoteMs: remote - sent });
       await writer.keyboard.press('Home');
-    } catch { sample.missed = true; }
+    } catch {
+      sample.missed = true;
+      sample.stateAfterMiss = await Promise.all(pages.map(page => page.evaluate(() => {
+        const state = window.textworld.inspect(), target = window.paintProbe.target;
+        return { connected: state.connected, pending: state.pending, cursor: state.cursor,
+          world: state.world, view: state.observedView, targetInCurrentCells: state.cells.some(c => c.text === target) };
+      })));
+    }
+    sample.transport = await Promise.all(pages.map(page => page.evaluate(() => {
+      const p = window.paintProbe;
+      return { receivedAt: p.receivedAt ?? null, accepted: !!p.accepted, errors: p.errors ?? [] };
+    })));
     samples.push(sample);
     console.log(JSON.stringify(sample));
     if (screenshotAt && before.peers >= screenshotAt && !screenshots.length) {
@@ -92,7 +133,7 @@ try {
 } finally {
   clearTimeout(watchdog);
   await browser.close();
-  await writeFile(output, JSON.stringify({ startedAt, finishedAt: new Date().toISOString(), origin,
+  await writeFile(output, JSON.stringify({ startedAt, finishedAt: new Date().toISOString(), origin, entry,
     desktopWidth: 1200, mobileWidth: 390, glyphBase, quietFrom, quietUntil, screenshotAt, screenshots,
     samples, errors }, null, 2));
 }

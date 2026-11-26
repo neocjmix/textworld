@@ -1,0 +1,77 @@
+{
+  "id": "126f73c0-88e4-4b0e-9fb2-801b95701000",
+  "state": "running",
+  "startedAt": "2026-11-26T20:58:46.375Z",
+  "deadline": "2026-11-26T21:14:16.375Z",
+  "phase": {
+    "name": "\uacf5\uac1c \uc9c0\ub3c4 \uc785\uc7a5\u00b7\uad50\uccb4\u00b7\uc0ac\ub78c\uc744 \uc704\ud55c \uc5ec\uc720\uc11d",
+    "seconds": 900,
+    "writers": 20,
+    "walkers": 80,
+    "readers": 890,
+    "writing": "new-cells",
+    "actionIntervalMs": 850
+  },
+  "population": {
+    "attempts": 990,
+    "joined": 990,
+    "peak": 990,
+    "sent": 54182,
+    "ack": 53813,
+    "rejected": 367,
+    "unconfirmed": 0,
+    "rateLimited": 367,
+    "receivedBytes": 576347682,
+    "receivedWireBytes": 582791934,
+    "transportErrors": 0,
+    "writtenGraphemes": 28312,
+    "active": {
+      "writers": 20,
+      "walkers": 80,
+      "readers": 890
+    },
+    "departures": {},
+    "botMinutes": 4406.859287858686,
+    "ackP95Ms": 93.311,
+    "typingGapP50Ms": 250.751,
+    "typingGapP95Ms": 691.711
+  },
+  "world": {
+    "width": 222,
+    "height": 113,
+    "epoch": 1073,
+    "textLayout": 2,
+    "occupiedCells": 2566,
+    "connections": 992
+  },
+  "position": {
+    "x": 32,
+    "y": 39
+  },
+  "cost": {
+    "scope": "whole-service-during-run",
+    "priceDate": "2026-11-26",
+    "billingUnit": "decimal GB",
+    "ratesUsd": {
+      "cpuCoreMinute": 0.000463,
+      "memoryGBMinute": 0.000231,
+      "volumeGBMinute": 3.472222222e-06,
+      "egressGB": 0.05
+    },
+    "elapsedSeconds": 493.218500293,
+    "cpuCoreSeconds": 217.773871,
+    "memoryGiBMinutes": 3.9565785636769344,
+    "volumeGiBMinutes": 0.45204315633954967,
+    "publicHttpBytes": 321096,
+    "publicWebSocketBytes": 1850960,
+    "estimatedUsd": {
+      "cpu": 0.0016804883712166667,
+      "memory": 0.0009813674371489693,
+      "volume": 1.6853390388322259e-06,
+      "publicEgress": 0.0001086028,
+      "subtotal": 0.002772143947404468
+    },
+    "usdPer1000WrittenGraphemes": 9.791409817054493e-05,
+    "hypotheticalBotEgressUsd": 0.0291395967
+  }
+}

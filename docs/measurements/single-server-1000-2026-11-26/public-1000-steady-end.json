@@ -1,0 +1,79 @@
+{
+  "id": "126f73c0-88e4-4b0e-9fb2-801b95701000",
+  "state": "running",
+  "startedAt": "2026-11-26T20:58:46.375Z",
+  "deadline": "2026-11-26T21:14:16.375Z",
+  "phase": {
+    "name": "\uacf5\uac1c \uc9c0\ub3c4 \uc785\uc7a5\u00b7\uad50\uccb4\u00b7\uc0ac\ub78c\uc744 \uc704\ud55c \uc5ec\uc720\uc11d",
+    "seconds": 900,
+    "writers": 20,
+    "walkers": 80,
+    "readers": 890,
+    "writing": "new-cells",
+    "actionIntervalMs": 850
+  },
+  "population": {
+    "attempts": 1344,
+    "joined": 1344,
+    "peak": 990,
+    "sent": 79823,
+    "ack": 68740,
+    "rejected": 11079,
+    "unconfirmed": 0,
+    "rateLimited": 11079,
+    "receivedBytes": 1127165557,
+    "receivedWireBytes": 1139799273,
+    "transportErrors": 0,
+    "writtenGraphemes": 35919,
+    "active": {
+      "writers": 20,
+      "walkers": 80,
+      "readers": 870
+    },
+    "departures": {
+      "lifetime": 374
+    },
+    "botMinutes": 8357.981921372366,
+    "ackP95Ms": 98.303,
+    "typingGapP50Ms": 266.751,
+    "typingGapP95Ms": 699.903
+  },
+  "world": {
+    "width": 281,
+    "height": 140,
+    "epoch": 1079,
+    "textLayout": 2,
+    "occupiedCells": 2697,
+    "connections": 975
+  },
+  "position": {
+    "x": 209,
+    "y": 71
+  },
+  "cost": {
+    "scope": "whole-service-during-run",
+    "priceDate": "2026-11-26",
+    "billingUnit": "decimal GB",
+    "ratesUsd": {
+      "cpuCoreMinute": 0.000463,
+      "memoryGBMinute": 0.000231,
+      "volumeGBMinute": 3.472222222e-06,
+      "egressGB": 0.05
+    },
+    "elapsedSeconds": 733.305878805,
+    "cpuCoreSeconds": 390.813705,
+    "memoryGiBMinutes": 7.151103535768147,
+    "volumeGiBMinutes": 0.7029618577497891,
+    "publicHttpBytes": 329770,
+    "publicWebSocketBytes": 12666759,
+    "estimatedUsd": {
+      "cpu": 0.00301577909025,
+      "memory": 0.0017737193983990726,
+      "volume": 2.6208317614388193e-06,
+      "publicEgress": 0.00064982645,
+      "subtotal": 0.005441945770410511
+    },
+    "usdPer1000WrittenGraphemes": 0.00015150604889920406,
+    "hypotheticalBotEgressUsd": 0.05698996365
+  }
+}

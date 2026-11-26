@@ -56,3 +56,27 @@ test('edit admission includes an off-origin CJK half and a distant replacement f
   assert.equal(index.candidateCount(origin, undefined, [origin]), 1000, 'an overwritten wide glyph may extend across the tile edge');
   assert.equal(index.candidateCount({x:0,y:32},{x:64,y:32},[{x:16,y:32}]), 1000, 'the middle of an edit can have an audience absent at both cursor endpoints');
 });
+
+test('admission counts overlapping tile subscribers once through departure, slot reuse and resize', () => {
+  const world = { width: 256, height: 128, epoch: 1 };
+  const index = new SpatialSubscriptions(world);
+  const actors = Array.from({ length: 1000 }, (_, id) => ({
+    peer: { id, x: id < 500 ? 16 : 160, y: 32 }, observer: { view: { cols: 32, rows: 20 } },
+  }));
+  for (const actor of actors) index.update(actor);
+  const point = { x: 15, y: 32 }, previous = { x: 16, y: 32 };
+  assert.equal(index.candidateCount(point, previous, [point]), 500,
+    'a CJK boundary must not charge one audience twice');
+  assert.equal(index.candidateCount(point, previous), 500, 'movement shares the same audience');
+  assert.equal(index.candidateCount(point, previous, [point, {x:160,y:32}]), 1000,
+    'disjoint subscribers still add to the total');
+  for (const actor of actors.slice(0, 100)) { actor.closed = true; index.update(actor); }
+  assert.equal(index.candidateCount(point, previous, [point]), 400);
+  for (const actor of actors.slice(0, 100)) { actor.closed = false; actor.peer.x = 160; index.update(actor); }
+  assert.equal(index.candidateCount(point, previous, [point]), 400, 'reused slots do not resurrect subscriptions');
+  Object.assign(world, { width: 32, height: 16, epoch: 2 });
+  for (const actor of actors) { actor.peer.x %= 32; actor.peer.y %= 16; index.update(actor); }
+  assert.equal(index.candidateCount({x:15,y:0}, {x:16,y:0}, [{x:31,y:0}]), 1000);
+  for (const actor of actors) { actor.closed = true; index.update(actor); }
+  assert.equal(index.candidateCount({x:15,y:0}, {x:16,y:0}, [{x:31,y:0}]), 0);
+});
