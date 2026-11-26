@@ -1,0 +1,11 @@
+{
+  "seed": 17,
+  "lifetimeSeconds": [24, 48],
+  "budget": { "botMinutes": 65, "receivedMiB": 384, "admissions": 150 },
+  "phases": [
+    { "name": "입장", "seconds": 15, "writers": 2, "walkers": 2, "readers": 2 },
+    { "name": "혼잡", "seconds": 70, "writers": 12, "walkers": 5, "readers": 7 },
+    { "name": "퇴장", "seconds": 15, "writers": 2, "walkers": 1, "readers": 3 },
+    { "name": "만료와 축소", "seconds": 265, "writers": 0, "walkers": 0, "readers": 0 }
+  ]
+}
