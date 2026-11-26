@@ -1,5 +1,7 @@
 # 초기 공개 검증
 
+> 이 문서는 이전 300명 공개판의 역사적 검증 기록이다. 현재 구현·접속 상한·원가는 [단일 서버 1,000명 검증](SINGLE_SERVER_1000.md)과 [최신 비용 모델](OPERATING_COST_MODEL.md)을 본다. 아래 당시 수치와 실패 기록은 그대로 보존한다.
+
 후속: 정적 파일 압축·캐시와 글꼴 분할로 첫 접속을 개선했다. 아래 부하 실험은 당시 결과를 보존하며, 최신 초기 파일 측정과 원가는 [후속 검증](FIRST_VISIT_RELEASE.md)과 [원가 모형](OPERATING_COST_MODEL.md)을 따른다.
 2026-11-26 · 부하 시험 서버 [9f4ac24](https://github.com/neocjmix/textworld/commit/9f4ac24) · [공개 지도](https://textworld-production-987c.up.railway.app/) · [원자료](measurements/initial-release-2026-11-26/) · [원가 계산기](https://textworld-production-987c.up.railway.app/cost.html)
 

@@ -1,0 +1,80 @@
+{
+  "id": "126f73c0-88e4-4b0e-9fb2-801b95701001",
+  "state": "finished",
+  "startedAt": "2026-11-26T21:20:51.848Z",
+  "deadline": "2026-11-26T21:36:21.848Z",
+  "phase": {
+    "name": "퇴장·정리",
+    "seconds": 30,
+    "writers": 0,
+    "walkers": 0,
+    "readers": 0,
+    "writing": "new-cells",
+    "actionIntervalMs": 850
+  },
+  "population": {
+    "attempts": 1708,
+    "joined": 1708,
+    "peak": 990,
+    "sent": 100143,
+    "ack": 83619,
+    "rejected": 16524,
+    "unconfirmed": 0,
+    "rateLimited": 16524,
+    "receivedBytes": 1549646763,
+    "receivedWireBytes": 1566273797,
+    "transportErrors": 0,
+    "writtenGraphemes": 45712,
+    "active": {
+      "writers": 0,
+      "walkers": 0,
+      "readers": 0
+    },
+    "departures": {
+      "lifetime": 731,
+      "target-reduced": 977
+    },
+    "botMinutes": 11069.288205052238,
+    "ackP95Ms": 74.303,
+    "typingGapP50Ms": 258.431,
+    "typingGapP95Ms": 686.079
+  },
+  "world": {
+    "width": 347,
+    "height": 164,
+    "epoch": 1162,
+    "textLayout": 2,
+    "occupiedCells": 4993,
+    "connections": 0
+  },
+  "position": null,
+  "cost": {
+    "scope": "whole-service-during-run",
+    "priceDate": "2026-11-26",
+    "billingUnit": "decimal GB",
+    "ratesUsd": {
+      "cpuCoreMinute": 0.000463,
+      "memoryGBMinute": 0.000231,
+      "volumeGBMinute": 3.472222222e-06,
+      "egressGB": 0.05
+    },
+    "elapsedSeconds": 930.0077724819998,
+    "cpuCoreSeconds": 452.749045,
+    "memoryGiBMinutes": 10.54757676396505,
+    "volumeGiBMinutes": 0.9882242194397657,
+    "publicHttpBytes": 342080,
+    "publicWebSocketBytes": 16004832,
+    "estimatedUsd": {
+      "cpu": 0.0034937134639166667,
+      "memory": 0.0026161614663768856,
+      "volume": 3.684366929980278e-06,
+      "publicEgress": 0.0008173456000000001,
+      "subtotal": 0.006930904897223532
+    },
+    "usdPer1000WrittenGraphemes": 0.00015162112568304893,
+    "hypotheticalBotEgressUsd": 0.07831368985
+  },
+  "finishedAt": "2026-11-26T21:36:21.856Z",
+  "reason": "deadline",
+  "error": null
+}

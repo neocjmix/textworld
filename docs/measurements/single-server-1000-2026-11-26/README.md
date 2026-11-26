@@ -12,6 +12,10 @@
 | `footprint-normal-1000.json` | 마지막 CJK/치환 범위 과부하 방어의 180초 정상 회귀. 앞선 정리 구간과 호스트를 공유했다 |
 | `footprint-surge-1000.json` | 최종 방어의 전원 광장·작성자 20→250→20 급증. 초기 자리 이동의 15초 제한 때문에 발생기가 취소한 11개 연결도 실패로 보관 |
 | `footprint-surge-close-audit.json` | 같은 급증의 재실행. 종료 코드·자리 이동 완료·발생기 취소 여부를 분리한 원자료 |
+| `final-normal-1000.json` | 다른 로컬 부하가 끝난 뒤 마지막 방어의 정상 180초를 독립 실행한 최종 전후 표 근거 |
+| `public-1000-result.json`, `public-1000-paint*.json`, `public-1000-steady-*.json` | 첫 공개 990봇 시험. 429가 실제 느린 사용자 입력도 막아 품질 판정에 실패한 표본 |
+| `public-union-*.json`, `public-union-*.png` | 두 번째 공개 990봇 시험. 비트집합 후보에서도 느린 사람 입력의 429가 재현돼 후보를 철회 |
+| `union-normal-1000.json`, `union-surge-1000.json`, `control-after-union-1000.json` | 중복 관객을 제거한 비트집합 후보와 기존 코드 재대조. 지연 악화를 숨기지 않고 보관 |
 | `fixed-1000.json` | 고정 시야 1,000명에서 중간 덮어쓰기를 포함한 72,000개 기대 관측 전수 대조. 실제 시계 장기 시험과 다르다 |
 | `render-before.json`, `render-after-cached.json`, `render-motion-before.json`, `render-motion-after.json` | 1,000개의 가상 커서를 사용하는 클라이언트만의 그리기 비교. 서버 동접 증거가 아니다 |
 | `partial-render-three-engines.json` | 세 엔진의 전체/부분 렌더링 픽셀 대조 |
@@ -24,3 +28,5 @@
 장기 수신 지연은 150×50 시야의 독자 56개 자리를 추적한 표본이다. 전원 메시지의 디코딩·바이트·순번·연결은 계량하지만 지연 표본이 전체 독자 분포를 대표하지는 않는다. 이후 발생기는 블록마다 선택 순번을 바꿔 작은/큰 시야를 모두 포함하고 `readerSampling`·`readerViewCounts`를 남긴다. 180초 시험은 모든 정지 독자를 추적한다.
 
 운영자 봇의 연결과 송신은 같은 공개 세계의 실제 서버 경로를 쓰되 루프백이다. 그 바이트를 Railway 외부 송신 청구액으로 합산하지 않는다. 공개 비용에는 서비스 사용량과 외부 고객이었다는 별도 송신 가정을 함께 남긴다. 외부 브라우저의 Canvas 호출 시각은 실제 발광 시각이 아니며 모바일 크기 에뮬레이션은 실물 휴대폰 OS 키보드 검증이 아니다.
+
+그리기의 최종 전후 비교는 `render-motion-before.json`과 `render-motion-after.json`의 정지 구간 및 `motion` 필드를 사용한다. 나머지 렌더 표본은 캐시/이동 경로를 고르던 중간 실행이다. `fixed-1000.json` 바깥쪽 `revision`·`dirty`는 발생기 체크아웃 상태이며, 실제 대상 서버는 내부 `sourceDigest`로 식별한다. 이 값은 주 대조 `a2cd85a`의 digest와 일치한다.

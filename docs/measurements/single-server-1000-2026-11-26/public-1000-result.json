@@ -1,0 +1,80 @@
+{
+  "id": "126f73c0-88e4-4b0e-9fb2-801b95701000",
+  "state": "finished",
+  "startedAt": "2026-11-26T20:58:46.375Z",
+  "deadline": "2026-11-26T21:14:16.375Z",
+  "phase": {
+    "name": "\ud1f4\uc7a5\u00b7\uc815\ub9ac",
+    "seconds": 30,
+    "writers": 0,
+    "walkers": 0,
+    "readers": 0,
+    "writing": "new-cells",
+    "actionIntervalMs": 850
+  },
+  "population": {
+    "attempts": 1708,
+    "joined": 1708,
+    "peak": 990,
+    "sent": 97323,
+    "ack": 75509,
+    "rejected": 21814,
+    "unconfirmed": 0,
+    "rateLimited": 21814,
+    "receivedBytes": 1689170710,
+    "receivedWireBytes": 1707505754,
+    "transportErrors": 0,
+    "writtenGraphemes": 39476,
+    "active": {
+      "writers": 0,
+      "walkers": 0,
+      "readers": 0
+    },
+    "departures": {
+      "lifetime": 731,
+      "target-reduced": 977
+    },
+    "botMinutes": 11070.091249835477,
+    "ackP95Ms": 103.039,
+    "typingGapP50Ms": 280.063,
+    "typingGapP95Ms": 705.023
+  },
+  "world": {
+    "width": 281,
+    "height": 140,
+    "epoch": 1079,
+    "textLayout": 2,
+    "occupiedCells": 1942,
+    "connections": 2
+  },
+  "position": null,
+  "cost": {
+    "scope": "whole-service-during-run",
+    "priceDate": "2026-11-26",
+    "billingUnit": "decimal GB",
+    "ratesUsd": {
+      "cpuCoreMinute": 0.000463,
+      "memoryGBMinute": 0.000231,
+      "volumeGBMinute": 3.472222222e-06,
+      "egressGB": 0.05
+    },
+    "elapsedSeconds": 930.0065529699999,
+    "cpuCoreSeconds": 535.476194,
+    "memoryGiBMinutes": 10.900621386006048,
+    "volumeGiBMinutes": 0.9087651017784466,
+    "publicHttpBytes": 336317,
+    "publicWebSocketBytes": 17298088,
+    "estimatedUsd": {
+      "cpu": 0.004132091297033333,
+      "memory": 0.002703728663730758,
+      "volume": 3.38812186773849e-06,
+      "publicEgress": 0.00088172025,
+      "subtotal": 0.007720928332631829
+    },
+    "usdPer1000WrittenGraphemes": 0.00019558537675123694,
+    "hypotheticalBotEgressUsd": 0.08537528770000001
+  },
+  "finishedAt": "2026-11-26T21:14:16.382Z",
+  "reason": "deadline",
+  "error": null
+}

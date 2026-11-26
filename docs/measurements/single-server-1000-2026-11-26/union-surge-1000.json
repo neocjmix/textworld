@@ -1,0 +1,471 @@
+{
+  "revision": "84d8ba0",
+  "sourceDigest": "758f7b1ef17b5e988c7c3e1aff633a9df1c1100dd9657efce0434feae81bed7a",
+  "runtime": {
+    "node": "v24.22.3",
+    "arch": "x64",
+    "cpuLimit": 4,
+    "memoryLimit": 17179869184,
+    "cpuModel": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "bootHash": "a526752a26bed1c9"
+  },
+  "profiled": false,
+  "label": "/workspace/scratch/textworld-1000/union-surge-1000.json",
+  "hotFraction": 1,
+  "liveClock": true,
+  "alignedClock": true,
+  "slices": [
+    {
+      "elapsed": 30,
+      "bytesPerSecond": 3430892.016887116,
+      "ackP95": 133.20008000000234,
+      "pending": 5,
+      "cumulativeSent": 3001,
+      "cumulativeAccepted": 647,
+      "cumulativeBusy": 2349,
+      "audits": {
+        "sameRevision": 0,
+        "advancedOnRead": 0,
+        "differences": {}
+      },
+      "unexpectedCloses": 0,
+      "revisionGaps": 0,
+      "basisMismatches": 0
+    },
+    {
+      "elapsed": 60,
+      "bytesPerSecond": 3318682.854277641,
+      "ackP95": 72.17075799999293,
+      "pending": 0,
+      "cumulativeSent": 5994,
+      "cumulativeAccepted": 1601,
+      "cumulativeBusy": 4393,
+      "audits": {
+        "sameRevision": 0,
+        "advancedOnRead": 0,
+        "differences": {}
+      },
+      "unexpectedCloses": 0,
+      "revisionGaps": 0,
+      "basisMismatches": 0
+    },
+    {
+      "elapsed": 90,
+      "bytesPerSecond": 3879424.405541073,
+      "ackP95": 187.17800600000191,
+      "pending": 0,
+      "cumulativeSent": 29680,
+      "cumulativeAccepted": 2800,
+      "cumulativeBusy": 26880,
+      "audits": {
+        "sameRevision": 2,
+        "advancedOnRead": 2,
+        "differences": {}
+      },
+      "unexpectedCloses": 3,
+      "revisionGaps": 0,
+      "basisMismatches": 0
+    },
+    {
+      "elapsed": 120,
+      "bytesPerSecond": 3935167.391026298,
+      "ackP95": 785.6435159999819,
+      "pending": 0,
+      "cumulativeSent": 53385,
+      "cumulativeAccepted": 4354,
+      "cumulativeBusy": 49031,
+      "audits": {
+        "sameRevision": 2,
+        "advancedOnRead": 2,
+        "differences": {}
+      },
+      "unexpectedCloses": 11,
+      "revisionGaps": 0,
+      "basisMismatches": 0
+    },
+    {
+      "elapsed": 150,
+      "bytesPerSecond": 3536553.809315463,
+      "ackP95": 200.05781399999978,
+      "pending": 0,
+      "cumulativeSent": 56379,
+      "cumulativeAccepted": 5262,
+      "cumulativeBusy": 51117,
+      "audits": {
+        "sameRevision": 6,
+        "advancedOnRead": 2,
+        "differences": {}
+      },
+      "unexpectedCloses": 11,
+      "revisionGaps": 0,
+      "basisMismatches": 0
+    }
+  ],
+  "baseline": "6000 individual glyphs aged 0-180 seconds, 75% fullwidth, 8% occupied",
+  "seconds": 180,
+  "peerCount": 1000,
+  "capacityCheck": {
+    "connected": 1000,
+    "limit": 1000,
+    "excessStatus": 503,
+    "retryAfterSeconds": 5
+  },
+  "writers": 250,
+  "walkers": 80,
+  "staticReaders": 670,
+  "hotUsers": 1000,
+  "hotWriters": 250,
+  "hotWalkers": 80,
+  "setupSecs": 32.820526193,
+  "setupErrors": 0,
+  "placementRetries": 1050,
+  "worldStart": {
+    "width": 512,
+    "height": 256,
+    "epoch": 2,
+    "textLayout": 2
+  },
+  "worldEnd": {
+    "width": 512,
+    "height": 256,
+    "epoch": 2,
+    "seq": 11093,
+    "textLayout": 2
+  },
+  "inkEnd": 4600,
+  "offeredSeconds": 179.99912585200002,
+  "elapsedSeconds": 180.29109223,
+  "arrivals": 139,
+  "expectedCloses": 150,
+  "unexpectedCloses": 11,
+  "unexpectedCloseDetails": [
+    {
+      "slot": 382,
+      "placed": false,
+      "setupTimedOut": true,
+      "cancelledByHarness": true,
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "slot": 384,
+      "placed": false,
+      "setupTimedOut": true,
+      "cancelledByHarness": true,
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "slot": 391,
+      "placed": false,
+      "setupTimedOut": true,
+      "cancelledByHarness": true,
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "slot": 394,
+      "placed": false,
+      "setupTimedOut": true,
+      "cancelledByHarness": true,
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "slot": 395,
+      "placed": false,
+      "setupTimedOut": true,
+      "cancelledByHarness": true,
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "slot": 397,
+      "placed": false,
+      "setupTimedOut": true,
+      "cancelledByHarness": true,
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "slot": 398,
+      "placed": false,
+      "setupTimedOut": true,
+      "cancelledByHarness": true,
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "slot": 403,
+      "placed": false,
+      "setupTimedOut": true,
+      "cancelledByHarness": true,
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "slot": 409,
+      "placed": false,
+      "setupTimedOut": true,
+      "cancelledByHarness": true,
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "slot": 414,
+      "placed": false,
+      "setupTimedOut": true,
+      "cancelledByHarness": true,
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "slot": 416,
+      "placed": false,
+      "setupTimedOut": true,
+      "cancelledByHarness": true,
+      "code": 1006,
+      "reason": ""
+    }
+  ],
+  "errs": {
+    "WORLD_BUSY": 53314,
+    "rejoin_connection setup timeout 382": 1,
+    "rejoin_connection setup timeout 384": 1,
+    "rejoin_connection setup timeout 391": 1,
+    "rejoin_connection setup timeout 394": 1,
+    "rejoin_connection setup timeout 395": 1,
+    "rejoin_connection setup timeout 397": 1,
+    "rejoin_connection setup timeout 398": 1,
+    "rejoin_connection setup timeout 403": 1,
+    "rejoin_connection setup timeout 409": 1,
+    "rejoin_connection setup timeout 414": 1,
+    "rejoin_connection setup timeout 416": 1
+  },
+  "sent": 59400,
+  "accepted": 6086,
+  "pendingAtEnd": 1,
+  "pendingAfterDrain": 0,
+  "receivedBytes": 650178038,
+  "offeredBytes": 649792283,
+  "initialSnapshotBytesDuringChurn": 24958893,
+  "viewRecords": 2993637,
+  "revisionGaps": 0,
+  "revisionRegressions": 0,
+  "topologyPatches": 0,
+  "basisMismatches": 0,
+  "audits": {
+    "sameRevision": 6,
+    "advancedOnRead": 2,
+    "differences": {}
+  },
+  "resets": 8,
+  "bytesPerSecond": 3604256.574150903,
+  "serverBytesPerSecond": 3647092.6425482985,
+  "wireBytesMeasured": true,
+  "logicalBytesPerSecond": 3604315.8673384055,
+  "compression": false,
+  "compressionThreshold": 1024,
+  "actionRate": 240,
+  "actionBurst": 192,
+  "compact": true,
+  "ackP95Ms": 256.6700720000008,
+  "scheduledAckP95Ms": 257.6921683240507,
+  "generatorP95Ms": 1.048832082437002,
+  "maxGeneratorMs": 62.21103657616186,
+  "rejoinP95Ms": 7467.402762999991,
+  "surge": true,
+  "readerStride": 1,
+  "readerSampling": "all",
+  "readerViewCounts": {
+    "52x40": 503,
+    "150x50": 167
+  },
+  "otherDecodeP99Ms": 2342.911,
+  "ackP99Ms": 1000.4811139999947,
+  "rejoinP99Ms": 10039.591156999988,
+  "otherDecodeP95Ms": 611.327,
+  "otherDecodeCount": 1008432,
+  "readyP95Ms": 177.535,
+  "readyCount": 2993642,
+  "expiryAgeP95Ms": 190207,
+  "expiryAgeMaxMs": 190463,
+  "metrics": {
+    "expiration.ms": {
+      "sum": 6157.1052530001325,
+      "max": 187.2104860000254,
+      "count": 115,
+      "p95Upper": 128
+    },
+    "ws.tx_bytes": {
+      "sum": 650188734,
+      "max": 193971,
+      "count": 1933424,
+      "p95Upper": 1024
+    },
+    "presence.ms": {
+      "sum": 63953.466402000566,
+      "max": 210.4282420000236,
+      "count": 6790,
+      "p95Upper": 32
+    },
+    "ws.wire_tx_bytes": {
+      "sum": 657905310,
+      "max": 729840,
+      "count": 1898927,
+      "p95Upper": 1024
+    },
+    "overload.actions": {
+      "sum": 54297,
+      "max": 1,
+      "count": 54297,
+      "p95Upper": 1
+    },
+    "delivery.undelivered_events": {
+      "sum": 150,
+      "max": 10,
+      "count": 90,
+      "p95Upper": 8
+    },
+    "activity.peer_ms": {
+      "sum": 181228665.267721,
+      "max": 3736777.144,
+      "count": 314,
+      "p95Upper": 2097152
+    },
+    "observer.ms": {
+      "sum": 2006.2162730002456,
+      "max": 16.475468000018736,
+      "count": 534,
+      "p95Upper": 8
+    },
+    "encoding.records": {
+      "sum": 852618,
+      "max": 685568,
+      "count": 3,
+      "p95Upper": 1048576
+    },
+    "encoding.reused": {
+      "sum": 5139918,
+      "max": 1864377,
+      "count": 3,
+      "p95Upper": 2097152
+    },
+    "encoding.compactViews": {
+      "sum": 3250777,
+      "max": 1282635,
+      "count": 3,
+      "p95Upper": 2097152
+    },
+    "delivery.sync_requests": {
+      "sum": 8,
+      "max": 1,
+      "count": 8,
+      "p95Upper": 1
+    }
+  },
+  "serverCores": 0.6519238624476558,
+  "meanRssGiB": 1.0715732739618693,
+  "serverRssGiB": 1.5015373229980469,
+  "eventLoopP99": 96.862207,
+  "meanDispatchRecipients": 461.36966126656847,
+  "over100": 0.0955344693854509,
+  "peakBufferedBytes": 0,
+  "expiryCount": 5725,
+  "topologyGrowth": 0,
+  "topologyShrink": 0,
+  "serveInitialMs": 32820.526193,
+  "storage": [
+    {
+      "elapsedMs": 0,
+      "rssBytes": 663027712,
+      "heapBytes": 292812256,
+      "pageBytes": 5341184,
+      "freeBytes": 0,
+      "walBytes": 4227152,
+      "historyRows": 10500,
+      "operationRows": 6000,
+      "timeMarks": 36,
+      "cells": 10500,
+      "ink": 10500,
+      "epoch": 2,
+      "width": 512,
+      "height": 256,
+      "overdueGlyphs": 0,
+      "oldestGlyphAgeMs": 180001
+    },
+    {
+      "elapsedMs": 60015,
+      "rssBytes": 982925312,
+      "heapBytes": 745757968,
+      "pageBytes": 8200192,
+      "freeBytes": 0,
+      "walBytes": 4293072,
+      "historyRows": 15741,
+      "operationRows": 7188,
+      "timeMarks": 48,
+      "cells": 11882,
+      "ink": 8525,
+      "epoch": 2,
+      "width": 512,
+      "height": 256,
+      "overdueGlyphs": 0,
+      "oldestGlyphAgeMs": 184906
+    },
+    {
+      "elapsedMs": 120015,
+      "rssBytes": 1328521216,
+      "heapBytes": 940356096,
+      "pageBytes": 13250560,
+      "freeBytes": 0,
+      "walBytes": 4420792,
+      "historyRows": 23937,
+      "operationRows": 9802,
+      "timeMarks": 60,
+      "cells": 14284,
+      "ink": 7187,
+      "epoch": 2,
+      "width": 512,
+      "height": 256,
+      "overdueGlyphs": 0,
+      "oldestGlyphAgeMs": 184786
+    },
+    {
+      "elapsedMs": 180015,
+      "rssBytes": 1612001280,
+      "heapBytes": 881425016,
+      "pageBytes": 15011840,
+      "freeBytes": 0,
+      "walBytes": 4482592,
+      "historyRows": 26178,
+      "operationRows": 9084,
+      "timeMarks": 60,
+      "cells": 15118,
+      "ink": 4600,
+      "epoch": 2,
+      "width": 512,
+      "height": 256,
+      "overdueGlyphs": 0,
+      "oldestGlyphAgeMs": 184666
+    },
+    {
+      "elapsedMs": 180392,
+      "rssBytes": 1612263424,
+      "heapBytes": 859418936,
+      "pageBytes": 15024128,
+      "freeBytes": 0,
+      "walBytes": 4482592,
+      "historyRows": 26188,
+      "operationRows": 9088,
+      "timeMarks": 60,
+      "cells": 15120,
+      "ink": 4600,
+      "epoch": 2,
+      "width": 512,
+      "height": 256,
+      "overdueGlyphs": 149,
+      "oldestGlyphAgeMs": 185043
+    }
+  ],
+  "epochs": 0
+}

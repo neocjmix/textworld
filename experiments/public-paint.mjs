@@ -101,7 +101,13 @@ try {
     await Promise.all(pages.map(page => page.evaluate(target => { window.paintProbe = { target }; }, glyph)));
     try {
       await writer.locator('#input').focus();
-      const sent = await writer.evaluate(() => performance.timeOrigin + performance.now());
+      const inputStart = await writer.evaluate(() => {
+        const state = window.textworld.inspect();
+        return { at: performance.timeOrigin + performance.now(), point: state.cursor, epoch: state.world.epoch };
+      });
+      const sent = inputStart.at;
+      sample.inputPoint = inputStart.point;
+      sample.inputEpoch = inputStart.epoch;
       await writer.keyboard.insertText(glyph);
       await reader.waitForFunction(() => window.paintProbe.at, null, { timeout: 4000, polling: 40 });
       const [local, remote] = await Promise.all(pages.map(page => page.evaluate(() => window.paintProbe.at)));

@@ -1,0 +1,976 @@
+{
+  "startedAt": "2026-11-26T21:30:39.772Z",
+  "finishedAt": "2026-11-26T21:33:45.820Z",
+  "origin": "https://textworld-production-987c.up.railway.app",
+  "entry": "/#x=143&y=63",
+  "desktopWidth": 1200,
+  "mobileWidth": 390,
+  "glyphBase": 27427,
+  "quietFrom": null,
+  "quietUntil": null,
+  "screenshotAt": 0,
+  "screenshots": [],
+  "samples": [
+    {
+      "at": "2026-11-26T21:30:45.848Z",
+      "elapsedSeconds": 0.245,
+      "peers": 990,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 275,
+        "height": 127,
+        "epoch": 1157,
+        "textLayout": 2
+      },
+      "visiblePeers": 757,
+      "visibleCells": 459,
+      "inputPoint": {
+        "x": 143,
+        "y": 63
+      },
+      "inputEpoch": 1157,
+      "localMs": 16.39990234375,
+      "remoteMs": 159.60009765625,
+      "transport": [
+        {
+          "receivedAt": 1795728646050.5999,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795728646046.0999,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:30:58.067Z",
+      "elapsedSeconds": 12.464,
+      "peers": 990,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 309,
+        "height": 159,
+        "epoch": 1160,
+        "textLayout": 2
+      },
+      "visiblePeers": 650,
+      "visibleCells": 490,
+      "inputPoint": {
+        "x": 177,
+        "y": 78
+      },
+      "inputEpoch": 1160,
+      "missed": true,
+      "stateAfterMiss": [
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 215,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 159,
+            "epoch": 1161,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 144,
+            "y": 57,
+            "cols": 142,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        },
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 209,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 159,
+            "epoch": 1161,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 183,
+            "y": 57,
+            "cols": 52,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        }
+      ],
+      "transport": [
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": [
+            {
+              "code": "WORLD_BUSY",
+              "status": 429,
+              "target": true,
+              "requestType": "input"
+            }
+          ]
+        },
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:31:09.864Z",
+      "elapsedSeconds": 24.261,
+      "peers": 985,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 347,
+        "height": 164,
+        "epoch": 1162,
+        "textLayout": 2
+      },
+      "visiblePeers": 651,
+      "visibleCells": 538,
+      "inputPoint": {
+        "x": 215,
+        "y": 78
+      },
+      "inputEpoch": 1162,
+      "localMs": 7.5,
+      "remoteMs": 232.599853515625,
+      "transport": [
+        {
+          "receivedAt": 1795728670079.5999,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795728670104.9,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:31:21.818Z",
+      "elapsedSeconds": 36.215,
+      "peers": 989,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 347,
+        "height": 164,
+        "epoch": 1162,
+        "textLayout": 2
+      },
+      "visiblePeers": 650,
+      "visibleCells": 560,
+      "inputPoint": {
+        "x": 217,
+        "y": 78
+      },
+      "inputEpoch": 1162,
+      "missed": true,
+      "stateAfterMiss": [
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 217,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 146,
+            "y": 57,
+            "cols": 142,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        },
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 209,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 183,
+            "y": 57,
+            "cols": 52,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        }
+      ],
+      "transport": [
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": [
+            {
+              "code": "WORLD_BUSY",
+              "status": 429,
+              "target": true,
+              "requestType": "input"
+            }
+          ]
+        },
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:31:33.878Z",
+      "elapsedSeconds": 48.275,
+      "peers": 992,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 347,
+        "height": 164,
+        "epoch": 1162,
+        "textLayout": 2
+      },
+      "visiblePeers": 657,
+      "visibleCells": 623,
+      "inputPoint": {
+        "x": 217,
+        "y": 78
+      },
+      "inputEpoch": 1162,
+      "missed": true,
+      "stateAfterMiss": [
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 217,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 146,
+            "y": 57,
+            "cols": 142,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        },
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 209,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 183,
+            "y": 57,
+            "cols": 52,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        }
+      ],
+      "transport": [
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": [
+            {
+              "code": "WORLD_BUSY",
+              "status": 429,
+              "target": true,
+              "requestType": "input"
+            }
+          ]
+        },
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:31:45.811Z",
+      "elapsedSeconds": 60.208,
+      "peers": 988,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 347,
+        "height": 164,
+        "epoch": 1162,
+        "textLayout": 2
+      },
+      "visiblePeers": 660,
+      "visibleCells": 697,
+      "inputPoint": {
+        "x": 217,
+        "y": 78
+      },
+      "inputEpoch": 1162,
+      "localMs": 6.60009765625,
+      "remoteMs": 190,
+      "transport": [
+        {
+          "receivedAt": 1795728705976.7998,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795728706009.0999,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:31:57.841Z",
+      "elapsedSeconds": 72.238,
+      "peers": 992,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 347,
+        "height": 164,
+        "epoch": 1162,
+        "textLayout": 2
+      },
+      "visiblePeers": 659,
+      "visibleCells": 758,
+      "inputPoint": {
+        "x": 219,
+        "y": 78
+      },
+      "inputEpoch": 1162,
+      "missed": true,
+      "stateAfterMiss": [
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 219,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 148,
+            "y": 57,
+            "cols": 142,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        },
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 209,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 183,
+            "y": 57,
+            "cols": 52,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        }
+      ],
+      "transport": [
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": [
+            {
+              "code": "WORLD_BUSY",
+              "status": 429,
+              "target": true,
+              "requestType": "input"
+            }
+          ]
+        },
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:32:09.819Z",
+      "elapsedSeconds": 84.216,
+      "peers": 994,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 347,
+        "height": 164,
+        "epoch": 1162,
+        "textLayout": 2
+      },
+      "visiblePeers": 660,
+      "visibleCells": 784,
+      "inputPoint": {
+        "x": 219,
+        "y": 78
+      },
+      "inputEpoch": 1162,
+      "localMs": 19.39990234375,
+      "remoteMs": 155.599853515625,
+      "transport": [
+        {
+          "receivedAt": 1795728729961.5,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795728729983.9,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:32:21.929Z",
+      "elapsedSeconds": 96.326,
+      "peers": 993,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 347,
+        "height": 164,
+        "epoch": 1162,
+        "textLayout": 2
+      },
+      "visiblePeers": 662,
+      "visibleCells": 805,
+      "inputPoint": {
+        "x": 221,
+        "y": 78
+      },
+      "inputEpoch": 1162,
+      "localMs": 6.699951171875,
+      "remoteMs": 216.199951171875,
+      "transport": [
+        {
+          "receivedAt": 1795728742126.7,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795728742150.9,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:32:33.826Z",
+      "elapsedSeconds": 108.223,
+      "peers": 987,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 347,
+        "height": 164,
+        "epoch": 1162,
+        "textLayout": 2
+      },
+      "visiblePeers": 666,
+      "visibleCells": 865,
+      "inputPoint": {
+        "x": 223,
+        "y": 78
+      },
+      "inputEpoch": 1162,
+      "missed": true,
+      "stateAfterMiss": [
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 223,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 152,
+            "y": 57,
+            "cols": 142,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        },
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 209,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 183,
+            "y": 57,
+            "cols": 52,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        }
+      ],
+      "transport": [
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": [
+            {
+              "code": "WORLD_BUSY",
+              "status": 429,
+              "target": true,
+              "requestType": "input"
+            }
+          ]
+        },
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:32:45.834Z",
+      "elapsedSeconds": 120.231,
+      "peers": 992,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 347,
+        "height": 164,
+        "epoch": 1162,
+        "textLayout": 2
+      },
+      "visiblePeers": 663,
+      "visibleCells": 917,
+      "inputPoint": {
+        "x": 223,
+        "y": 78
+      },
+      "inputEpoch": 1162,
+      "missed": true,
+      "stateAfterMiss": [
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 223,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 152,
+            "y": 57,
+            "cols": 142,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        },
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 209,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 183,
+            "y": 57,
+            "cols": 52,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        }
+      ],
+      "transport": [
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": [
+            {
+              "code": "WORLD_BUSY",
+              "status": 429,
+              "target": true,
+              "requestType": "input"
+            }
+          ]
+        },
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:32:57.848Z",
+      "elapsedSeconds": 132.245,
+      "peers": 984,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 347,
+        "height": 164,
+        "epoch": 1162,
+        "textLayout": 2
+      },
+      "visiblePeers": 655,
+      "visibleCells": 933,
+      "inputPoint": {
+        "x": 223,
+        "y": 78
+      },
+      "inputEpoch": 1162,
+      "missed": true,
+      "stateAfterMiss": [
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 223,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 152,
+            "y": 57,
+            "cols": 142,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        },
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 209,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 183,
+            "y": 57,
+            "cols": 52,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        }
+      ],
+      "transport": [
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": [
+            {
+              "code": "WORLD_BUSY",
+              "status": 429,
+              "target": true,
+              "requestType": "input"
+            }
+          ]
+        },
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:33:09.909Z",
+      "elapsedSeconds": 144.306,
+      "peers": 975,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 347,
+        "height": 164,
+        "epoch": 1162,
+        "textLayout": 2
+      },
+      "visiblePeers": 647,
+      "visibleCells": 924,
+      "inputPoint": {
+        "x": 223,
+        "y": 78
+      },
+      "inputEpoch": 1162,
+      "missed": true,
+      "stateAfterMiss": [
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 223,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 152,
+            "y": 57,
+            "cols": 142,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        },
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 209,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 183,
+            "y": 57,
+            "cols": 52,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        }
+      ],
+      "transport": [
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": [
+            {
+              "code": "WORLD_BUSY",
+              "status": 429,
+              "target": true,
+              "requestType": "input"
+            }
+          ]
+        },
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:33:21.805Z",
+      "elapsedSeconds": 156.202,
+      "peers": 980,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 347,
+        "height": 164,
+        "epoch": 1162,
+        "textLayout": 2
+      },
+      "visiblePeers": 640,
+      "visibleCells": 934,
+      "inputPoint": {
+        "x": 223,
+        "y": 78
+      },
+      "inputEpoch": 1162,
+      "missed": true,
+      "stateAfterMiss": [
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 223,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 152,
+            "y": 57,
+            "cols": 142,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        },
+        {
+          "connected": true,
+          "pending": 0,
+          "cursor": {
+            "x": 209,
+            "y": 78
+          },
+          "world": {
+            "width": 347,
+            "height": 164,
+            "epoch": 1162,
+            "textLayout": 2
+          },
+          "view": {
+            "x": 183,
+            "y": 57,
+            "cols": 52,
+            "rows": 42
+          },
+          "targetInCurrentCells": false
+        }
+      ],
+      "transport": [
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": [
+            {
+              "code": "WORLD_BUSY",
+              "status": 429,
+              "target": true,
+              "requestType": "input"
+            }
+          ]
+        },
+        {
+          "receivedAt": null,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-26T21:33:33.813Z",
+      "elapsedSeconds": 168.21,
+      "peers": 975,
+      "capacity": 1000,
+      "revision": "84d8ba0b18f89de252b6c3863b79b17cb9c36f66",
+      "world": {
+        "width": 347,
+        "height": 164,
+        "epoch": 1162,
+        "textLayout": 2
+      },
+      "visiblePeers": 623,
+      "visibleCells": 945,
+      "inputPoint": {
+        "x": 223,
+        "y": 78
+      },
+      "inputEpoch": 1162,
+      "localMs": 6.7001953125,
+      "remoteMs": 240.800048828125,
+      "transport": [
+        {
+          "receivedAt": 1795728814024.9,
+          "accepted": true,
+          "errors": []
+        },
+        {
+          "receivedAt": 1795728814060.5,
+          "accepted": false,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

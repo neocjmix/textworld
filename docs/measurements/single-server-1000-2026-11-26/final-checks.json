@@ -1,0 +1,88 @@
+{
+  "revision": "841f8ffc039e816b3a48b9cad3a7f79408b781a9",
+  "node": "v24.22.3",
+  "unitIntegration": {
+    "command": "npm test",
+    "tests": 297,
+    "pass": 297,
+    "fail": 0,
+    "skipped": 0,
+    "durationMs": 32167.579012
+  },
+  "build": {
+    "command": "npm run build",
+    "assetId": "4d3eb8041743ff9dbe80",
+    "files": 35
+  },
+  "builtBrowserChecks": [
+    {
+      "engine": "chromium",
+      "version": "156.0.8078.79",
+      "status": "passed",
+      "checks": [
+        "two independent views",
+        "CJK width",
+        "Enter",
+        "Backspace",
+        "overwrite",
+        "arrow",
+        "touch input",
+        "mobile viewport",
+        "reload convergence",
+        "no runtime errors"
+      ]
+    },
+    {
+      "engine": "firefox",
+      "version": "157.0",
+      "status": "passed",
+      "checks": [
+        "two independent views",
+        "CJK width",
+        "Enter",
+        "Backspace",
+        "overwrite",
+        "arrow",
+        "touch input",
+        "mobile viewport",
+        "reload convergence",
+        "no runtime errors"
+      ]
+    },
+    {
+      "engine": "webkit",
+      "version": "27.2",
+      "status": "passed",
+      "checks": [
+        "two independent views",
+        "CJK width",
+        "Enter",
+        "Backspace",
+        "overwrite",
+        "arrow",
+        "touch input",
+        "mobile viewport",
+        "reload convergence",
+        "no runtime errors"
+      ]
+    }
+  ],
+  "costCalculator": {
+    "builtAssets": true,
+    "widths": [
+      390,
+      1200
+    ],
+    "passed": true
+  },
+  "notes": [
+    "Tests ran after local capacity workloads finished and before the public paint probe started.",
+    "The public bot job ran on Railway concurrently.",
+    "Browser engines and mobile viewport sizes do not emulate physical OS IME or low-end mobile hardware."
+  ],
+  "capacitySource": {
+    "revision": "166cc2c",
+    "sourceDigest": "d81f3dfd69c6740e44562cddc4240f9019d762cf8922b0d0df11f64c4a5939d6",
+    "productionDifference": "Only createTextworld default maxParticipants changed from 300 to 1000; the fixture already explicitly passed 1000. Verified with git diff 166cc2c 841f8ff -- server shared."
+  }
+}

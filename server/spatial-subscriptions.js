@@ -4,18 +4,6 @@ const TILE_SIZE = 16;
 const tileKey = (column, row) => column + ',' + row;
 const tile = (x, y) => tileKey(Math.floor(x / TILE_SIZE), Math.floor(y / TILE_SIZE));
 
-// A bounded slot bitset gives an exact tile union without walking the crowd.
-// Hex conversion avoids one BigInt allocation per participant when counting.
-function bitCount(bits) {
-  const digits = bits.toString(16), counts = '0112122312232334';
-  let count = 0;
-  for (let i = 0; i < digits.length; i++) {
-    const code = digits.charCodeAt(i);
-    count += counts.charCodeAt(code <= 57 ? code - 48 : code - 87) - 48;
-  }
-  return count;
-}
-
 function axisTiles(start, length, worldSize) {
   const tiles = new Set();
   let position = start;
@@ -58,20 +46,6 @@ export class SpatialSubscriptions {
     this.positions = new Map();
     this.subscribers = new Map();
     this.registrations = new Map();
-    this.subscriberBits = new Map();
-    this.freeSlots = [];
-    this.nextSlot = 0;
-  }
-
-  subscribe(key, actor, bit) {
-    add(this.subscribers, key, actor);
-    this.subscriberBits.set(key, (this.subscriberBits.get(key) ?? 0n) | bit);
-  }
-
-  unsubscribe(key, actor, bit) {
-    remove(this.subscribers, key, actor);
-    if (this.subscribers.has(key)) this.subscriberBits.set(key, this.subscriberBits.get(key) & ~bit);
-    else this.subscriberBits.delete(key);
   }
 
   update(actor) {
@@ -80,13 +54,10 @@ export class SpatialSubscriptions {
       if (old) {
         this.registrations.delete(actor);
         remove(this.positions, old.tile, actor);
-        for (const key of old.tiles) this.unsubscribe(key, actor, old.bit);
-        this.freeSlots.push(old.slot);
+        for (const key of old.tiles) remove(this.subscribers, key, actor);
       }
       return old;
     }
-    const slot = old?.slot ?? this.freeSlots.pop() ?? this.nextSlot++;
-    const bit = old?.bit ?? (1n << BigInt(slot));
     const { x, y } = actor.peer;
     const view = viewRectangle(this.world, actor.peer, actor.observer.view);
     const position = tile(x, y);
@@ -98,10 +69,10 @@ export class SpatialSubscriptions {
     if (!old || old.epoch !== this.world.epoch || old.view.x !== view.x || old.view.y !== view.y ||
         old.view.cols !== view.cols || old.view.rows !== view.rows) {
       tiles = tilesIn(view, this.world);
-      for (const key of old?.tiles || []) if (!tiles.has(key)) this.unsubscribe(key, actor, bit);
-      for (const key of tiles) if (!old?.tiles.has(key)) this.subscribe(key, actor, bit);
+      for (const key of old?.tiles || []) if (!tiles.has(key)) remove(this.subscribers, key, actor);
+      for (const key of tiles) if (!old?.tiles.has(key)) add(this.subscribers, key, actor);
     }
-    this.registrations.set(actor, { x, y, view, tile: position, tiles, epoch: this.world.epoch, slot, bit });
+    this.registrations.set(actor, { x, y, view, tile: position, tiles, epoch: this.world.epoch });
     return old;
   }
 
@@ -113,7 +84,7 @@ export class SpatialSubscriptions {
     }
   }
 
-  // Admission unions tile bitsets, never the crowd itself. Edit footprints are
+  // Admission reads tile sizes, never the crowd itself. Edit footprints are
   // bounded by the existing atomic input limits; adjacent CJK halves count too.
   candidateCount(point, previous, affected) {
     const key = tile(point.x, point.y);
@@ -123,15 +94,19 @@ export class SpatialSubscriptions {
       for (const cell of affected) for (const dx of [-1, 0, 1]) {
         keys.add(tile((cell.x + dx + this.world.width) % this.world.width, cell.y));
       }
-      if (keys.size === 1) return this.subscribers.get(key)?.size ?? 0;
-      let bits = 0n;
-      for (const covered of keys) bits |= this.subscriberBits.get(covered) ?? 0n;
-      return bitCount(bits);
+      let total = 0;
+      for (const covered of keys) {
+        total += this.subscribers.get(covered)?.size ?? 0;
+        if (total >= this.registrations.size) return this.registrations.size;
+      }
+      return total;
     }
     const count = this.subscribers.get(key)?.size ?? 0;
     const before = previous && tile(previous.x, previous.y);
     if (!before || before === key) return count;
-    return bitCount((this.subscriberBits.get(key) ?? 0n) | (this.subscriberBits.get(before) ?? 0n));
+    // Sum is a conservative union bound, capped by the current population.
+    // Avoid allocating or walking a crowd just to reject an overloaded action.
+    return Math.min(this.registrations.size, count + (this.subscribers.get(before)?.size ?? 0));
   }
 
   peersFor(actor) {
