@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { WebSocket } from 'ws';
 import { createTextworld } from '../server/index.js';
+import { PlaytestCost } from '../experiments/playtest/cost.mjs';
 
 const plan = { seed: 3, lifetimeSeconds: [8, 10], budget: { admissions: 32, botMinutes: 4, receivedMiB: 48 },
   phases: [{ name: '현장 체험', seconds: 16, writers: 2, walkers: 2, readers: 5 }] };
@@ -16,6 +17,30 @@ async function until(check) {
   do { const value = await check(); if (value) return value; await sleep(40); } while (Date.now() < deadline);
   throw Error('timed out waiting for the live world');
 }
+
+test('cost integrates elapsed resource use and prices only public payload in the subtotal', () => {
+  const gib = 1024 ** 3;
+  const first = { at: 10, cpuMicros: 1000, rssBytes: gib, volumeBytes: gib,
+    publicHttpBytes: 400, publicWebSocketBytes: 800 };
+  const meter = new PlaytestCost(first);
+  meter.sample({ ...first, at: 30010, rssBytes: gib * 3 });
+  const end = { ...first, at: 60010, cpuMicros: 60001000, volumeBytes: gib * 3,
+    publicHttpBytes: first.publicHttpBytes + gib / 2, publicWebSocketBytes: first.publicWebSocketBytes + gib / 2 };
+  const p = { receivedBytes: gib * 4, writtenGraphemes: 500 };
+  const c = meter.sample(end, p);
+  assert.equal(c.cpuCoreSeconds, 60);
+  assert.equal(c.memoryGiBMinutes, 2);
+  assert.equal(c.volumeGiBMinutes, 1.5);
+  assert.equal(c.estimatedUsd.publicEgress, .05);
+  assert.equal(c.hypotheticalBotEgressUsd, .2);
+  assert.equal(c.estimatedUsd.subtotal, .000463 + .000231 * 2 + .05 + .000003472222222 * 1.5);
+  assert.equal(c.usdPer1000WrittenGraphemes, c.estimatedUsd.subtotal * 2);
+  assert.deepEqual(meter.sample(end, p), c);
+  const gap = meter.sample({ ...end, volumeBytes: null });
+  assert.equal(gap.estimatedUsd.volume, null);
+  assert.equal(meter.sample(end).volumeGiBMinutes, null);
+  assert.equal(gap.usdPer1000WrittenGraphemes, null);
+});
 async function fixture(t) {
   const dir = await mkdtemp(join(tmpdir(), 'tw-live-'));
   const token = randomUUID();
@@ -75,12 +100,17 @@ test('visiting is passive; one authenticated run shares cells with ordinary map 
     const result = (await f.operator(null, id)).data;
     assert.equal(result.reason, 'operator');
     assert.ok(result.population.ack > 0);
+    assert.ok(result.population.writtenGraphemes > 0);
+    assert.ok(result.cost.publicHttpBytes > 0 && result.cost.publicWebSocketBytes > 0);
+    assert.ok(result.cost.cpuCoreSeconds > 0 && result.cost.memoryGiBMinutes > 0);
+    assert.ok(result.cost.estimatedUsd.subtotal > 0 && result.cost.hypotheticalBotEgressUsd > 0);
     assert.equal(result.population.sent, result.population.ack + result.population.rejected + result.population.unconfirmed);
     assert.equal((await f.health()).peers, 1);
     assert.equal(browser.readyState, WebSocket.OPEN);
     const events = (await readFile(join(f.dir, 'playtests', id, 'events.jsonl'), 'utf8')).trim().split('\n').map(JSON.parse);
     assert.ok(events.some(e => e.type === 'mark' && e.note === '같은 지도'));
     assert.equal(events.at(-1).reason, 'operator');
+    assert.deepEqual(events.at(-1).cost, result.cost);
     assert.equal((await f.operator(start)).data.state, 'finished');
   } finally { browser.terminate(); }
 });
@@ -91,14 +121,19 @@ test('deployment, a wall-clock deadline and a byte budget end only their run; re
   await until(async () => (await f.health()).peers > 0);
   await f.restart();
   assert.equal((await f.health()).playtest, 'idle');
-  assert.equal((await f.operator(first)).data.reason, 'deployment');
+  const prior = (await f.operator(first)).data;
+  assert.equal(prior.reason, 'deployment');
+  assert.equal(prior.cost.publicWebSocketBytes, 0);
   assert.equal((await f.health()).peers, 0);
   for (const [reason, seconds, receivedMiB] of [['deadline', 2, 48], ['byte-budget', 10, .0001]]) {
     const id = randomUUID();
     await f.operator({ command: 'start', id, plan: { ...plan, budget: { ...plan.budget, receivedMiB },
       phases: [{ ...plan.phases[0], seconds, writers: 1, walkers: 0, readers: 0 }] } });
     await until(async () => (await f.operator()).data.state === 'idle');
-    assert.equal((await f.operator(null, id)).data.reason, reason);
+    const result = (await f.operator(null, id)).data;
+    assert.equal(result.reason, reason);
+    assert.equal(result.cost.publicWebSocketBytes, 0);
+    assert.ok(result.population.receivedBytes > 0 && result.cost.hypotheticalBotEgressUsd > 0);
     assert.equal((await f.health()).peers, 0);
   }
 });

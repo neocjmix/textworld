@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { readBody } from './agent-http.js';
 import { scenario, target, writingPattern } from '../experiments/playtest/scenario.mjs';
 import { createPlaytestIngress } from '../experiments/playtest/ingress.mjs';
+import { PlaytestCost } from '../experiments/playtest/cost.mjs';
 import wave from '../experiments/playtest/wave.json' with { type: 'json' };
 
 const id = z.uuid();
@@ -18,13 +19,13 @@ const commands = z.discriminatedUnion('command', [
 ]);
 
 /** The game's single SQLite authority owns one bounded job. Boot never creates a job. */
-export function createLivePlaytest({ token, directory, sampleWorld, upgrade }) {
+export function createLivePlaytest({ token, directory, sampleWorld, sampleResources, upgrade }) {
   const expected = Buffer.from('Bearer ' + token);
   const households = new WeakMap();
   let current, last, closing = false;
   function snapshot(run) {
     return { id: run.id, state: run.state, startedAt: run.startedAt, deadline: run.deadline,
-      phase: run.phase, population: run.population, world: sampleWorld(), position: run.position };
+      phase: run.phase, population: run.population, world: sampleWorld(), position: run.position, cost: run.cost };
   }
   function stop(run, reason) {
     if (!run.stopReason) {
@@ -60,8 +61,9 @@ export function createLivePlaytest({ token, directory, sampleWorld, upgrade }) {
           if (m.population) run.population = m.population;
           if ('position' in m) run.position = m.position;
           const world = sampleWorld();
+          run.cost = run.meter.sample(sampleResources(), run.population);
           if (m.type !== 'sample' || Date.now() - lastSample >= 5000 || world.epoch !== epoch) {
-            record(run, m.type, { phase: run.phase, population: run.population, world });
+            record(run, m.type, { phase: run.phase, population: run.population, world, cost: run.cost });
             lastSample = Date.now();
             epoch = world.epoch;
           }
@@ -76,6 +78,7 @@ export function createLivePlaytest({ token, directory, sampleWorld, upgrade }) {
       if (run.worker) await run.worker.terminate();
       await ingress.close();
       run.state = 'finished';
+      run.cost = run.meter.sample(sampleResources(), run.population);
       const summary = { ...snapshot(run), finishedAt: new Date().toISOString(),
         reason: result?.reason ?? run.stopReason ?? 'driver-error', error: run.error ?? null };
       record(run, 'end', summary);
@@ -108,8 +111,10 @@ export function createLivePlaytest({ token, directory, sampleWorld, upgrade }) {
     catch (e) { if (e.code === 'EEXIST') return json(res, 409, { error: 'ID_CLAIMED' }); throw e; }
     const duration = plan.phases.reduce((ms, p) => ms + p.seconds * 1000, 0);
     const now = Date.now();
+    const firstSample = sampleResources();
+    const meter = new PlaytestCost(firstSample);
     const run = { id: key, dir, state: 'starting', startedAt: new Date(now).toISOString(),
-      deadline: new Date(now + duration).toISOString(), position: null };
+      deadline: new Date(now + duration).toISOString(), position: null, meter, cost: meter.sample(firstSample) };
     current = run;
     run.watchdog = setTimeout(() => stop(run, 'deadline'), duration);
     record(run, 'plan', { plan, revision: process.env.RAILWAY_GIT_COMMIT_SHA || null, world: sampleWorld() });

@@ -135,6 +135,9 @@ test('repeated overwrites by a long-lived writer keep the same two CJK cells occ
   const result = (await end()).at(-1);
   assert.equal(result.world.occupiedCells, 2);
   assert.ok(result.population.ack >= 4);
+  assert.ok(result.cost.cpuCoreSeconds > 0);
+  assert.ok(result.cost.hypotheticalBotEgressUsd > 0);
+  assert.equal(result.cost.publicWebSocketBytes, 0);
 });
 
 test('each resource budget and an operator interrupt independently end a run', { timeout: 20000 }, async t => {

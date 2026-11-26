@@ -21,13 +21,14 @@ const browserReady = once(app.server, 'listening');
 app.server.listen(workerData.port, workerData.lan ? '0.0.0.0' : '127.0.0.1');
 await browserReady;
 const botPort = await bots.listen();
-parentPort.postMessage({ type: 'ready', mapPort: app.server.address().port, botPort, credential: bots.credential, world: sample() });
-const timer = setInterval(() => parentPort.postMessage({ type: 'world', world: sample() }), 1000);
+const report = (type, extra) => parentPort.postMessage({ type, ...extra, world: sample(), resources: app.playtestResources() });
+report('ready', { mapPort: app.server.address().port, botPort, credential: bots.credential });
+const timer = setInterval(() => report('world'), 1000);
 parentPort.once('message', async () => {
   clearInterval(timer);
   const stopped = bots.close();
   await app.close();
   await stopped;
-  parentPort.postMessage({ type: 'final', world: sample() });
+  report('final');
   parentPort.close();
 });

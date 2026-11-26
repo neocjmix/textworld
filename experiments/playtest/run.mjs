@@ -8,6 +8,7 @@ import { parseArgs } from 'node:util';
 import { Worker } from 'node:worker_threads';
 import { startTraffic } from './traffic.mjs';
 import { roles, scenario, target, writingPattern } from './scenario.mjs';
+import { PlaytestCost } from './cost.mjs';
 
 const usage = 'npm run playtest -- [--scenario wave.json] [--lan] [--port 3001]';
 const controls = 'set 글쓴이수 산책자수 독자수 [new-cells|overwrite] · status · mark 현장 메모 · stop';
@@ -44,7 +45,7 @@ async function run() {
   const done = Promise.withResolvers();
   const origin = performance.now();
   let phase, stopping, failure;
-  let world, mapPort, traffic, population, input, startup, worker;
+  let world, mapPort, traffic, population, input, startup, worker, meter, cost;
   const log = (type, data) => appendFileSync(join(dir, 'events.jsonl'), JSON.stringify({
     type, elapsedMs: Math.round(performance.now() - origin), at: new Date().toISOString(), ...data,
   }) + '\n');
@@ -117,6 +118,8 @@ async function run() {
     worker.on('message', m => {
       const resized = world && world.epoch !== m.world.epoch;
       world = m.world;
+      meter ??= new PlaytestCost(m.resources);
+      cost = meter.sample(m.resources, population?.report());
       if (stopping) return;
       if (m.type === 'ready') {
         clearTimeout(startup);
@@ -130,7 +133,7 @@ async function run() {
         input = createInterface({ input: process.stdin, terminal: false });
         input.on('line', command);
       } else if (resized || performance.now() >= nextSample) {
-        log(resized ? 'resize' : 'sample', { phase: phase.name, world, population: population.report() });
+        log(resized ? 'resize' : 'sample', { phase: phase.name, world, population: population.report(), cost });
         nextSample = performance.now() + 5000;
       }
     });
@@ -149,7 +152,7 @@ async function run() {
       try { server = serverTotals(metrics); }
       catch (error) { failure = error; }
     }
-    const record = { reason: stopping, world, population: population?.report(), server, error: failure?.message };
+    const record = { reason: stopping, world, population: population?.report(), server, cost, error: failure?.message };
     log('end', record);
     console.log('시험 종료 ' + JSON.stringify(record));
     if (failure) throw failure;

@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve, dirname, extname, sep } from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
 import { createViewDelivery } from './view-delivery.js';
+import { sampleResources } from '../experiments/playtest/cost.mjs';
 import { World, WorldError } from './world.js';
 import { VIEW_LIMITS } from '../shared/participant-rules.js';
 import { LIMITS, NetworkBudgets, ParticipantPolicy, PolicyError } from './participant-policy.js';
@@ -55,8 +56,11 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   playtestToken = process.env.TEXTWORLD_PLAYTEST_TOKEN || '', playtestDirectory = resolve(dirname(storagePath), 'playtests') } = {}) {
   const world = new World({ storagePath, now });
   world.storagePath = storagePath;
+  const outbound = { publicHttpBytes: 0, publicWebSocketBytes: 0 };
+  const playtestResources = () => sampleResources(outbound);
   const live = playtestToken ? createLivePlaytest({
     token: playtestToken, directory: playtestDirectory, upgrade: (...args) => server.emit('upgrade', ...args),
+    sampleResources: playtestResources,
     sampleWorld: () => ({ ...publicWorld(world), occupiedCells: world.ink, connections: wss.clients.size }),
   }) : null;
   const measurements = new Measurements({path:metricsPath || (storagePath === ':memory:' ? ':memory:' : storagePath + '.metrics.sqlite'),enabled:metricsEnabled});
@@ -115,6 +119,8 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       return false;
     }
     const bytes = Buffer.byteLength(encoded);
+    if (socket.textworldPublicListener) outbound.publicWebSocketBytes += bytes;
+    else measurements.record('ws.playtest_tx_bytes', bytes);
     measurements.record('ws.tx_bytes', bytes);
     measurements.record('ws.buffered_bytes', socket.bufferedAmount);
     if (fragmentBytes && bytes > fragmentBytes) {
@@ -261,8 +267,13 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     const started=performance.now(),route=measurementRoute(req.url.split('?')[0]);let bytes=0;
     const length=(chunk,encoding)=>typeof chunk==='string'?Buffer.byteLength(chunk,typeof encoding==='string'?encoding:'utf8'):Buffer.isBuffer(chunk)||ArrayBuffer.isView(chunk)?chunk.byteLength:0;
     const write=res.write,end=res.end;
-    res.write=function(chunk,...args){bytes+=length(chunk,args[0]);return write.call(this,chunk,...args);};
-    res.end=function(chunk,...args){bytes+=length(chunk,args[0]);return end.call(this,chunk,...args);};
+    const count = (chunk, encoding) => {
+      const size = length(chunk, encoding);
+      bytes += size;
+      outbound.publicHttpBytes += size;
+    };
+    res.write=function(chunk,...args){count(chunk,args[0]);return write.call(this,chunk,...args);};
+    res.end=function(chunk,...args){count(chunk,args[0]);return end.call(this,chunk,...args);};
     let accounted=false;const account=()=>{if(accounted)return;accounted=true;measurements.record(`http.${route}.ms`,performance.now()-started);measurements.record(`http.${route}.tx_bytes`,bytes);measurements.record(`http.${route}.status_${[200,201,202,204,400,401,403,404,405,413,415,429,500,503].includes(res.statusCode)?res.statusCode:'other'}`);if(!res.writableFinished)measurements.record(`http.${route}.aborted`);const rx=Number(req.headers['content-length']);if(Number.isSafeInteger(rx)&&rx>=0)measurements.record(`http.${route}.declared_rx_bytes`,rx);};
     res.once('finish',account);res.once('close',account);
     try {
@@ -316,6 +327,8 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
       socket.once('close', () => { if (!transferred) removeActor(actor); });
       wss.handleUpgrade(req, socket, head, ws => {
         transferred = true;
+        // The private runner connects through a different listener, even on localhost.
+        ws.textworldPublicListener = req.socket.localPort === server.address()?.port;
         wss.emit('connection', ws, actor);
       });
     } catch (error) {
@@ -410,7 +423,12 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     socket.on('close', () => { clients.delete(socket); removeActor(actor); });
     socket.on('error', () => {});
   });
-  const sampleMeasurements=()=>{updatePopulation();measurements.sample(world,{peers:actors.size,network_entries:networks.entries.size,waiters:listeners.size,ws_peers:clients.size,http_peers:actors.size-clients.size});};
+  const sampleMeasurements=()=>{
+    updatePopulation();
+    // Record known-zero intervals as well, so an older deployment is distinguishable.
+    measurements.record('ws.playtest_tx_bytes', 0);
+    measurements.sample(world,{peers:actors.size,network_entries:networks.entries.size,waiters:listeners.size,ws_peers:clients.size,http_peers:actors.size-clients.size});
+  };
   const measurementTimer=metricsEnabled?setInterval(()=>{sampleMeasurements();measurements.flush();},60000):null;
   measurementTimer?.unref();
   const heartbeat = setInterval(() => {
@@ -465,7 +483,7 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
     finally { measurements.record('topology.adapt_ms', performance.now() - started); }
   }, DENSITY.intervalMs);
   return {
-    server, world, wss, measurements,
+    server, world, wss, measurements, playtestResources,
     listen: (port = 3000, host = '0.0.0.0') => new Promise(resolve => server.listen(port, host, () => resolve(server.address()))),
     close: async () => {
       closing = true; clearInterval(measurementTimer); clearInterval(heartbeat); clearInterval(adaptation); clearInterval(aging); clearImmediate(cleanupContinuation);

@@ -51,6 +51,8 @@ HTTP는 `GET /api/metrics?period=60|3600&since=...&before=...&limit=...`, Bearer
 
 비용 보고서는 관측한 작업량이30일간 동일하게 지속될 때의 **조건부 자원 비용 대용값**이다. 짧은 관측을 미래 이용량 예측으로 취급하지 않는다. 2026-11-02 공식 [Railway 가격표](https://docs.railway.com/pricing/plans)의 CPU $20/vCPU-month, RAM $10/GB-month, egress $0.05/GB, volume $0.15/GB-month를 명시적으로 적용한다. 단위 변환은1GB=2^30 bytes로 가정하며 요금 변경 시 스크립트의 값을 갱신해야 한다. 플랜 최소요금·포함 크레딧·실제 과금 단위·서비스 전체 사용량에 따라 청구액은 달라진다. 다른 인프라에도 적용하려면 그 단가와 계량 정의로 다시 계산한다.
 
+2026-11-26부터 `ws.playtest_tx_bytes`에 러너 전용 연결의 송신량을 보존한다. 30일 비용 추정은 이 바이트를 뺀다. 이전 배포의 자료는 `egressAccounting`에 미분류 트래픽을 포함한다고 표시한다. 한 번의 실행만 비교할 때는 실행 경계에서 잰 전용 보고서를 쓴다. [실행 한 번의 비용 확인](PLAYTEST_RUNNER.md#실행-한-번의-비용-확인)
+
 ## 확장 실험과 다음 개선
 
 `bench:scale`은512×256 세계, 점유0/8192, 시야80×24/160×48, 관측자1/8/32를 조합한다. 각20번 쓰기·전체 시야 갱신을3회, 계측 켬/끔 순서를 번갈아 수행한다. 총72개 scenario/1440개 쓰기이며 장비·Node·CPU quota·Git revision·dirty 여부·분포·CPU·heap/RSS·반환 셀·payload bytes를 저장한다. 서버 계산 microbenchmark로서 socket·TLS·실제 사용자 요청 pacing·외부 클라이언트·수평 분산은 검증하지 않는다. public participant 한도를 우회한 서비스 수용 인원 시험으로 주장하지 않는다.
