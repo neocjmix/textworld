@@ -117,8 +117,10 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
   // Normal 300-person traffic offers ~30 actions/s. Bound synchronous fanout
   // before accepting a mutation; readers and already committed views continue.
   const worldActions = new Budget({rate:120, capacity:96, now:policyNow});
-  const admitAction = (units = 1) => {
-    try { worldActions.spend(units); }
+  const admitAction = (units = 1, editAt) => {
+    const audience = editAt ? spatial.candidateCount(editAt) : 0;
+    const weight = Math.max(1, Math.min(5, audience / 70));
+    try { worldActions.spend(units * weight); }
     catch (error) {
       if (error.status !== 429) throw error;
       measurements.record('overload.actions');

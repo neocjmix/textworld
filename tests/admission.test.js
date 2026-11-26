@@ -86,3 +86,37 @@ test('aggregate action pressure refuses before a write, keeps the read stream an
   await walker.next(m => m.type === 'batch' && m.messages.some(v => v.observation.cells.some(c => c.text === '雨')));
   assert.equal(app.world.seq,seq+1);
 });
+
+test('an edit visible throughout a crowd costs more than an ordinary step', async t => {
+  let clock = 0;
+  const app = createTextworld({
+    storagePath: ':memory:', policyNow: () => clock,
+    identifyNetwork: req => req.headers['x-test-network'] || 'walker',
+  });
+  t.after(() => app.close());
+  const { port } = await app.listen(0, '127.0.0.1');
+  const writer = connect('ws://127.0.0.1:' + port + '/ws');
+  await writer.next(m => m.type === 'snapshot');
+  writer.send({ type: 'hello', batchVersion: 1 });
+  for (let i = 0; i < 71; i++) {
+    const response = await fetch('http://127.0.0.1:' + port + '/api/agents/v1/sessions', {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-test-network': String(i) }, body: '{}',
+    });
+    assert.equal(response.status, 201);
+    await response.json();
+  }
+  const send = (sequence, action) => writer.send({ type: 'input', epoch: 1, id: String(sequence), sequence, action });
+  for (let n = 1; n <= 95; n++) send(n, { kind: 'move', dx: n % 2 ? 1 : -1, dy: 0 });
+  await writer.next(m => m.type === 'ack' && m.id === '95');
+  const version = app.world.seq;
+  send(96, { kind: 'type', text: '봄' });
+  const refusal = await writer.next(m => m.type === 'error' && m.id === '96');
+  assert.equal(refusal.code, 'WORLD_BUSY');
+  assert.equal(app.world.seq, version);
+  send(97, { kind: 'move', dx: 1, dy: 0 });
+  await writer.next(m => m.type === 'ack' && m.id === '97');
+  clock += refusal.retryAfterMs;
+  send(98, { kind: 'type', text: '봄' });
+  await writer.next(m => m.type === 'ack' && m.id === '98');
+  assert.equal(app.world.seq, version + 1);
+});

@@ -84,6 +84,12 @@ export class SpatialSubscriptions {
     }
   }
 
+  // Admission needs a constant-time upper bound. Delivery still tests each
+  // candidate against its exact wrapping view in collect().
+  candidateCount(point) {
+    return this.subscribers.get(tile(point.x, point.y))?.size ?? 0;
+  }
+
   peersFor(actor) {
     const registration = this.registrations.get(actor);
     const result = [];

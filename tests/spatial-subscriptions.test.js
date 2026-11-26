@@ -21,6 +21,7 @@ test('spatial subscriptions match exact wrapping views through moves, departures
         index.collect({ x, y }, actual);
         const expected = active.filter(actor => contains(rectangles.get(actor), x, y, world));
         assert.deepEqual(actual, new Set(expected));
+        assert.ok(index.candidateCount({ x, y }) >= expected.length);
       }
     }
     for (const actor of active) {
