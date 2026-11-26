@@ -28,6 +28,7 @@ try {
   for (const page of pages) await page.waitForFunction(() => {
     const s = window.textworld?.inspect(); return s?.connected && s.cursor.x === 16 && s.cursor.y === 8 && s.peers.length >= 2;
   });
+  await Promise.all(pages.map(page => page.waitForFunction(() => document.getElementById('intro').hidden)));
   const [writer, reader] = pages;
   const health = await reader.evaluate(async () => (await fetch('/health', { cache: 'no-store' })).json());
   if (expected) assert.equal(health.revision, expected);

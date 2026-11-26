@@ -51,6 +51,7 @@ try {
     await page.waitForFunction(() => window.textworld?.inspect().connected, null, { timeout: 30000 });
     pages.push(page);
   }
+  await Promise.all(pages.map(page => page.waitForFunction(() => document.getElementById('intro').hidden)));
   const [writer, reader] = pages, start = Date.now();
   for (let i = 0; i * 12 < seconds; i++) {
     await sleep(Math.max(0, start + i * 12000 - Date.now()));
