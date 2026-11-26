@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>동접과 운영 원가 · Textworld</title>
+  <style>
+    :root { color-scheme: light; font: 16px/1.6 Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; color: #233a32; background: #f6f5ef; }
+    * { box-sizing: border-box; }
+    body { max-width: 1000px; padding: 28px clamp(16px, 4vw, 44px) 54px; margin: auto; }
+    a { color: #255c49; text-underline-offset: .2em; }
+    h1, h2, p { margin: 0; } h1 { font-size: clamp(1.9rem, 5vw, 3rem); letter-spacing: -.055em; margin: .65em 0 .12em; line-height: 1.2; }
+    h2 { font-size: 1.14rem; margin-bottom: .55em; } .note, small { color: #4f6257; }
+    .main { display: grid; grid-template-columns: minmax(240px, .9fr) minmax(0, 1.35fr); gap: clamp(24px, 5vw, 54px); margin: 26px 0; }
+    form { display: grid; gap: 12px; align-content: start; }
+    label, dt { font-weight: 600; } label { display: grid; gap: .25em; }
+    input, select { font: inherit; color: inherit; background: #fffefa; border: 1px solid #a6b1a6; border-radius: 5px; min-height: 43px; padding: .35em .6em; width: 100%; }
+    :focus-visible { outline: 3px solid #538875; outline-offset: 2px; }
+    summary { color: #255c49; cursor: pointer; } details[open] summary { margin-bottom: .65em; }
+    details label + label { margin-top: .45em; }
+    .result { border-top: 3px solid #255c49; padding-top: 12px; }
+    .total { display: block; font-variant-numeric: tabular-nums; font-weight: bold; font-size: clamp(2.6rem, 7vw, 4.5rem); letter-spacing: -.055em; line-height: 1.16; }
+    .bar { display: flex; height: 9px; gap: 2px; margin: 1em 0 .5em; } .bar span { min-width: 0; }
+    .live { background: #336b54; } .assets { background: #c18a45; } .server { background: #81918c; }
+    dl { margin: 0; } .row { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px solid #d6dcd2; padding: .38em 0; }
+    dd { margin: 0; font-variant-numeric: tabular-nums; } .dot { display: inline-block; width: 9px; height: 9px; margin-right: 7px; }
+    .unit { margin: .85em 0; } #invalid { color: #8c3d21; }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; } caption { text-align: left; font-weight: bold; font-size: 1.14rem; margin-bottom: .45em; }
+    th, td { text-align: right; padding: .48em .35em; border-bottom: 1px solid #c9d2c9; } th:first-child { text-align: left; } thead { font-size: .94em; }
+    tr.selected { background: #e7eee4; } footer { margin-top: 22px; font-size: .9rem; } footer p + p { margin-top: .5em; }
+    @media (max-width: 640px) { .main { grid-template-columns: 1fr; } body { padding-top: 16px; } }
+  </style>
+</head>
+<body>
+  <nav><a href="/">Textworld 지도</a></nav>
+  <header>
+    <h1>동접과 운영 원가</h1>
+    <p class="note">사람들이 어디에 모이고 글을 어떻게 전달받는지에 따라 30일 인프라 사용료가 달라집니다.</p>
+  </header>
+  <main>
+    <div class="main">
+      <form id="parameters">
+        <label>평균 동시접속자 수<input id="concurrent" type="number" min="0" max="1000000" step="1" value="1000" required></label>
+        <label>광장에 오는 사람들의 분포<select id="layout"><option value="neighborhoods">250명씩 여러 광장으로</option><option value="single">한 광장에 계속 모임</option></select></label>
+        <label>실시간 데이터 축소 배수<input id="reduction" type="number" min="1" max="32" step="any" value="8" required></label>
+        <label>실시간 전송 방식<select id="delivery"><option value="peers">일부를 독자끼리 직접 전달</option><option value="origin">서버가 모두 전달</option></select></label>
+        <details>
+          <summary>광장의 인원과 운영 시간</summary>
+          <label>광장에 모이는 인원 비율 (%)<input id="plaza-share" type="number" min="0" max="100" step="any" value="25" required></label>
+          <label>하루 중 광장이 붐비는 시간<input id="plaza-hours" type="number" min="0" max="24" step="any" value="6" required></label>
+        </details>
+        <p id="invalid" role="status" hidden>입력한 수치의 범위를 확인해 주세요.</p>
+      </form>
+      <section class="result" aria-labelledby="estimate-heading" aria-live="polite">
+        <h2 id="estimate-heading">30일 인프라 사용료 추정</h2>
+        <output class="total" id="total">—</output>
+        <div class="bar" aria-hidden="true"><span class="live" id="bar-live"></span><span class="assets" id="bar-assets"></span><span class="server" id="bar-server"></span></div>
+        <dl>
+          <div class="row"><dt><span class="dot live"></span>실시간 지도 전송</dt><dd id="live">—</dd></div>
+          <div class="row"><dt><span class="dot assets"></span>페이지·폰트 전송</dt><dd id="assets">—</dd></div>
+          <div class="row"><dt><span class="dot server"></span>CPU·메모리·볼륨</dt><dd id="server">—</dd></div>
+        </dl>
+        <p class="unit">이용 1,000시간당 <strong id="per-hour">—</strong><br>방문 1,000회당 <strong id="per-visit">—</strong></p>
+        <small>기본값은 최적화가 잘된 경우의 가정입니다. 비교 기준인 현 구조의 동접 1,000명 추산은 월 약 $815입니다.</small>
+      </section>
+    </div>
+    <table>
+      <caption>규모별 월 사용료 비교</caption>
+      <thead><tr><th scope="col">평균 동접</th><th scope="col">250명씩 분산</th><th scope="col">한 광장에 집중</th></tr></thead>
+      <tbody id="levels"></tbody>
+    </table>
+    <noscript><p>계산기를 조작하려면 자바스크립트를 켜 주세요. 기본 시나리오의 표는 아래 모형 문서에서도 읽을 수 있습니다.</p></noscript>
+  </main>
+  <footer class="note">
+    <p>한 번에 20분 머물고 2%는 입력, 8%는 이동한다고 가정합니다. 직접 전달을 켜면 축소 후 유료 전송비가 분산 지역에서 35%, 광장 집중으로 늘어난 부분에서 65% 줄어든다고 봅니다. TURN 중계와 서버 보충분도 유료분에 포함합니다.</p>
+    <p>피크 대응을 위해 추가할 장비·고정 중계료, 플랜 최소 결제액, 세금과 인건비는 별도입니다. 큰 동접의 값은 규모에 따른 수학적 외삽입니다.</p>
+    <p><a href="https://github.com/neocjmix/textworld/blob/main/docs/OPERATING_COST_MODEL.md">계산식·실측 범위·수익 환산</a></p>
+  </footer>
+  <script type="module" src="/cost.js"></script>
+</body>
+</html>

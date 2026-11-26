@@ -111,3 +111,5 @@ Railway에서 공개 실험 중인 초기 프로토타입입니다. 익명 참�
 신선도는 글자 투명도로 표시하며, 변경 번호와 공유 시간 표식을 이용해 글자별 시각 저장을 피합니다. `npm run test:freshness`는 실제 Chromium의 표시와 입력 문맥을 검사합니다.
 
 운영 규모·비용 측정은 기본 활성화되어 별도 `.metrics.sqlite`에 분/시간 집계로 누적됩니다. [수집 항목·보존·내보내기·비용 가정](docs/MEASUREMENTS.md), `npm run bench:scale`, `npm run metrics:export`, `npm run metrics:report`를 제공합니다. 계측은 글 내용·좌표·IP를 기록하지 않으며 관리 토큰으로만 조회합니다.
+
+평균 동접, 광장 집중도, 전송 절감률에 따른 30일 인프라 사용료와 이용시간당 원가를 비교할 수 있습니다. [공개 원가 계산기](https://textworld-production-987c.up.railway.app/cost.html) · [계산식과 가정](docs/OPERATING_COST_MODEL.md)
