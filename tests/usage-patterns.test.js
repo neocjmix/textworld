@@ -25,6 +25,8 @@ test('elapsed session mix, closed cohorts, cadence and crowd are measured withou
   at = 1000; reader.sample({ ...view, peers: new Map([['self', {}]]) }, true); writer.sample(view);
   writer.denied(null, { status: 429, code: 'RATE_LIMITED' }, { type: 'input', action: { kind: 'native', edit: { text: '私' } } });
   writer.denied('move', { status: 429, code: 'WORLD_BUSY' });
+  writer.denied(null, { status: 429, code: 'RATE_LIMITED' },
+    { type: 'input', action: { kind: 'native', edit: { text: '', start: 2, end: 2, selectionEnd: 1 } } });
   at = 61000; writer.sample(view, true);
   m.record(USAGE_SAMPLE); m.record('process.elapsed_ms', at);
   m.record('ws.wire_tx_bytes', 567); m.record('ws.playtest_wire_tx_bytes', 67);
@@ -37,6 +39,7 @@ test('elapsed session mix, closed cohorts, cadence and crowd are measured withou
   assert.equal(p.firstWriteMs.mean, 400); assert.equal(p.actions.write.gapMs.mean, 200);
   assert.equal(p.graphemesPerWrite.mean, 4/3);
   assert.equal(p.actions.write.limited, 1); assert.equal(p.actions.move.busy, 1);
+  assert.equal(p.actions.move.limited, 1); assert.equal(p.actions.erase.limited, 0);
   assert.equal(p.timeFraction.editing, 1700/62700); assert.equal(p.timeFraction.observing, 61000/62700);
   assert.equal(p.sharedViewFraction, 3/4); assert.equal(p.visibleOthers.mean, .75); assert.equal(p.viewCells.mean, 35);
   assert.equal(bucket.service.publicWsBytes, 500); assert.equal(bucket.service.publicWsBytesPerParticipantHour, 500 / (62700/3600000));

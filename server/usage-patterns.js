@@ -31,7 +31,11 @@ function requestedKind(message) {
   const action = message.action;
   switch (action?.kind) {
     case 'type': return writeKind(action.text);
-    case 'native': return writeKind(action.edit?.text);
+    case 'native': {
+      const edit = action.edit;
+      if (edit?.text === '' && Number.isSafeInteger(edit.start) && edit.start === edit.end) return 'move';
+      return writeKind(edit?.text);
+    }
     case 'backspace': case 'delete': return 'erase';
     case 'move': case 'goto': case 'home': return 'move';
     default: return 'other';
