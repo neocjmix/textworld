@@ -110,6 +110,6 @@ Chromium·Firefox·WebKit에서 기본 입력과 전체/부분 그리기를 검�
 
 신선도는 글자 투명도로 표시하며, 변경 번호와 공유 시간 표식을 이용해 글자별 시각 저장을 피합니다. `npm run test:freshness`는 실제 Chromium의 표시와 입력 문맥을 검사합니다.
 
-운영 규모·비용 측정은 기본 활성화되어 별도 `.metrics.sqlite`에 분·시간 집계와 주요 지표의 일 집계를 누적합니다. 운영자는 `npm run metrics:usage`로 종료 세션의 첫 글 작성률, 이동·편집 비중, 시야 혼잡도와 같은 시간대의 지연·원가 지표를 조회합니다. [공개 이용 패턴 분석](docs/USAGE_PATTERNS.md). [수집 항목·보존·내보내기·비용 가정](docs/MEASUREMENTS.md), `npm run bench:scale`, `npm run metrics:export`, `npm run metrics:report`를 제공합니다. 계측은 글 내용·좌표·IP를 기록하지 않으며 관리 토큰으로만 조회합니다.
+운영 규모·비용 측정은 기본 활성화되어 별도 `.metrics.sqlite`에 분·시간 집계와 주요 지표의 일 집계를 누적합니다. 운영자는 `npm run metrics:usage`로 종료 세션의 첫 글 작성률, 이동·편집 비중, 시야 혼잡도와 같은 시간대의 지연·원가 지표를 조회합니다. [운영 Grafana](https://grafana-production-7d77bc6c.up.railway.app/d/textworld-usage) · [공개 이용 패턴 분석과 로그인 안내](docs/USAGE_PATTERNS.md). [수집 항목·보존·내보내기·비용 가정](docs/MEASUREMENTS.md), `npm run bench:scale`, `npm run metrics:export`, `npm run metrics:report`를 제공합니다. 계측은 글 내용·좌표·IP를 기록하지 않으며 관리 토큰으로만 조회합니다.
 
 단일 서버의 공개 접속 상한은 **300명**입니다. 공유 인코딩·부분 렌더링을 적용했고 1,000명 혼합 활동의 한 시간 시험은 통과했지만, 실제 공개 밀집 시험에서 느린 사람 입력도 429로 거절돼 운영 확대를 보류했습니다. [1,000명 검증 보고서와 실패 원자료](docs/SINGLE_SERVER_1000.md)에 측정 범위와 판정 근거를 남겼습니다. 공개 계산기는 새 1,000명 실측과 이전 300명 실측, 장기 가설을 구분합니다. [공개 원가 계산기](https://textworld-production-987c.up.railway.app/cost.html) · [계산식과 가정](docs/OPERATING_COST_MODEL.md)

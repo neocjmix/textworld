@@ -1,0 +1,17 @@
+apiVersion: 1
+datasources:
+  - name: Textworld
+    uid: textworld-metrics
+    type: yesoreyeram-infinity-datasource
+    access: proxy
+    isDefault: true
+    editable: false
+    url: $TEXTWORLD_METRICS_ORIGIN
+    jsonData:
+      auth_method: bearerToken
+      allowedHosts:
+        - $TEXTWORLD_METRICS_ORIGIN
+      customHealthCheckEnabled: true
+      customHealthCheckUrl: '$TEXTWORLD_METRICS_ORIGIN/api/metrics?limit=1'
+    secureJsonData:
+      bearerToken: $TEXTWORLD_METRICS_TOKEN

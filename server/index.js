@@ -16,6 +16,7 @@ import { createTurnRunner } from './agent-turns.js';
 import { createAgentHTTP } from './agent-http.js';
 import { createLivePlaytest } from './live-playtest.js';
 import { Measurements, route as measurementRoute, metricStatus } from './measurements.js';
+import { dashboardSeries } from './dashboard-metrics.js';
 import { UsageSession, USAGE_SAMPLE } from './usage-patterns.js';
 import { createMCPAgent } from './mcp-agent.js';
 import { expire, EXPIRY_BATCH } from './expiration.js';
@@ -371,6 +372,17 @@ export function createTextworld({ storagePath = process.env.TEXTWORLD_DB || reso
         const actual=Buffer.from(req.headers.authorization||''),expected=Buffer.from('Bearer '+metricsToken);
         if(!metricsToken||actual.length!==expected.length||!timingSafeEqual(actual,expected))return json(res,404,{error:'Not found'});
         if(req.method!=='GET')return json(res,405,{error:'GET required'});
+        if (url.searchParams.get('format') === 'dashboard') {
+          const since = url.searchParams.get('since'), before = url.searchParams.get('before');
+          if (![since, before].every(v => v && /^\d{1,15}$/.test(v)) || Number(since) > Number(before)) {
+            return json(res, 400, { error: 'Expected an ordered range of epoch milliseconds' });
+          }
+          if (!measurements.enabled) return json(res, 503, { error: 'Measurement storage unavailable' });
+          const series = await dashboardSeries(measurements.db, Number(since), Number(before),
+            { cancelled: () => res.destroyed });
+          if (!res.destroyed) json(res, 200, series);
+          return;
+        }
         const period=Number(url.searchParams.get('period')||3600),since=Number(url.searchParams.get('since')||0),limit=Number(url.searchParams.get('limit')||2000),before=Number(url.searchParams.get('before')||Number.MAX_SAFE_INTEGER);
         if(![60,3600,86400].includes(period)||!Number.isFinite(since)||!Number.isFinite(before)||!Number.isSafeInteger(limit)||limit<1)return json(res,400,{error:'Bad query'});
         let after;
