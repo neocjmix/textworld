@@ -14,6 +14,8 @@
 
 Grafana의 Infinity 플러그인이 Railway 내부망에서 기존 운영 API를 인증해 조회한다. 모든 패널이 요청 한 번의 결과를 공유한다. 원본은 Textworld의 계측 SQLite에 있고, Grafana의 1GiB 볼륨은 로그인·설정에 사용한다. 대시보드와 데이터 소스의 정의는 [Grafana 배포 파일](../observability/grafana/)에서 버전 관리한다.
 
+운영자 비밀번호가 `GF_SECURITY_ADMIN_PASSWORD` 환경 변수에 있는 환경에서 `npm run test:grafana`를 실행하면 실제 브라우저로 비로그인 차단, 로그인, 아홉 패널의 범례, 데이터 요청 횟수와 내부 데이터 소스 연결을 확인한다.
+
 ## 운영 보고서
 
 ```sh

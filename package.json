@@ -34,6 +34,7 @@
     "test:browsers": "node tests/cross-browser.mjs",
     "bench:first-visit": "node experiments/first-visit.mjs",
     "test:cost-browser": "node tests/cost-browser.mjs",
+    "test:grafana": "node tests/grafana-smoke.mjs",
     "test:public": "node tests/public-smoke.mjs"
   },
   "engines": {

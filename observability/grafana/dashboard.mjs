@@ -23,6 +23,12 @@ const panels = [
   { title: '공개 WebSocket 송신', unit: 'Bps', description: '실제 소켓 송신량을 측정 시간으로 나눈 값입니다. 내부 시험 소켓, HTTP와 CDN은 제외합니다.',
     fields: { publicTx: '초당 바이트' } },
 ];
+const colors = {
+  publicWs: 'blue', agents: 'purple', playtest: 'orange', visibleMean: 'blue', visibleMax: 'purple',
+  busyWrites: 'red', limitedWrites: 'orange', ackP95: 'blue', readyP95: 'green', drawP95: 'purple',
+  observing: 'blue', moving: 'orange', editing: 'purple', firstWrite: 'green', shortStay: 'orange',
+  cpu: 'green', rss: 'purple', publicTx: 'blue',
+};
 const columns = [{ selector: 'time', text: 'Time', type: 'timestamp' },
   ...panels.flatMap(p => Object.entries(p.fields).map(([selector, text]) => ({ selector, text, type: 'number' })))];
 const query = {
@@ -36,14 +42,22 @@ export const dashboard = {
   timepicker: { refresh_intervals: ['1m', '5m', '15m', '1h'] }, editable: false, graphTooltip: 1,
   panels: panels.map(({ title, unit, description, fields }, i) => {
     const w = i < 6 ? 12 : 8, x = i < 6 ? (i % 2) * w : (i - 6) * w;
+    const order = ['Time', ...Object.values(fields)];
     return {
       id: i + 1, type: 'timeseries', title, description, datasource: i ? shared : infinity,
       gridPos: { x, y: i < 6 ? Math.floor(i / 2) * 7 : 21, w, h: 7 },
       targets: i ? [{ refId: 'A', datasource: shared, panelId: 1, withTransforms: false }] : [query],
-      transformations: [{ id: 'filterFieldsByName', options: { include: { names: ['Time', ...Object.values(fields)] } } }],
+      transformations: [
+        { id: 'filterFieldsByName', options: { include: { names: order } } },
+        { id: 'organize', options: { indexByName: Object.fromEntries(order.map((name, index) => [name, index])) } },
+      ],
       fieldConfig: { defaults: { unit, min: 0, ...(unit === 'percentunit' && { max: 1 }),
         color: { mode: 'palette-classic' }, custom: { lineWidth: 2, fillOpacity: 6, spanNulls: false,
-          showPoints: 'auto', pointSize: 4 } }, overrides: [] },
+          showPoints: 'auto', pointSize: 4 } },
+        overrides: Object.entries(fields).map(([key, name]) => ({
+          matcher: { id: 'byName', options: name },
+          properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: colors[key] } }],
+        })) },
       options: { legend: { showLegend: true, displayMode: 'list', placement: 'bottom' }, tooltip: { mode: 'multi', sort: 'desc' } },
     };
   }),

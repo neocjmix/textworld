@@ -5,4 +5,4 @@ providers:
     disableDeletion: true
     allowUiUpdates: false
     options:
-      path: /etc/grafana/textworld
+      path: /opt/textworld/dashboards
