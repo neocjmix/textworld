@@ -26,6 +26,7 @@
     "test:freshness": "node tests/freshness-browser.mjs",
     "bench:scale": "node scripts/scale-bench.mjs",
     "metrics:report": "node scripts/metrics-report.mjs",
+    "metrics:usage": "node scripts/usage-report.mjs",
     "test:measurements": "node tests/measurements-browser.mjs",
     "metrics:export": "node scripts/export-metrics.mjs",
     "test:topology": "node tests/topology-browser.mjs && node tests/topology-cursor.mjs && node tests/topology-continuity.mjs",

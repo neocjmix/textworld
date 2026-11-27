@@ -1,6 +1,6 @@
 # 규모·비용을 판단하기 위한 계측
 
-프로덕션에서 계측은 기본으로 켜진다. 세계 DB와 별도인 `TEXTWORLD_DB.metrics.sqlite`에 분 단위 집계와 시간 단위 집계를 저장한다. SQLite 영구 볼륨을 사용하므로 배포 이후에도 이전 코드의 자료가 남는다. 공개 지도·HTTP 참여자·MCP는 운영 통계 읽기 권한이 없다.
+프로덕션에서 계측은 기본으로 켜진다. 세계 DB와 별도인 `TEXTWORLD_DB.metrics.sqlite`에 분·시간 단위 집계와 주요 지표의 UTC 일 집계를 저장한다. [공개 이용 패턴 보고서](USAGE_PATTERNS.md)에서 세션 행동과 같은 시간대의 품질·비용을 비교한다. SQLite 영구 볼륨을 사용하므로 배포 이후에도 이전 코드의 자료가 남는다. 공개 지도·HTTP 참여자·MCP는 운영 통계 읽기 권한이 없다.
 
 ## 무엇을 연결해서 볼 것인가
 
@@ -23,14 +23,14 @@
 - event-loop histogram의 측정 해상도는20ms다. 정상 baseline 자체가 약20ms일 수 있으므로 순수한 추가 지연으로 해석하지 않는다.
 - HTTP 시간에는 long polling·의도된 paced turn 대기와 중도 연결 종료가 포함된다. 이를 서버 계산 지연이나 사용자 입력 지연으로 해석하지 않는다. event-loop·commit·observer 분포와 같이 본다.
 - 브라우저 draw는 CPU 그리기 작업 완료 시점이다. 실제 화면 광자 표시나 OS 키보드 전체 지연을 측정한 것이 아니다. draw는첫그리기와이후10번 중1번, submit/ACK는 전체를 최대2000개씩 로컬 집계하여 분당 한 번 보낸다.
-- 브라우저 수치는 **client.reported**로 구분한다. 익명 클라이언트가 조작할 수 있으므로 비용·수용 인원의 유일한 증거로 쓰지 않는다. 고정 metric 7개·유한값·bin 합계·최대 표본 수를 검사하고 세션당 30초보다 빠른 업로드는 버린다. `paint_fraction`은 다시 그린 픽셀 면적 비율이며 0~1 값의 평균으로 본다.
+- 브라우저 수치는 **client.reported**로 구분한다. 익명 클라이언트가 조작할 수 있으므로 비용·수용 인원의 유일한 증거로 쓰지 않는다. 고정 metric 9개·유한값·bin 합계·최대 표본 수를 검사하고 세션당 30초보다 빠른 업로드는 버린다. `paint_fraction`은 다시 그린 픽셀 면적 비율이며 0~1 값의 평균으로 본다.
 - `ws.tx_bytes`는 논리 메시지 크기, `ws.wire_tx_bytes`는 소켓의 실제 송신 증가분이다. 후자는 WebSocket 헤더와 협상된 압축을 반영한다. 내부 체험 봇의 값은 각각 `ws.playtest_tx_bytes`, `ws.playtest_wire_tx_bytes`로 분리한다. HTTP 입력은 선언된 Content-Length이고 HTTP 송신은 응답 본문이다. 이 값들은 TLS·프록시·재전송·별도 백업까지 포함하는 청구 카운터가 아니다. Railway의 컨테이너 CPU/메모리/네트워크/볼륨 지표와 대조해야 한다.
 - `encoding.records/reused/compactViews`는 주기적으로 수집하는 공유 인코딩 수다. 원시 글자·작성자 식별자·시야 내용은 계측에 남기지 않는다.
 - revision별 비교도 작업량·점유·시야·참여자 구성·자원 한도가 다르면 인과 비교가 아니다. 개선 전후에는 동일 fixture와 실제 제공량을 함께 기록한다.
 
 ## 저장 비용·고장 범위
 
-분 집계는최대6시간, 시간 집계는최대30일 유지한다. 50,000행 한도가 먼저 적용되면 오래된 분 집계부터 제거한다. 메인 DB는64MiB page 한도, WAL 유지 한도는8MiB로 설정했다. 일시적 WAL·파일시스템 동작까지 정확히 이 크기라고 보장하지 않으며 실제 크기를 함께 기록한다. 배포별 metric·보존기간에 따라 실제 유지되는 기간은 짧아질 수 있다.
+분 집계는 최대 6시간, 시간 집계는 최대 30일, 행동 및 비교에 쓰는 주요 지표의 일 집계는 최대 90일 유지한다. 전체 50,000행 중 일 집계는 최대 25%를 사용하며 분 집계가 쓸 수 있는 공간을 최소 20% 확보한다. 한도에 이르면 해당 해상도의 오래된 시간 구간을 통째로 지워 분자·분모가 함께 남게 한다. 메인 DB는64MiB page 한도, WAL 유지 한도는8MiB로 설정했다. 일시적 WAL·파일시스템 동작까지 정확히 이 크기라고 보장하지 않으며 실제 크기를 함께 기록한다. 배포별 metric·보존기간에 따라 실제 유지되는 기간은 짧아질 수 있다.
 
 최대1분의 아직 flush하지 않은 자료는 비정상 종료 시 잃을 수 있다. 정상 종료는 마지막 구간을 저장한다. 계측 DB를 열지 못하거나 flush가 실패하면 세계 동작은 계속하고 실패 수·진단을 남긴다. 계측 실패 시 원시 이벤트를 메모리에 무제한 재보관하지 않는다. 세계 SQLite와 파일을 분리해 추가 쓰기 부담을 분리했지만 같은 볼륨·프로세스의 I/O와 CPU는 공유한다.
 
@@ -42,13 +42,14 @@ Railway 서비스의 `TEXTWORLD_METRICS_TOKEN`을 관리자가 보관한다. 토
 # 토큰은 환경변수나 로컬 artifacts/metrics-token에서 읽으며 출력하지 않는다.
 NODE_USE_ENV_PROXY=1 npm run metrics:export -- https://textworld-production-987c.up.railway.app 3600
 npm run metrics:report -- artifacts/metrics-export.json
+npm run metrics:usage -- --hours 24
 # DB 파일의 읽기 전용 분석도 가능하다.
 npm run metrics:report -- data/world.sqlite.metrics.sqlite
 npm run bench:scale
 npm run test:measurements
 ```
 
-HTTP는 `GET /api/metrics?period=60|3600&since=...&before=...&limit=...`, Bearer 관리 토큰을 사용한다. 최대5000행을 반환한다. export 스크립트는 경계 bucket을 겹쳐 읽고 중복을 제거한다. 실행 중인 자료의 비원자적 스냅샷이므로 실험의 확정 자료는 종료 후 DB/export와 조건을 보존한다.
+HTTP는 `GET /api/metrics?period=60|3600|86400&since=...&before=...&limit=...`, Bearer 관리 토큰을 사용한다. 최대5000행을 반환한다. 다음 페이지는 응답의 `next` 배열을 JSON으로 인코딩해 `after`로 보낸다. 구간·배포·지표의 복합 커서로 한 시각에 배포가 여러 개 있어도 이어 읽는다. 실행 중인 자료의 비원자적 스냅샷이므로 실험의 확정 자료는 종료 후 DB/export와 조건을 보존한다.
 
 비용 보고서는 관측한 작업량이30일간 동일하게 지속될 때의 **조건부 자원 비용 대용값**이다. 짧은 관측을 미래 이용량 예측으로 취급하지 않는다. 2026-11-02 공식 [Railway 가격표](https://docs.railway.com/pricing/plans)의 CPU $20/vCPU-month, RAM $10/GB-month, egress $0.05/GB, volume $0.15/GB-month를 명시적으로 적용한다. 단위 변환은1GB=2^30 bytes로 가정하며 요금 변경 시 스크립트의 값을 갱신해야 한다. 플랜 최소요금·포함 크레딧·실제 과금 단위·서비스 전체 사용량에 따라 청구액은 달라진다. 다른 인프라에도 적용하려면 그 단가와 계량 정의로 다시 계산한다.
 

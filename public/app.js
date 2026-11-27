@@ -87,6 +87,7 @@ function send(message) {
   return true;
 }
 const browserMeasurements = createBrowserMeasurements(send);
+document.addEventListener('visibilitychange', browserMeasurements.visibilityChanged);
 setInterval(()=>{if(connected)browserMeasurements.flush();},60000);
 function schedule() {
   if (frame || cameraMotion.active) return;
@@ -835,6 +836,7 @@ function connect() {
       if (!sameSession || nativeInput.text !== nativeProjection.text) resetComposition();
       refreshLocalCells();
       connection(true);
+      if (!wasConnected) browserMeasurements.connected();
       if (!sameSession) {
         const view = requestedView();
         send({ type: 'hello', batchVersion: 1, wireVersion: WIRE_VERSION, topologyDelta: 1, view });

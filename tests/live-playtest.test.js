@@ -52,7 +52,7 @@ async function fixture(t) {
   }
   await boot();
   t.after(async () => { await app.close(); await rm(dir, { recursive: true, force: true }); });
-  return { dir, get base() { return base; },
+  return { dir, get base() { return base; }, get measurements() { return app.measurements; },
     async restart() { await app.close(); await boot(); },
     health: async () => (await fetch(base + '/health')).json(),
     operator: async (body, key) => {
@@ -102,6 +102,10 @@ test('visiting is passive; one authenticated run shares cells with ordinary map 
     assert.equal(result.reason, 'operator');
     assert.ok(result.population.ack > 0);
     assert.ok(result.population.writtenGraphemes > 0);
+    assert.equal(f.measurements.pending.get('usage.public_ws.opened').sum, 1);
+    assert.ok(f.measurements.pending.get('usage.playtest.opened').sum >= 9);
+    assert.ok(f.measurements.pending.get('usage.playtest.write.ok').sum > 0);
+    assert.equal(f.measurements.pending.has('usage.public_ws.write.ok'), false);
     assert.ok(result.cost.publicHttpBytes > 0 && result.cost.publicWebSocketBytes > 0);
     assert.ok(result.cost.cpuCoreSeconds > 0 && result.cost.memoryGiBMinutes > 0);
     assert.ok(result.cost.estimatedUsd.subtotal > 0 && result.cost.hypotheticalBotEgressUsd > 0);

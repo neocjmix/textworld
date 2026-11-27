@@ -51,7 +51,7 @@ function publicError(error) {
 }
 
 /** Anonymous sessions add transport efficiency, never a privileged world handle. */
-export function createAgentHTTP({ world, createActor, removeActor, peers, runner, now = Date.now,
+export function createAgentHTTP({ world, createActor, removeActor, peers, runner, sessionReady, now = Date.now,
   limits = {}, subscribe = () => () => {} }) {
   const sessions = new Map();
   let closed = false;
@@ -162,6 +162,7 @@ export function createAgentHTTP({ world, createActor, removeActor, peers, runner
           session = { actor, token: randomBytes(32).toString('base64url'), touchedAt: now(), active: 0, waiter: null };
           const observation = read(session);
           sessions.set(actor.peer.id, session);
+          sessionReady?.(actor);
           const result = payload(session, observation);
           result.session.token = session.token;
           result.limits = { ...limits, http: AGENT_HTTP_LIMITS };

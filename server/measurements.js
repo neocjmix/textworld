@@ -2,27 +2,51 @@ import {DatabaseSync} from 'node:sqlite';
 import {monitorEventLoopDelay,performance} from 'node:perf_hooks';
 import {statSync,readFileSync} from 'node:fs';
 import {empty,add,merge,summary,CLIENT_METRICS} from '../shared/measurement.js';
+import {usageMetrics} from './usage-patterns.js';
 const routes=['map','static','health','agents','mcp','scavenger','metrics','other'];
-const statuses=[200,201,202,204,400,401,403,404,405,413,415,429,500,503];
+const statuses=[200,201,202,204,304,400,401,403,404,405,413,415,429,500,503];
+export const metricStatus = code => statuses.includes(code) ? code : 'other';
+const dailyMetrics = new Set([...usageMetrics, 'process.elapsed_ms', 'process.cpu_ms', 'process.rss_bytes',
+ 'world.peers', 'world.area', 'density.actual', 'delivery.ready_ms', 'presence.recipients',
+ 'ws.wire_tx_bytes', 'ws.playtest_wire_tx_bytes', 'ws.slow_disconnects', 'client.reported.ack_ms',
+ 'client.reported.submit_to_draw_ms', 'metrics.failures', 'expiration.lag_ms', 'topology.growth', 'topology.shrink',
+ 'overload.admitted_candidates', 'overload.refused_candidates', 'client.reported.visible_ms', 'client.reported.hidden_ms']);
 export const METRICS = new Set(['process.cpu_limit_cores','process.memory_limit_bytes','process.cpu_ms','process.rss_bytes','process.heap_bytes','process.elapsed_ms','process.event_loop_p99_ms','process.event_loop_max_ms','process.event_loop_utilization',
  'input.cursor_actions','input.after_resize','input.plan_ms','input.context_entries','input.snapshot_bytes',
  'density.actual','density.projected','density.target_area','density.net_growth_cells_per_second','density.net_decay_cells_per_second','density.above_band','density.at_limit','observer.ink_density','topology.area_delta','topology.growth','topology.shrink','topology.local_preserved','topology.local_reset',
  'activity.peer_ms','activity.session_created','activity.session_closed','world.width','world.height','world.ws_peers','world.http_peers','world.cells','world.occupied','world.area','world.db_bytes','world.wal_bytes','world.db_free_bytes','world.peers','world.network_entries','world.waiters',
  'expiration.ms','expiration.lag_ms','expiration.deleted_cells','expiration.batch_full','turn.ms','turn.steps','turn.completed','turn.blocked','turn.cancelled','turn.running','turn.error','topology.ms','topology.adapt_ms','topology.slice_ms','topology.lost_text_cells','topology.broken_adjacencies','topology.search_deferred','topology.forced','topology.destroyed_cells','topology.surviving_cells','topology.changed','commit.ms','commit.cells','commit.count','observer.ms','observer.cols','observer.rows','observer.area','observer.cells','observer.marks','observer.changed','presence.ms','presence.recipients',
  'delivery.ready_ms','delivery.over_100ms','delivery.batch_events','delivery.undelivered_events','delivery.sync_requests',
- 'admission.full','overload.actions','ws.rx_bytes','ws.tx_bytes','ws.playtest_tx_bytes','ws.wire_tx_bytes','ws.playtest_wire_tx_bytes',
+ 'admission.full','overload.actions','overload.admitted_candidates','overload.refused_candidates','ws.rx_bytes','ws.tx_bytes','ws.playtest_tx_bytes','ws.wire_tx_bytes','ws.playtest_wire_tx_bytes',
  'encoding.records','encoding.reused','encoding.compactViews','ws.buffered_bytes','ws.slow_disconnects','ws.error_429','ws.error_other','telemetry.rejected',
- 'metrics.flush_ms','metrics.failures','metrics.db_bytes',...CLIENT_METRICS.map(m=>`client.reported.${m}`),
+ 'metrics.flush_ms','metrics.failures','metrics.db_bytes',...usageMetrics,...CLIENT_METRICS.map(m=>`client.reported.${m}`),
  ...routes.flatMap(r=>[`http.${r}.ms`,`http.${r}.tx_bytes`,`http.${r}.declared_rx_bytes`,...statuses.map(s=>`http.${r}.status_${s}`),`http.${r}.status_other`,`http.${r}.aborted`])]);
 export function route(path) {return path==='/mcp'?'mcp':path.startsWith('/api/agents/')||path==='/.well-known/textworld-agent.json'?'agents':path.startsWith('/api/scavenger/')?'scavenger':path==='/api/metrics'?'metrics':path==='/health'?'health':path==='/'?'map':/\.(js|css|html|woff2|svg|ico)$/.test(path)?'static':'other';}
 const size=p=>{try{return statSync(p).size;}catch{return 0;}};
+
+// Evict whole time buckets so an absent numerator cannot turn into a false zero.
+function boundHistory(db, maxRows) {
+  const counts = new Map(db.prepare('SELECT period, count(*) AS n FROM measurements GROUP BY period')
+    .all().map(row => [row.period, row.n]));
+  function trim(period, limit) {
+    const count = counts.get(period) || 0;
+    if (count <= limit) return count;
+    const {bucket} = db.prepare('SELECT bucket FROM measurements WHERE period=? ORDER BY bucket LIMIT 1 OFFSET ?')
+      .get(period, count - limit - 1);
+    return count - Number(db.prepare('DELETE FROM measurements WHERE period=? AND bucket<=?').run(period, bucket).changes);
+  }
+  const days = trim(86400, Math.floor(maxRows / 4));
+  const hours = trim(3600, maxRows - days - Math.ceil(maxRows / 5));
+  trim(60, maxRows - days - hours);
+}
 export class Measurements {
  constructor({path=':memory:',now=Date.now,revision=process.env.RAILWAY_GIT_COMMIT_SHA||process.env.RAILWAY_DEPLOYMENT_ID||'local',maxRows=50000,enabled=true}={}) {
   this.enabled=enabled;this.now=now;this.path=path;this.maxRows=maxRows;this.revision=revision;this.pending=new Map();this.failures=0;
   if(!enabled)return;
   try { this.db=new DatabaseSync(path);this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA max_page_count=16384; PRAGMA wal_autocheckpoint=256; PRAGMA journal_size_limit=8388608; PRAGMA busy_timeout=50;
    CREATE TABLE IF NOT EXISTS measurements (bucket INTEGER, period INTEGER, revision TEXT, metric TEXT, value TEXT, PRIMARY KEY(bucket,period,revision,metric));
-   CREATE INDEX IF NOT EXISTS measurements_time ON measurements(bucket);`);
+   CREATE INDEX IF NOT EXISTS measurements_time ON measurements(bucket);
+   CREATE INDEX IF NOT EXISTS measurements_period_bucket ON measurements(period,bucket);`);
   } catch { try{this.db?.close();}catch{}this.enabled=false;this.failures=1;console.error('Measurement storage unavailable; world remains active.');return;}
   const read=p=>{try{return readFileSync(p,'utf8').trim();}catch{return null;}};
   const cpuLimit=read('/sys/fs/cgroup/cpu.max')?.split(' '),memory=Number(read('/sys/fs/cgroup/memory.max'));
@@ -59,15 +83,30 @@ export class Measurements {
   if(!this.enabled||!this.pending.size)return;
   const start=performance.now(),time=this.now(),batch=this.pending;this.pending=new Map();
   try{this.db.exec('BEGIN IMMEDIATE');const get=this.db.prepare('SELECT value FROM measurements WHERE bucket=? AND period=? AND revision=? AND metric=?');const put=this.db.prepare('INSERT OR REPLACE INTO measurements VALUES (?,?,?,?,?)');
-   for(const period of [60,3600]){const bucket=Math.floor(time/(period*1000))*period*1000;for(const[name,h]of batch){const old=get.get(bucket,period,this.revision,name);const combined=old?merge(JSON.parse(old.value),h):h;put.run(bucket,period,this.revision,name,JSON.stringify(combined));}}
-   this.db.prepare('DELETE FROM measurements WHERE (period=60 AND bucket<?) OR (period=3600 AND bucket<?)').run(time-6*3600000,time-30*86400000);
-   const excess=this.db.prepare('SELECT max(0,count(*)-?) n FROM measurements').get(this.maxRows).n;
-   if(excess)this.db.prepare('DELETE FROM measurements WHERE rowid IN (SELECT rowid FROM measurements ORDER BY CASE period WHEN 60 THEN 0 ELSE 1 END,bucket LIMIT ?)').run(excess);
+   for (const period of [60, 3600, 86400]) {
+     const bucket = Math.floor(time / (period * 1000)) * period * 1000;
+     for (const [name,h] of batch) {
+       if (period === 86400 && !dailyMetrics.has(name)) continue;
+       const old = get.get(bucket, period, this.revision, name);
+       const combined = old ? merge(JSON.parse(old.value), h) : h;
+       put.run(bucket, period, this.revision, name, JSON.stringify(combined));
+     }
+   }
+   this.db.prepare('DELETE FROM measurements WHERE (period=60 AND bucket<?) OR (period=3600 AND bucket<?) OR (period=86400 AND bucket<?)')
+     .run(time-6*3600000, time-30*86400000, time-90*86400000);
+   boundHistory(this.db, this.maxRows);
    this.db.prepare('DELETE FROM builds WHERE revision!=? AND NOT EXISTS (SELECT 1 FROM measurements WHERE measurements.revision=builds.revision)').run(this.revision);
    this.db.exec('COMMIT');this.record('metrics.flush_ms',performance.now()-start);
   }catch{try{this.db.exec('ROLLBACK');}catch{}this.failures++;if(this.failures===1)console.error('Measurement flush failed; interval dropped.');this.record('metrics.failures');}
  }
- read({period=3600,since=0,before=Number.MAX_SAFE_INTEGER,limit=2000}={}){return this.enabled?this.db.prepare('SELECT * FROM measurements WHERE period=? AND bucket>=? AND bucket<=? ORDER BY bucket DESC LIMIT ?').all(period,since,before,Math.min(5000,Math.max(1,limit))).map(r=>({...r,value:summary(JSON.parse(r.value))})):[];}
+ read({period=3600,since=0,before=Number.MAX_SAFE_INTEGER,limit=2000,after}={}) {
+   if (!this.enabled) return [];
+   const cursorClause = after ? ' AND (bucket,revision,metric) < (?,?,?)' : '';
+   const rows = this.db.prepare('SELECT * FROM measurements WHERE period=? AND bucket>=? AND bucket<=?' +
+     cursorClause + ' ORDER BY bucket DESC, revision DESC, metric DESC LIMIT ?')
+     .all(period, since, before, ...(after || []), Math.min(5000, Math.max(1,limit)));
+   return rows.map(row => ({...row, value:summary(JSON.parse(row.value))}));
+ }
  builds(){return this.enabled?this.db.prepare('SELECT revision,metadata FROM builds ORDER BY rowid DESC LIMIT 200').all().map(r=>({revision:r.revision,...JSON.parse(r.metadata)})):[];}
  close(){if(!this.enabled)return;this.loop.disable();this.flush();this.db.close();}
 }

@@ -21,10 +21,12 @@ test('a full world keeps established input live and reuses one seat across trans
   assert.equal(refused.status, 503);
   assert.equal(refused.headers.get('retry-after'), '5');
   assert.equal((await refused.json()).error.code, 'WORLD_FULL');
+  assert.equal(app.measurements.pending.get('usage.agent_api.join_full').sum, 1);
   const extra = new WebSocket(socketUrl);
   extra.on('error', () => {});
   const [, response] = await once(extra, 'unexpected-response');
   assert.equal(response.statusCode, 503);
+  assert.equal(app.measurements.pending.get('usage.public_ws.join_full').sum, 1);
   assert.equal(response.headers['retry-after'], '5');
   response.resume(); extra.terminate();
   assert.equal(app.world.usedColors.size, before);
@@ -80,6 +82,10 @@ test('aggregate action pressure refuses before a write, keeps the read stream an
   const busy = await reader.next(m => m.type === 'error' && m.id === 'first');
   assert.equal(busy.code,'WORLD_BUSY'); assert.equal(busy.status,429);
   assert.ok(busy.retryAfterMs>0); assert.equal(app.world.seq,seq);
+  assert.equal(app.measurements.pending.get('usage.public_ws.write.busy').sum, 1);
+  assert.equal(app.measurements.pending.get('usage.public_ws.move.ok').sum, 96);
+  assert.equal(app.measurements.pending.has('usage.public_ws.write.ok'), false);
+  assert.equal(app.measurements.pending.get('overload.refused_candidates').count, 1);
   clock += busy.retryAfterMs;
   reader.send({type:'input',id:'again',sequence:2,epoch:1,action:{kind:'type',text:'雨'}});
   await reader.next(m => m.type === 'ack' && m.id === 'again');

@@ -1,5 +1,6 @@
 import { cellKey, cellSpan, graphemes, occupiedCell, wrap, writePlan } from '../shared/world.js';
 import { translatePoint } from '../shared/relocation.js';
+import { writeKind } from './usage-patterns.js';
 
 export const LIMITS = Object.freeze({
   request: { ratePerSecond: 80, burst: 160 },
@@ -121,12 +122,19 @@ export class ParticipantPolicy {
   }
   // Only an internal transport adapter may mark its already-accounted network
   // request. Actor throttling still applies; clients cannot select this flag.
-  acceptRequest({ networkCharged = false } = {}) {
-    consumeTogether([this.request, networkCharged === true ? null : this.network?.request], 1);
+  acceptRequest({ networkCharged = false, message } = {}) {
+    this.charge(null, [this.request, networkCharged === true ? null : this.network?.request], 1, undefined, message);
+  }
+  charge(kind, budgets, cost, admit, request) {
+    try { consumeTogether(budgets, cost, admit); }
+    catch (error) {
+      this.usage?.denied(kind, error, request);
+      throw error;
+    }
   }
   acceptObservation(count) {
     if (!Number.isSafeInteger(count) || count < 0) throw new TypeError('Observation cost must be a non-negative address count.');
-    consumeTogether([this.read, this.network?.read], count);
+    this.charge('other', [this.read, this.network?.read], count);
   }
   assertEpoch(epoch) {
     if (epoch !== this.world.epoch) throw new PolicyError('STALE_EPOCH', '세계 크기가 바뀌었습니다. 새 지도를 확인하고 다시 입력하세요.', { status: 409 });
@@ -172,7 +180,8 @@ export class ParticipantPolicy {
     const from = operation.type === 'write'
       ? writePlan(operation.text, operation.x, operation.y, this.world, { lineStartX: operation.lineStartX }).cursor : this.peer;
     const cost = Math.min(LIMITS.move.burst, Math.hypot(shortest(next.cursor.x - from.x, this.world.width), shortest(next.cursor.y - from.y, this.world.height)));
-    consumeTogether([this.move, this.network?.move], cost);
+    const kind = operation.type === 'erase' ? 'erase' : writeKind(operation.text, operation.clear?.length > 0);
+    this.charge(kind, [this.move, this.network?.move], cost);
     const saved = { x: this.peer.x, y: this.peer.y };
     let result;
     try {
@@ -198,7 +207,7 @@ export class ParticipantPolicy {
     // A GPS/shared-address relocation may span a large world, but spends an
     // entire burst. Repeating such relocations cannot create a free scan path.
     const cost = Math.min(distance, LIMITS.move.burst);
-    consumeTogether([this.move, this.network?.move], cost,
+    this.charge('move', [this.move, this.network?.move], cost,
       cost ? () => this.admitAction?.(1, point, this.peer) : undefined);
     this.peer.x = point.x; this.peer.y = point.y;
     if (native) {
@@ -207,6 +216,7 @@ export class ParticipantPolicy {
     } else if (intent !== 'native-caret') {
       this.recent.clear(); this.carets.clear(); this.rememberOrigin(point.x);
     }
+    if (distance) this.usage?.accepted('move');
     return { cursor: { ...point }, cost };
   }
   // Coordinate clients choose opaque IDs. A session retains only ID strings
@@ -267,12 +277,14 @@ export class ParticipantPolicy {
     // views. Explicit replacement addresses must belong to the bounded recent
     // input context, which the native editor may retain beyond the screen edge.
     const cost = Math.max(count, removed.size, 1);
-    consumeTogether([this.write, this.network?.write], cost, () => this.admitAction?.(
+    const kind = writeKind(text, clear.length > 0);
+    this.charge(kind, [this.write, this.network?.write], cost, () => this.admitAction?.(
       Math.max(1, cost / 8), plan.cursor, this.peer, [...plan.cells, ...clear]));
     let result;
     try { this.world.persistAuthor(this.peer.id); result = this.world.applyWrite({ author: this.peer.id, id: message.id, epoch: message.epoch,
       ...origin, text, clear, lineStartX }); }
     catch (error) { this.write.refund(cost); this.network?.write.refund(cost); throw error; }
+    if (this.usage && !result.duplicate) this.usage.accepted(kind, count, kind === 'write' && /\S/u.test(normalized));
     this.peer.x = result.cursor.x; this.peer.y = result.cursor.y;
     this.rememberOrigin(lineStartX);
     // Native selection may place its caret at an unchanged suffix, rather
@@ -307,10 +319,11 @@ export class ParticipantPolicy {
     if (!allowed) forbidden('현재 칸 또는 바로 앞 글자만 지울 수 있습니다.');
     const span = cellSpan((x, y) => this.world.getCell(x, y), point.x, point.y, this.world);
     for (const cell of span.length ? span : [point]) this.visible(cell);
-    consumeTogether([this.write, this.network?.write], 1, () => this.admitAction?.(1, point, this.peer, span.length ? span : [point]));
+    this.charge('erase', [this.write, this.network?.write], 1, () => this.admitAction?.(1, point, this.peer, span.length ? span : [point]));
     let result;
     try { result = this.world.erase({ author: this.peer.id, id: message.id, epoch: message.epoch, ...point }); }
     catch (error) { this.write.refund(1); this.network?.write.refund(1); throw error; }
+    if (!result.duplicate) this.usage?.accepted('erase');
     this.peer.x = point.x; this.peer.y = point.y;
     for (const cell of result.cells) this.recent.delete(cellKey(cell.x, cell.y));
     return result;
